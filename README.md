@@ -10,7 +10,7 @@ echo '{ graphics: { points: [{x: 0, y: 0, label: "hello world" }], title: "test 
 # wrote to "test-graphic.debug.md"
 ```
 
-Don't have access to the cli? Paste into the online version: TBA!
+Don't have access to the cli? Paste into the online version: `TBA`
 
 ## Format
 
@@ -83,12 +83,12 @@ before running the program. This makes it easy to turn on/off the graphics outpu
 You can also use `debugGraphics.enabled` to conditionally emit graphics based,
 this is useful if it's expensive to compute the graphics object.
 
-### Process Log Strings into Markdown or SVGs
+### Process Log Strings into HTML or SVGs
 
 ```tsx
 import {
   getSvgFromLogString,
-  getMarkdownFromLogString,
+  getHtmlFromLogString,
   getSvgsFromLogString,
 } from "graphics-debug"
 
@@ -98,7 +98,7 @@ here's some graphics: { graphics: { points: [{x: 0, y: 0, label: "hello world" }
 `
 
 const svg = getSvgFromLogString(logString)
-const markdown = getMarkdownFromLogString(logString)
+const html = getHtmlFromLogString(logString)
 
 // If you want to parse for multiple SVGs
 const svgs = getSvgsFromLogString(logString)
