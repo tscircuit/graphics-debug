@@ -47,6 +47,42 @@ library or `console.log(JSON.stringify(...))` instead.
 
 ## Library Usage
 
+### Writing `graphics-debug` compatible logs
+
+The best way to write `graphics-debug` compatible logs is to use the [`debug` library](https://www.npmjs.com/package/debug).
+
+```tsx
+import Debug from "debug"
+
+const debugGraphics = Debug("mypackage:graphics")
+
+const A = { x: 0, y: 0, label: "A" }
+const B = { x: 1, y: 1, label: "B" }
+
+debugGraphics({
+  graphics: {
+    points: [A, B],
+    title: "initial points for my algorithm",
+  },
+})
+
+// ... do some algorithm stuff e.g....
+const C = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2, label: "C" }
+
+debugGraphics({
+  graphics: {
+    points: [A, B, C],
+    title: "final points for my algorithm",
+  },
+})
+```
+
+To see the output, you'll need to run `DEBUG=mypackage:graphics` in your terminal
+before running the program. This makes it easy to turn on/off the graphics output
+
+You can also use `debugGraphics.enabled` to conditionally emit graphics based,
+this is useful if it's expensive to compute the graphics object.
+
 ### Process Log Strings into Markdown or SVGs
 
 ```tsx
