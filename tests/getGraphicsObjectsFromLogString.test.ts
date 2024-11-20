@@ -53,4 +53,17 @@ describe("getGraphicsObjectsFromLogString", () => {
     const logString = "no graphics objects here"
     expect(getGraphicsObjectsFromLogString(logString)).toEqual([])
   })
+
+  test("should handle text before the graphics object", () => {
+    const logString = `Debug [2024-01-01 12:00:00] Some logging text here
+      and more text {graphics: {points: [{x: 1, y: 2}], title: "test"}}`
+    const expected: GraphicsObject[] = [{
+      graphics: {
+        points: [{ x: 1, y: 2 }],
+        title: "test"
+      }
+    }]
+    
+    expect(getGraphicsObjectsFromLogString(logString)).toEqual(expected)
+  })
 })
