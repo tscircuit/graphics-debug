@@ -10,7 +10,7 @@ echo '{ graphics: { points: [{x: 0, y: 0, label: "hello world" }], title: "test 
 # wrote to "test-graphic.debug.md"
 ```
 
-Don't have access to the cli? Paste into the online version: https://graphicsdebug.com
+Don't have access to the cli? Paste into the online version: TBA!
 
 ## Format
 
