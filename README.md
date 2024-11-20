@@ -104,3 +104,12 @@ const markdown = getMarkdownFromLogString(logString)
 const svgs = getSvgsFromLogString(logString)
 // Array<{ title: string; svg: string }>
 ```
+
+### Extract `graphics` objects from a Debug Log
+
+```tsx
+import { getGraphicsObjectsFromLogString } from "graphics-debug"
+
+const graphicsObjects = getGraphicsObjectsFromLogString(logString)
+// Array<GraphicsObject>
+```
