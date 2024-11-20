@@ -2,7 +2,7 @@
 
 Module for debugging graphics, turn log output into meaningful markdown and SVG diagrams.
 
-Just pipe in output with graphics JSON objects into `graphics-debug` (or `gd`) to get a markdown file
+Just pipe in output with graphics JSON objects into `graphics-debug` (or `gd`) to get an html file
 with all your graphics drawn-in.
 
 ```bash
