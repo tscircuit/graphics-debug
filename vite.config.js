@@ -6,6 +6,6 @@ export default defineConfig({
   root: "site",
   build: {
     outDir: "../dist-site",
-    emptyOutDir: true
-  }
+    emptyOutDir: true,
+  },
 })
