@@ -26,7 +26,10 @@ the graphics in a browser.
 node myscript.js |& graphics-debug --url
 ```
 
-Don't have access to the cli? Paste into the online version: `TBA`
+Don't have access to the cli? Paste into the online version: https://graphicsdebug.com
+
+https://github.com/user-attachments/assets/9f3f41e6-b0fe-416a-a551-ba5c5b920cad
+
 
 ## Format
 
