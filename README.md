@@ -37,8 +37,7 @@ interface GraphicsObject {
   points?: { x: number; y: number; color?: string; label?: string }[]
   lines?: { points: { x: number; y: number; stroke?: number }[] }[]
   rects?: Array<{
-    centerX: number
-    centerY: number
+    center: { x: number; y: number }
     width: number
     height: number
     fill?: string

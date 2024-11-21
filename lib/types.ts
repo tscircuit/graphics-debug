@@ -15,6 +15,7 @@ export interface Rect {
   height: number
   fill?: string
   stroke?: string
+  color?: string
 }
 
 export interface Circle {
@@ -25,12 +26,10 @@ export interface Circle {
 }
 
 export interface GraphicsObject {
-  graphics: {
-    points?: Point[]
-    lines?: Line[]
-    rects?: Rect[]
-    circles?: Circle[]
-    coordinateSystem?: "cartesian" | "screen"
-    title?: string
-  }
+  points?: Point[]
+  lines?: Line[]
+  rects?: Rect[]
+  circles?: Circle[]
+  coordinateSystem?: "cartesian" | "screen"
+  title?: string
 }

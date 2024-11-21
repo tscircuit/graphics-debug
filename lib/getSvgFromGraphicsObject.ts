@@ -21,7 +21,7 @@ interface Bounds {
   maxY: number
 }
 
-function getBounds(graphics: GraphicsObject["graphics"]): Bounds {
+function getBounds(graphics: GraphicsObject): Bounds {
   const points: Point[] = [
     ...(graphics.points || []),
     ...(graphics.lines || []).flatMap((line) => line.points),
@@ -60,7 +60,7 @@ function getBounds(graphics: GraphicsObject["graphics"]): Bounds {
 
 function getProjectionMatrix(
   bounds: Bounds,
-  coordinateSystem: GraphicsObject["graphics"]["coordinateSystem"],
+  coordinateSystem: GraphicsObject["coordinateSystem"],
 ) {
   const width = bounds.maxX - bounds.minX
   const height = bounds.maxY - bounds.minY
@@ -85,8 +85,7 @@ function projectPoint(point: Point, matrix: Matrix) {
   return { ...point, ...projected }
 }
 
-export function getSvgFromGraphicsObject(graphicsObj: GraphicsObject): string {
-  const { graphics } = graphicsObj
+export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
   const bounds = getBounds(graphics)
   const matrix = compose(getProjectionMatrix(bounds, graphics.coordinateSystem))
 

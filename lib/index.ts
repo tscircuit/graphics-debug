@@ -50,7 +50,7 @@ export function getSvgsFromLogString(
 ): Array<{ title: string; svg: string }> {
   const objects = getGraphicsObjectsFromLogString(logString)
   return objects.map((obj) => ({
-    title: obj.graphics.title || "Untitled Graphic",
+    title: obj.title || "Untitled Graphic",
     svg: getSvgFromGraphicsObject(obj),
   }))
 }

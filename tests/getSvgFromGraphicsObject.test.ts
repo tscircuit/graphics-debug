@@ -5,12 +5,10 @@ import type { GraphicsObject } from "../lib/types"
 describe("getSvgFromGraphicsObject", () => {
   test("should generate SVG with points", () => {
     const input: GraphicsObject = {
-      graphics: {
-        points: [
-          { x: 0, y: 0, label: "A", color: "red" },
-          { x: 1, y: 1, label: "B", color: "blue" },
-        ],
-      },
+      points: [
+        { x: 0, y: 0, label: "A", color: "red" },
+        { x: 1, y: 1, label: "B", color: "blue" },
+      ],
     }
 
     const svg = getSvgFromGraphicsObject(input)
@@ -27,16 +25,14 @@ describe("getSvgFromGraphicsObject", () => {
 
   test("should generate SVG with lines", () => {
     const input: GraphicsObject = {
-      graphics: {
-        lines: [
-          {
-            points: [
-              { x: 0, y: 0, stroke: 2 },
-              { x: 1, y: 1 },
-            ],
-          },
-        ],
-      },
+      lines: [
+        {
+          points: [
+            { x: 0, y: 0, stroke: 2 },
+            { x: 1, y: 1 },
+          ],
+        },
+      ],
     }
 
     const svg = getSvgFromGraphicsObject(input)
@@ -49,17 +45,15 @@ describe("getSvgFromGraphicsObject", () => {
 
   test("should generate SVG with rectangles", () => {
     const input: GraphicsObject = {
-      graphics: {
-        rects: [
-          {
-            center: { x: 0, y: 0 },
-            width: 10,
-            height: 20,
-            fill: "yellow",
-            stroke: "green",
-          },
-        ],
-      },
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 10,
+          height: 20,
+          fill: "yellow",
+          stroke: "green",
+        },
+      ],
     }
 
     const svg = getSvgFromGraphicsObject(input)
@@ -72,16 +66,14 @@ describe("getSvgFromGraphicsObject", () => {
 
   test("should generate SVG with circles", () => {
     const input: GraphicsObject = {
-      graphics: {
-        circles: [
-          {
-            center: { x: 0, y: 0 },
-            radius: 5,
-            fill: "purple",
-            stroke: "orange",
-          },
-        ],
-      },
+      circles: [
+        {
+          center: { x: 0, y: 0 },
+          radius: 5,
+          fill: "purple",
+          stroke: "orange",
+        },
+      ],
     }
 
     const svg = getSvgFromGraphicsObject(input)
@@ -94,18 +86,16 @@ describe("getSvgFromGraphicsObject", () => {
 
   test("should handle cartesian coordinates correctly", () => {
     const input: GraphicsObject = {
-      graphics: {
-        coordinateSystem: "cartesian",
-        rects: [
-          {
-            center: { x: 0, y: 0 },
-            width: 10,
-            height: 20,
-            fill: "yellow",
-            stroke: "green",
-          },
-        ],
-      },
+      coordinateSystem: "cartesian",
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 10,
+          height: 20,
+          fill: "yellow",
+          stroke: "green",
+        },
+      ],
     }
 
     const svg = getSvgFromGraphicsObject(input)
@@ -118,9 +108,7 @@ describe("getSvgFromGraphicsObject", () => {
   })
 
   test("should handle empty graphics object", () => {
-    const input: GraphicsObject = {
-      graphics: {},
-    }
+    const input: GraphicsObject = {}
 
     const svg = getSvgFromGraphicsObject(input)
     expect(svg).toBeString()
@@ -131,12 +119,10 @@ describe("getSvgFromGraphicsObject", () => {
 
   test("should maintain aspect ratio in projection", () => {
     const input: GraphicsObject = {
-      graphics: {
-        points: [
-          { x: 0, y: 0 },
-          { x: 100, y: 50 },
-        ],
-      },
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 50 },
+      ],
     }
 
     const svg = getSvgFromGraphicsObject(input)

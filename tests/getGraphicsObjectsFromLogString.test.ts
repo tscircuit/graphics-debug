@@ -9,13 +9,13 @@ describe("getGraphicsObjectsFromLogString", () => {
       {"graphics": {"points": [{"x": 0, "y": 0, "label": "A"}], "title": "test"}}
       more content
     `
-    const expected: GraphicsObject[] = [{
-      graphics: {
+    const expected: GraphicsObject[] = [
+      {
         points: [{ x: 0, y: 0, label: "A" }],
-        title: "test"
-      }
-    }]
-    
+        title: "test",
+      },
+    ]
+
     expect(getGraphicsObjectsFromLogString(logString)).toEqual(expected)
   })
 
@@ -25,13 +25,13 @@ describe("getGraphicsObjectsFromLogString", () => {
       {graphics: {points: [{x: 1, y: 2}], title: "relaxed"}}
       other content
     `
-    const expected: GraphicsObject[] = [{
-      graphics: {
+    const expected: GraphicsObject[] = [
+      {
         points: [{ x: 1, y: 2 }],
-        title: "relaxed"
-      }
-    }]
-    
+        title: "relaxed",
+      },
+    ]
+
     expect(getGraphicsObjectsFromLogString(logString)).toEqual(expected)
   })
 
@@ -42,10 +42,10 @@ describe("getGraphicsObjectsFromLogString", () => {
       {graphics: {circles: [{center: {x: 1, y: 1}, radius: 5}]}}
     `
     const expected: GraphicsObject[] = [
-      { graphics: { points: [{ x: 0, y: 0 }] }},
-      { graphics: { circles: [{ center: { x: 1, y: 1 }, radius: 5 }] }}
+      { points: [{ x: 0, y: 0 }] },
+      { circles: [{ center: { x: 1, y: 1 }, radius: 5 }] },
     ]
-    
+
     expect(getGraphicsObjectsFromLogString(logString)).toEqual(expected)
   })
 
@@ -54,16 +54,30 @@ describe("getGraphicsObjectsFromLogString", () => {
     expect(getGraphicsObjectsFromLogString(logString)).toEqual([])
   })
 
+  test("should handle debug format with :graphics marker", () => {
+    const logString = `graphics-debug:example-usage:graphics {"rects":[{"center": {"x": 0,"y":0},"width":100,"height":100,"color":"green"}],"points":[{"x":50,"y":50,"color":"red","label":"Test Output!"}]} +0ms`
+    const expected: GraphicsObject[] = [
+      {
+        rects: [
+          { center: { x: 0, y: 0 }, width: 100, height: 100, color: "green" },
+        ],
+        points: [{ x: 50, y: 50, color: "red", label: "Test Output!" }],
+      },
+    ]
+
+    expect(getGraphicsObjectsFromLogString(logString)).toEqual(expected)
+  })
+
   test("should handle text before the graphics object", () => {
     const logString = `Debug [2024-01-01 12:00:00] Some logging text here
       and more text {graphics: {points: [{x: 1, y: 2}], title: "test"}}`
-    const expected: GraphicsObject[] = [{
-      graphics: {
+    const expected: GraphicsObject[] = [
+      {
         points: [{ x: 1, y: 2 }],
-        title: "test"
-      }
-    }]
-    
+        title: "test",
+      },
+    ]
+
     expect(getGraphicsObjectsFromLogString(logString)).toEqual(expected)
   })
 })
