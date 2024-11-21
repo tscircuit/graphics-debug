@@ -11,9 +11,11 @@
     "gd": "./dist/cli/cli.js"
   },
   "scripts": {
+    "start": "vite",
     "build": "tsup-node ./cli ./lib --format esm --sourcemap",
     "format": "biome format --write .",
-    "format:check": "biome format ."
+    "format:check": "biome format .",
+    "vercel-build": "vite build"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
@@ -33,6 +35,8 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "pretty": "^2.0.0"
+    "@types/react-router-dom": "^5.3.3",
+    "pretty": "^2.0.0",
+    "react-router-dom": "^6.28.0"
   }
 }
