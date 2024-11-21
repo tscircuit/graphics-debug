@@ -177,3 +177,5 @@ dist
 .vscode
 .aider*
 *.diff.png
+.vercel
+dist-site
