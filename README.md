@@ -7,7 +7,7 @@ with all your graphics drawn-in.
 
 ```bash
 echo '{ graphics: { points: [{x: 0, y: 0, label: "hello world" }], title: "test graphic" } }' | graphics-debug
-# wrote to "test-graphic.debug.md"
+# wrote to "test-graphic.debug.svg"
 ```
 
 Don't have access to the cli? Paste into the online version: `TBA`

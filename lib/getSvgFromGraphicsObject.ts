@@ -4,6 +4,7 @@ import {
   translate,
   scale,
   applyToPoint,
+  identity,
   type Matrix,
 } from "transformation-matrix"
 import type { GraphicsObject, Point } from "./types"
@@ -57,7 +58,10 @@ function getBounds(graphics: GraphicsObject["graphics"]): Bounds {
   )
 }
 
-function getProjectionMatrix(bounds: Bounds) {
+function getProjectionMatrix(
+  bounds: Bounds,
+  coordinateSystem: GraphicsObject["graphics"]["coordinateSystem"],
+) {
   const width = bounds.maxX - bounds.minX
   const height = bounds.maxY - bounds.minY
 
@@ -68,7 +72,10 @@ function getProjectionMatrix(bounds: Bounds) {
 
   return compose(
     translate(DEFAULT_SVG_SIZE / 2, DEFAULT_SVG_SIZE / 2),
-    scale(scale_factor, -scale_factor),
+    scale(
+      scale_factor,
+      coordinateSystem === "screen" ? -scale_factor : scale_factor,
+    ),
     translate(-(bounds.minX + width / 2), -(bounds.minY + height / 2)),
   )
 }
@@ -81,7 +88,7 @@ function projectPoint(point: Point, matrix: Matrix) {
 export function getSvgFromGraphicsObject(graphicsObj: GraphicsObject): string {
   const { graphics } = graphicsObj
   const bounds = getBounds(graphics)
-  const matrix = getProjectionMatrix(bounds)
+  const matrix = compose(getProjectionMatrix(bounds, graphics.coordinateSystem))
 
   const svgObject = {
     name: "svg",
@@ -154,7 +161,7 @@ export function getSvgFromGraphicsObject(graphicsObj: GraphicsObject): string {
             x: (projected.x - scaledWidth / 2).toString(),
             y: (projected.y - scaledHeight / 2).toString(),
             width: scaledWidth.toString(),
-            height: scaledHeight.toString(),
+            height: Math.abs(scaledHeight).toString(),
             fill: rect.fill || "none",
             stroke: rect.stroke || "black",
           },

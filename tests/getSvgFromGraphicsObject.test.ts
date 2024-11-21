@@ -92,6 +92,31 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "circles")
   })
 
+  test("should handle cartesian coordinates correctly", () => {
+    const input: GraphicsObject = {
+      graphics: {
+        coordinateSystem: "cartesian",
+        rects: [
+          {
+            center: { x: 0, y: 0 },
+            width: 10,
+            height: 20,
+            fill: "yellow",
+            stroke: "green",
+          },
+        ],
+      },
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+    expect(svg).toBeString()
+    expect(svg).toContain("<rect")
+    expect(svg).toContain('fill="yellow"')
+    expect(svg).toContain('stroke="green"')
+    // In cartesian coordinates, the rectangle should be centered
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "cartesian-rect")
+  })
+
   test("should handle empty graphics object", () => {
     const input: GraphicsObject = {
       graphics: {},

@@ -30,6 +30,7 @@ export interface GraphicsObject {
     lines?: Line[]
     rects?: Rect[]
     circles?: Circle[]
+    coordinateSystem?: "cartesian" | "screen"
     title?: string
   }
 }
