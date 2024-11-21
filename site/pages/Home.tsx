@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { getSvgsFromLogString } from "../../lib"
+import SVGRenderer from "../components/SVGRenderer";
 
 export default function Home() {
   const [input, setInput] = useState("")
@@ -36,13 +37,7 @@ export default function Home() {
       {graphics.length > 0 && (
         <div className="space-y-8">
           {graphics.map(({ title, svg }, index) => (
-            <div key={index} className="space-y-2">
-              <h2 className="text-xl font-semibold">{title}</h2>
-              <div
-                className="border rounded p-4 bg-white"
-                dangerouslySetInnerHTML={{ __html: svg }}
-              />
-            </div>
+            <SVGRenderer key={index} title={title} svg={svg} />
           ))}
         </div>
       )}
