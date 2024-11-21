@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 import { getSvgFromGraphicsObject, getSvgsFromLogString } from "../../lib"
+import SVGRenderer from "../components/SVGRenderer"
 
 export default function Token() {
   const { token } = useParams<{ token: string }>()
@@ -20,7 +21,6 @@ export default function Token() {
           throw new Error("Failed to fetch graphics data")
         }
         const { graphicsObjects } = await response.json()
-
         setGraphics(
           graphicsObjects.map((graphicsObject: any) => ({
             title: graphicsObject.title,
@@ -33,7 +33,6 @@ export default function Token() {
         setLoading(false)
       }
     }
-
     if (token) {
       fetchGraphics()
     }
@@ -52,17 +51,10 @@ export default function Token() {
       <div className="prose">
         <h1>Graphics Visualization</h1>
       </div>
-
       {graphics.length > 0 ? (
         <div className="space-y-8">
           {graphics.map(({ title, svg }, index) => (
-            <div key={index} className="space-y-2">
-              <h2 className="text-xl font-semibold">{title}</h2>
-              <div
-                className="border rounded p-4 bg-white"
-                dangerouslySetInnerHTML={{ __html: svg }}
-              />
-            </div>
+            <SVGRenderer key={index} title={title} svg={svg} />
           ))}
         </div>
       ) : (
