@@ -10,7 +10,7 @@ import {
 
 async function getInput(): Promise<string> {
   // Check if there's data being piped in
-  if (process.stdin.isTTY) {
+  if (process.stdin.isTTY && process.stderr.isTTY) {
     console.error(
       "Error: No input provided. Pipe in content with graphics objects.",
     )
@@ -18,9 +18,14 @@ async function getInput(): Promise<string> {
   }
 
   const chunks = []
-  for await (const chunk of process.stdin) {
-    chunks.push(chunk)
+
+  // Read from stdin if available
+  if (!process.stdin.isTTY) {
+    for await (const chunk of process.stdin) {
+      chunks.push(chunk)
+    }
   }
+
   return chunks.join("")
 }
 
@@ -56,6 +61,12 @@ Examples:
     writeFileSync("graphicsdebug.debug.html", html)
     console.log('Wrote to "graphicsdebug.debug.html"')
   } else if (values.url) {
+    const graphicsObjects = getGraphicsObjectsFromLogString(input)
+    if (graphicsObjects.length === 0) {
+      console.error("No graphics objects found in input")
+      process.exit(0)
+    }
+
     const { url } = await fetch("https://gdstore.seve.workers.dev/store", {
       method: "POST",
       body: JSON.stringify({

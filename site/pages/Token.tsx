@@ -14,7 +14,7 @@ export default function Token() {
     const fetchGraphics = async () => {
       try {
         const response = await fetch(
-          `https://gdstore.seve.cloudflare.dev/get/${token}`,
+          `https://gdstore.seve.workers.dev/get/${token}`,
         )
         if (!response.ok) {
           throw new Error("Failed to fetch graphics data")

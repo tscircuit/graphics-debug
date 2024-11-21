@@ -6,8 +6,24 @@ Just pipe in output with graphics JSON objects into `graphics-debug` (or `gd`) t
 with all your graphics drawn-in.
 
 ```bash
-echo '{ graphics: { points: [{x: 0, y: 0, label: "hello world" }], title: "test graphic" } }' | graphics-debug
+echo ':graphics { points: [{x: 0, y: 0, label: "hello world" }], title: "test graphic" } }' | graphics-debug
 # wrote to "test-graphic-1.debug.svg"
+```
+
+```bash
+# Run a program that has debug logs and pipe the output to graphics-debug
+bun test path/to/test.ts |& graphics-debug --html
+# wrote to "graphics.debug.html"
+
+# another syntax for the same thing
+bun test path/to/test.ts 2>&1 | graphics-debug --html
+```
+
+Don't want to write files everywhere? Use the `--url` flag to get a url to view
+the graphics in a browser.
+
+```bash
+node myscript.js |& graphics-debug --url
 ```
 
 Don't have access to the cli? Paste into the online version: `TBA`
@@ -18,34 +34,27 @@ The `graphics` json object is very simple, here's the basic schema:
 
 ```typescript
 interface GraphicsObject {
-  graphics: {
-    points?: { x: number; y: number; color?: string; label?: string }[]
-    lines?: { points: { x: number; y: number; stroke?: number }[] }[]
-    rects?: Array<{
-      center: { x: number; y: number }
-      width: number
-      height: number
-      fill?: string
-      stroke?: string
-    }>
-    circles?: Array<{
-      center: { x: number; y: number }
-      radius: number
-      fill?: string
-      stroke?: string
-    }>
-    grid?: { cellSize: number; label?: boolean }
-    coordinateSystem?: "cartesian" | "screen"
-    title?: string
-  }
+  points?: { x: number; y: number; color?: string; label?: string }[]
+  lines?: { points: { x: number; y: number; stroke?: number }[] }[]
+  rects?: Array<{
+    centerX: number
+    centerY: number
+    width: number
+    height: number
+    fill?: string
+    stroke?: string
+  }>
+  circles?: Array<{
+    center: { x: number; y: number }
+    radius: number
+    fill?: string
+    stroke?: string
+  }>
+  grid?: { cellSize: number; label?: boolean }
+  coordinateSystem?: "cartesian" | "screen"
+  title?: string
 }
 ```
-
-When emiting a graphics object, keep the `{ graphics }` object on a single line,
-`graphics-debug` won't parse multi-line `{ graphics }` objects. You can have
-other content on same line as the `{ graphics }` object. This means you can't
-use `console.log` to emit graphics objects, use the [debug](https://www.npmjs.com/package/debug)
-library or `console.log(JSON.stringify(...))` instead.
 
 ## Library Usage
 
@@ -62,20 +71,16 @@ const A = { x: 0, y: 0, label: "A" }
 const B = { x: 1, y: 1, label: "B" }
 
 debugGraphics({
-  graphics: {
-    points: [A, B],
-    title: "initial points for my algorithm",
-  },
+  points: [A, B],
+  title: "initial points for my algorithm",
 })
 
 // ... do some algorithm stuff e.g....
 const C = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2, label: "C" }
 
 debugGraphics({
-  graphics: {
-    points: [A, B, C],
-    title: "final points for my algorithm",
-  },
+  points: [A, B, C],
+  title: "final points for my algorithm",
 })
 ```
 
@@ -96,7 +101,7 @@ import {
 
 const logString = `
 hello world! This is some other content that will be ignored
-here's some graphics: { graphics: { points: [{x: 0, y: 0, label: "hello world" }], title: "test graphic" } }
+here's some :graphics { points: [{x: 0, y: 0, label: "hello world" }], title: "test graphic" }
 `
 
 const svg = getSvgFromLogString(logString)
@@ -114,4 +119,8 @@ import { getGraphicsObjectsFromLogString } from "graphics-debug"
 
 const graphicsObjects = getGraphicsObjectsFromLogString(logString)
 // Array<GraphicsObject>
+```
+
+```
+
 ```
