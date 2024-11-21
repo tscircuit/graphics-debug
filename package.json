@@ -2,6 +2,11 @@
   "name": "graphics-debug",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "build": "tsup-node ./cli/cli.ts --format esm --sourcemap",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
+  },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@types/bun": "latest",
@@ -12,8 +17,7 @@
     "commander": "^12.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "tsup": "^8.3.5",
-    "vite": "^5.4.11"
+    "tsup": "^8.3.5"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
