@@ -4,7 +4,7 @@ const debugGraphics = Debug("graphics-debug:example-usage:graphics")
 
 debugGraphics(
   JSON.stringify({
-    title: "Example Usage!",
+    title: "Example Usage",
     rects: [
       {
         center: { x: 0, y: 0 },
@@ -19,7 +19,7 @@ debugGraphics(
 
 debugGraphics(
   JSON.stringify({
-    title: "More Example Usage!",
+    title: "More Example Usage",
     lines: [
       {
         points: [
