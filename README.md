@@ -35,6 +35,7 @@ interface GraphicsObject {
       stroke?: string
     }>
     grid?: { cellSize: number; label?: boolean }
+    coordinateSystem?: "cartesian" | "screen"
     title?: string
   }
 }
