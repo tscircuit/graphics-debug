@@ -25,12 +25,23 @@ export default function Home() {
           className="w-full h-48 p-4 border rounded-lg shadow-sm"
           placeholder="Paste your graphics debug output here..."
         />
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Visualize
-        </button>
+        <div className="flex gap-4">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Visualize
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setInput(`:graphics {"title":"Example Usage","rects":[{"center":{"x":0,"y":0},"width":100,"height":100,"color":"green"}],"points":[{"x":50,"y":50,"color":"red","label":"Test Output!"}]} :graphics {"title":"More Example Usage","lines":[{"points":[{"x":0,"y":0},{"x":5,"y":5}]}],"circles":[{"center":{"x":2.5,"y":2.5},"radius":2.5,"color":"blue"}],"points":[{"x":10,"y":10,"color":"red","label":"B"}]}`)
+            }}
+            className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+          >
+            See Example
+          </button>
+        </div>
       </form>
 
       {graphics.length > 0 && (
