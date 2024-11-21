@@ -34,6 +34,7 @@ interface GraphicsObject {
       fill?: string
       stroke?: string
     }>
+    grid?: { cellSize: number; label?: boolean }
     title?: string
   }
 }
