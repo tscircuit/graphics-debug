@@ -1,9 +1,17 @@
 {
   "name": "graphics-debug",
-  "module": "index.ts",
+  "main": "dist/lib/index.js",
   "type": "module",
+  "version": "0.0.1",
+  "files": [
+    "dist"
+  ],
+  "bin": {
+    "graphics-debug": "./dist/cli/cli.js",
+    "gd": "./dist/cli/cli.js"
+  },
   "scripts": {
-    "build": "tsup-node ./cli/cli.ts --format esm --sourcemap",
+    "build": "tsup-node ./cli ./lib --format esm --sourcemap",
     "format": "biome format --write .",
     "format:check": "biome format ."
   },

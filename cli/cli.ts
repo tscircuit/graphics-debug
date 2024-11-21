@@ -2,7 +2,11 @@
 import { parseArgs } from "node:util"
 import { readFileSync } from "node:fs"
 import { writeFileSync } from "node:fs"
-import { getSvgsFromLogString, getHtmlFromLogString } from "../lib"
+import {
+  getSvgsFromLogString,
+  getHtmlFromLogString,
+  getGraphicsObjectsFromLogString,
+} from "../lib"
 
 async function getInput(): Promise<string> {
   // Check if there's data being piped in
@@ -24,6 +28,7 @@ async function main() {
   const { values } = parseArgs({
     options: {
       html: { type: "boolean" },
+      url: { type: "boolean" },
       help: { type: "boolean" },
     },
   })
@@ -34,6 +39,7 @@ Usage: graphics-debug [options]
 
 Options:
   --html    Output a single HTML file with all graphics
+  --url     Print a url to view the graphics in a browser
   --help    Show this help message
 
 Examples:
@@ -49,6 +55,19 @@ Examples:
     const html = getHtmlFromLogString(input)
     writeFileSync("graphicsdebug.debug.html", html)
     console.log('Wrote to "graphicsdebug.debug.html"')
+  } else if (values.url) {
+    const { url } = await fetch("https://gdstore.seve.workers.dev/store", {
+      method: "POST",
+      body: JSON.stringify({
+        graphicsObjects: getGraphicsObjectsFromLogString(input),
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }).then((res) => res.json())
+
+    // console.log("https://graphicsdebug.com/")
+    // console.log(`Debug Graphics: ${url}`)
   } else {
     const svgs = getSvgsFromLogString(input)
     svgs.forEach((svg, i) => {
