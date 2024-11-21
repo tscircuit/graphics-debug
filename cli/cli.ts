@@ -66,8 +66,9 @@ Examples:
       },
     }).then((res) => res.json())
 
-    // console.log("https://graphicsdebug.com/")
-    // console.log(`Debug Graphics: ${url}`)
+    const token = url.split("/get/").pop()
+
+    console.log(`https://graphicsdebug.com/t/${token}`)
   } else {
     const svgs = getSvgsFromLogString(input)
     svgs.forEach((svg, i) => {
