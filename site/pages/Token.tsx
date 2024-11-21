@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { getSvgsFromLogString } from "../../lib"
+import { getSvgFromGraphicsObject, getSvgsFromLogString } from "../../lib"
 
 export default function Token() {
   const { token } = useParams<{ token: string }>()
@@ -19,9 +19,14 @@ export default function Token() {
         if (!response.ok) {
           throw new Error("Failed to fetch graphics data")
         }
-        const data = await response.text()
-        const results = getSvgsFromLogString(data)
-        setGraphics(results)
+        const { graphicsObjects } = await response.json()
+
+        setGraphics(
+          graphicsObjects.map((graphicsObject: any) => ({
+            title: graphicsObject.title,
+            svg: getSvgFromGraphicsObject(graphicsObject),
+          })),
+        )
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred")
       } finally {

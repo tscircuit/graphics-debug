@@ -61,6 +61,10 @@ interface GraphicsObject {
 
 The best way to write `graphics-debug` compatible logs is to use the [`debug` library](https://www.npmjs.com/package/debug).
 
+You should **always JSON.stringify graphics objects**, otherwise the graphics
+will take up more lines and will not have the correct depth (there will be
+missing information)
+
 ```tsx
 import Debug from "debug"
 
@@ -69,18 +73,22 @@ const debugGraphics = Debug("mypackage:graphics")
 const A = { x: 0, y: 0, label: "A" }
 const B = { x: 1, y: 1, label: "B" }
 
-debugGraphics({
-  points: [A, B],
-  title: "initial points for my algorithm",
-})
+debugGraphics(
+  JSON.stringify({
+    points: [A, B],
+    title: "initial points for my algorithm",
+  })
+)
 
 // ... do some algorithm stuff e.g....
 const C = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2, label: "C" }
 
-debugGraphics({
-  points: [A, B, C],
-  title: "final points for my algorithm",
-})
+debugGraphics(
+  JSON.stringify({
+    points: [A, B, C],
+    title: "final points for my algorithm",
+  })
+)
 ```
 
 To see the output, you'll need to run `DEBUG=mypackage:graphics` in your terminal
