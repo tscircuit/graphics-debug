@@ -1,13 +1,17 @@
 import React, { useRef, useEffect } from "react"
 
-const SVGRenderer: React.FC<{ title: string; svg: string }> = ({ title, svg }) => {
+export interface SVGRendererProps {
+  title: string;
+  svg: string;
+}
+
+const SVGRenderer: React.FC<SVGRendererProps> = ({ title, svg }) => {
     const containerRef = useRef<HTMLDivElement>(null);
   
     useEffect(() => {
       if (containerRef.current) {
         // Clear any existing content
         containerRef.current.innerHTML = '';
-
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = svg.trim();
         
