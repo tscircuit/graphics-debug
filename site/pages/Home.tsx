@@ -1,23 +1,33 @@
 import React, { useState } from "react"
-import { getSvgsFromLogString } from "../../lib"
+import {
+  getSvgsFromLogString,
+  getGraphicsObjectsFromLogString,
+} from "../../lib"
+import { GraphicsDisplay } from "../components/GraphicsDisplay"
 
 export default function Home() {
   const [input, setInput] = useState("")
   const [graphics, setGraphics] = useState<
-    Array<{ title: string; svg: string }>
+    Array<{ title: string; svg: string; graphicsObject?: any }>
   >([])
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const results = getSvgsFromLogString(input)
-      if (results.length === 0) {
+      const graphicsObjects = getGraphicsObjectsFromLogString(input)
+      if (graphicsObjects.length === 0) {
         setError("No graphics objects found in the input")
         setGraphics([])
       } else {
         setError(null)
-        setGraphics(results)
+        const results = getSvgsFromLogString(input)
+        setGraphics(
+          results.map((result, i) => ({
+            ...result,
+            graphicsObject: graphicsObjects[i],
+          })),
+        )
       }
     } catch (err) {
       setError(
@@ -60,19 +70,7 @@ export default function Home() {
         </div>
       )}
 
-      {graphics.length > 0 && (
-        <div className="space-y-8">
-          {graphics.map(({ title, svg }, index) => (
-            <div key={index} className="space-y-2">
-              <h2 className="text-xl font-semibold">{title}</h2>
-              <div
-                className="border rounded p-4 bg-white"
-                dangerouslySetInnerHTML={{ __html: svg }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
+      {graphics.length > 0 && <GraphicsDisplay graphics={graphics} />}
     </div>
   )
 }
