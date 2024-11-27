@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
-import { getSvgFromGraphicsObject, getSvgsFromLogString } from "../../lib"
-import SVGRenderer from "../components/SVGRenderer"
+import { getSvgFromGraphicsObject } from "../../lib"
+import { GraphicsDisplay } from "../components/GraphicsDisplay"
 
 export default function Token() {
   const { token } = useParams<{ token: string }>()
   const [graphics, setGraphics] = useState<
-    Array<{ title: string; svg: string }>
+    Array<{ title: string; svg: string; graphicsObject?: any }>
   >([])
   const [error, setError] = useState<string>("")
   const [loading, setLoading] = useState(true)
@@ -23,8 +23,9 @@ export default function Token() {
         const { graphicsObjects } = await response.json()
         setGraphics(
           graphicsObjects.map((graphicsObject: any) => ({
-            title: graphicsObject.title,
+            title: graphicsObject.title || "Untitled Graphic",
             svg: getSvgFromGraphicsObject(graphicsObject),
+            graphicsObject,
           })),
         )
       } catch (err) {
@@ -51,15 +52,8 @@ export default function Token() {
       <div className="prose">
         <h1>Graphics Visualization</h1>
       </div>
-      {graphics.length > 0 ? (
-        <div className="space-y-8">
-          {graphics.map(({ title, svg }, index) => (
-            <SVGRenderer key={index} title={title} svg={svg} />
-          ))}
-        </div>
-      ) : (
-        <p>No graphics found</p>
-      )}
+
+      <GraphicsDisplay graphics={graphics} />
     </div>
   )
 }
