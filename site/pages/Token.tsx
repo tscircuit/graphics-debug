@@ -21,7 +21,6 @@ export default function Token() {
           throw new Error("Failed to fetch graphics data")
         }
         const { graphicsObjects } = await response.json()
-
         setGraphics(
           graphicsObjects.map((graphicsObject: any) => ({
             title: graphicsObject.title || "Untitled Graphic",
@@ -35,7 +34,6 @@ export default function Token() {
         setLoading(false)
       }
     }
-
     if (token) {
       fetchGraphics()
     }
