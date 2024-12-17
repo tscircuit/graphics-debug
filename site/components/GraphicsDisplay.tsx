@@ -9,6 +9,16 @@ interface GraphicsDisplayProps {
   }>
 }
 
+interface TooltipInfo {
+  x: number
+  y: number
+  items: Array<{
+    type: string
+    label?: string
+    position: string
+  }>
+}
+
 interface TableObject {
   type: string
   id: string
@@ -16,21 +26,28 @@ interface TableObject {
 }
 
 function flattenObject(obj: any, prefix = ""): Record<string, any> {
-  return Object.keys(obj).reduce((acc, key) => {
+  const result: Record<string, any> = {}
+
+  for (const key of Object.keys(obj)) {
     const propName = prefix ? `${prefix}.${key}` : key
     if (typeof obj[key] === "object" && obj[key] !== null) {
-      return { ...acc, ...flattenObject(obj[key], propName) }
+      Object.assign(result, flattenObject(obj[key], propName))
+    } else {
+      result[propName] = obj[key]
     }
-    return { ...acc, [propName]: obj[key] }
-  }, {})
+  }
+
+  return result
 }
 
 function ObjectTable({
   objects,
   onHover,
+  svgIndex,
 }: {
   objects: TableObject[]
   onHover: (id: string) => void
+  svgIndex: number
 }) {
   if (objects.length === 0) return null
 
@@ -66,7 +83,11 @@ function ObjectTable({
               <tr
                 key={`${obj.type}-${idx}`}
                 className="hover:bg-gray-50 cursor-pointer"
-                onMouseEnter={() => onHover(obj.id)}
+                onMouseEnter={() => {
+                  const id = `${obj.type}-${svgIndex}-${idx}`
+                  console.log("Hovering with ID:", id)
+                  return onHover(`${obj.type}-${svgIndex}-${idx}`)
+                }}
                 onMouseLeave={() => onHover("")}
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
@@ -93,6 +114,55 @@ function ObjectTable({
 
 export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
   const [highlightedId, setHighlightedId] = useState("")
+  const [tooltip, setTooltip] = useState<TooltipInfo | null>(null)
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const svg = e.currentTarget.querySelector("svg")
+    if (!svg) return
+
+    const rect = svg.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+
+    // Get all elements under the cursor
+    const elements = document
+      .elementsFromPoint(e.clientX, e.clientY)
+      .filter((el) => el instanceof SVGElement && el.hasAttribute("data-type"))
+      .map((el) => el as SVGElement)
+
+    if (elements.length > 0) {
+      setTooltip({
+        x: e.clientX,
+        y: e.clientY,
+        items: elements.map((el) => {
+          const type = el.getAttribute("data-type") || ""
+          const label = el.getAttribute("data-label") || ""
+
+          // Handle multi-point objects (like lines)
+          const points = el.getAttribute("data-points")
+          let position: string
+          if (points) {
+            position = points
+              .split(" ")
+              .map((p) => `(${p})`)
+              .join(",")
+            position = `[${position}]`
+          } else {
+            // Single point objects
+            position = `(${el.getAttribute("data-x")}, ${el.getAttribute("data-y")})`
+          }
+
+          return { type, label, position }
+        }),
+      })
+    } else {
+      setTooltip(null)
+    }
+  }
+
+  const handleMouseLeave = () => {
+    setTooltip(null)
+  }
 
   const processGraphicsObjects = (
     graphicsObject?: GraphicsObject,
@@ -104,8 +174,8 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
     if (graphicsObject.points) {
       graphicsObject.points.forEach((point, idx) => {
         objects.push({
-          type: "Point",
-          id: `points-${idx}`,
+          type: "point",
+          id: `point-${idx}`,
           properties: flattenObject(point),
         })
       })
@@ -114,8 +184,8 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
     if (graphicsObject.lines) {
       graphicsObject.lines.forEach((line, idx) => {
         objects.push({
-          type: "Line",
-          id: `lines-${idx}`,
+          type: "line",
+          id: `line-${idx}`,
           properties: {
             points: `[${line.points.map((p) => `(${p.x},${p.y})`).join(", ")}]`,
             ...(line.points[0].stroke ? { stroke: line.points[0].stroke } : {}),
@@ -127,8 +197,8 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
     if (graphicsObject.rects) {
       graphicsObject.rects.forEach((rect, idx) => {
         objects.push({
-          type: "Rectangle",
-          id: `rects-${idx}`,
+          type: "rect",
+          id: `rect-${idx}`,
           properties: flattenObject(rect),
         })
       })
@@ -137,8 +207,8 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
     if (graphicsObject.circles) {
       graphicsObject.circles.forEach((circle, idx) => {
         objects.push({
-          type: "Circle",
-          id: `circles-${idx}`,
+          type: "circle",
+          id: `circle-${idx}`,
           properties: flattenObject(circle),
         })
       })
@@ -156,7 +226,11 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
           <div key={index} className="space-y-4">
             <h2 className="text-xl font-semibold">{title}</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div className="border rounded bg-white overflow-hidden">
+              <div
+                className="border rounded bg-white overflow-hidden relative"
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+              >
                 <div
                   className="w-full h-full"
                   dangerouslySetInnerHTML={{
@@ -166,15 +240,22 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
                         /<(circle|rect|polyline|g)(\s[^>]*)?>/g,
                         (match, tag, attrs = "") => {
                           const types = {
-                            circle: "circles",
-                            rect: "rects",
-                            polyline: "lines",
-                            g: "points",
+                            circle: "circle",
+                            rect: "rect",
+                            polyline: "line",
+                            g: "point",
                           }
                           const type = types[tag as keyof typeof types]
                           if (!type) return match
-
-                          const dataId = `${type}-${highlightedId.split("-")[1] || ""}`
+                          const [typeId, svgIndex, objIndex] =
+                            highlightedId.split("-")
+                          const dataId = `${type}-${index}-${objIndex || ""}`
+                          console.log(
+                            "SVG element ID:",
+                            dataId,
+                            "highlightedId:",
+                            highlightedId,
+                          )
                           const highlightClass =
                             dataId === highlightedId ? " highlight" : ""
                           return `<${tag}${attrs} data-id="${dataId}" class="${highlightClass}">`
@@ -182,11 +263,33 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
                       ),
                   }}
                 />
+                {tooltip && (
+                  <div
+                    className="absolute bg-black bg-opacity-75 text-white p-2 rounded pointer-events-none"
+                    style={{
+                      position: "fixed",
+                      left: `${tooltip.x}px`,
+                      top: `${tooltip.y}px`,
+                      zIndex: 50,
+                    }}
+                  >
+                    {tooltip.items.map((item, i) => (
+                      <div key={i}>
+                        {item.type} {item.label && `(${item.label})`}:{" "}
+                        {item.position}
+                        {i < tooltip.items.length - 1 && (
+                          <hr className="my-1 border-gray-500" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="overflow-auto max-h-[640px] border rounded-lg">
                 <ObjectTable
                   objects={tableObjects}
                   onHover={setHighlightedId}
+                  svgIndex={index}
                 />
               </div>
             </div>
