@@ -105,11 +105,16 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
         return {
           name: "g",
           type: "element",
+          attributes: {},
           children: [
             {
               name: "circle",
               type: "element",
               attributes: {
+                "data-type": "point",
+                "data-label": point.label || "",
+                "data-x": point.x.toString(),
+                "data-y": point.y.toString(),
                 cx: projected.x.toString(),
                 cy: projected.y.toString(),
                 r: "3",
@@ -139,6 +144,8 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
         name: "polyline",
         type: "element",
         attributes: {
+          "data-points": line.points.map((p) => `${p.x},${p.y}`).join(" "),
+          "data-type": "line",
           points: line.points
             .map((p) => projectPoint(p, matrix))
             .map((p) => `${p.x},${p.y}`)
@@ -157,6 +164,10 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
           name: "rect",
           type: "element",
           attributes: {
+            "data-type": "rect",
+            "data-label": "",
+            "data-x": rect.center.x.toString(),
+            "data-y": rect.center.y.toString(),
             x: (projected.x - scaledWidth / 2).toString(),
             y: (projected.y - scaledHeight / 2).toString(),
             width: scaledWidth.toString(),
@@ -174,6 +185,10 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
           name: "circle",
           type: "element",
           attributes: {
+            "data-type": "circle",
+            "data-label": "",
+            "data-x": circle.center.x.toString(),
+            "data-y": circle.center.y.toString(),
             cx: projected.x.toString(),
             cy: projected.y.toString(),
             r: scaledRadius.toString(),
