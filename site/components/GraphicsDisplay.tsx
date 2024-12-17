@@ -84,8 +84,6 @@ function ObjectTable({
                 key={`${obj.type}-${idx}`}
                 className="hover:bg-gray-50 cursor-pointer"
                 onMouseEnter={() => {
-                  const id = `${obj.type}-${svgIndex}-${idx}`
-                  console.log("Hovering with ID:", id)
                   return onHover(`${obj.type}-${svgIndex}-${idx}`)
                 }}
                 onMouseLeave={() => onHover("")}
@@ -250,12 +248,6 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
                           const [typeId, svgIndex, objIndex] =
                             highlightedId.split("-")
                           const dataId = `${type}-${index}-${objIndex || ""}`
-                          console.log(
-                            "SVG element ID:",
-                            dataId,
-                            "highlightedId:",
-                            highlightedId,
-                          )
                           const highlightClass =
                             dataId === highlightedId ? " highlight" : ""
                           return `<${tag}${attrs} data-id="${dataId}" class="${highlightClass}">`
