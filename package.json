@@ -12,7 +12,7 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "tsup-node ./cli ./lib --format esm --sourcemap",
+    "build": "tsup-node ./cli ./lib --dts --format esm --sourcemap",
     "format": "biome format --write .",
     "format:check": "biome format .",
     "vercel-build": "vite build"

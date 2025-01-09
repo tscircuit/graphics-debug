@@ -1,6 +1,6 @@
 import Debug from "debug"
 
-const debugGraphics = Debug("graphics-debug:example-usage:graphics")
+const debugGraphics = Debug("my-package:graphics")
 
 debugGraphics(
   JSON.stringify({
