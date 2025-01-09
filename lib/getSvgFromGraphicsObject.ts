@@ -70,12 +70,11 @@ function getProjectionMatrix(
     (DEFAULT_SVG_SIZE - 2 * PADDING) / height,
   )
 
+  const yFlip = coordinateSystem === "screen" ? 1 : -1
+
   return compose(
     translate(DEFAULT_SVG_SIZE / 2, DEFAULT_SVG_SIZE / 2),
-    scale(
-      scale_factor,
-      coordinateSystem === "screen" ? scale_factor : -scale_factor,
-    ),
+    scale(scale_factor, yFlip * scale_factor),
     translate(-(bounds.minX + width / 2), -(bounds.minY + height / 2)),
   )
 }
@@ -87,7 +86,7 @@ function projectPoint(point: Point, matrix: Matrix) {
 
 export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
   const bounds = getBounds(graphics)
-  const matrix = compose(getProjectionMatrix(bounds, graphics.coordinateSystem))
+  const matrix = getProjectionMatrix(bounds, graphics.coordinateSystem)
 
   const svgObject = {
     name: "svg",
@@ -157,9 +156,18 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
       })),
       // Rectangles
       ...(graphics.rects || []).map((rect) => {
-        const projected = projectPoint(rect.center, matrix)
-        const scaledWidth = rect.width * matrix.a
-        const scaledHeight = rect.height * matrix.d
+        const corner1 = {
+          x: rect.center.x - rect.width / 2,
+          y: rect.center.y - rect.height / 2,
+        }
+        const projectedCorner1 = projectPoint(corner1, matrix)
+        const corner2 = {
+          x: rect.center.x + rect.width / 2,
+          y: rect.center.y + rect.height / 2,
+        }
+        const projectedCorner2 = projectPoint(corner2, matrix)
+        const scaledWidth = Math.abs(projectedCorner2.x - projectedCorner1.x)
+        const scaledHeight = Math.abs(projectedCorner2.y - projectedCorner1.y)
         return {
           name: "rect",
           type: "element",
@@ -168,10 +176,10 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
             "data-label": "",
             "data-x": rect.center.x.toString(),
             "data-y": rect.center.y.toString(),
-            x: (projected.x - scaledWidth / 2).toString(),
-            y: (projected.y - scaledHeight / 2).toString(),
+            x: Math.min(projectedCorner1.x, projectedCorner2.x).toString(),
+            y: Math.min(projectedCorner1.y, projectedCorner2.y).toString(),
             width: scaledWidth.toString(),
-            height: Math.abs(scaledHeight).toString(),
+            height: scaledHeight.toString(),
             fill: rect.fill || "none",
             stroke: rect.stroke || "black",
           },
@@ -281,7 +289,7 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
                 const ty = matrix.f;
                 const realPoint = {
                   x: (x - tx) / sx,
-                  y: -(y - ty) / sy // Flip y back since we used negative scale
+                  y: (y - ty) / sy // Flip y back since we used negative scale
                 }
                 
                 coords.textContent = \`(\${realPoint.x.toFixed(2)}, \${realPoint.y.toFixed(2)})\`;

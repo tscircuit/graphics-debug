@@ -1,5 +1,5 @@
 <svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
-  <rect data-type="rect" data-label="" data-x="0" data-y="0" x="180" y="600" width="280" height="560" fill="yellow" stroke="green" />
+  <rect data-type="rect" data-label="" data-x="0" data-y="0" x="180" y="40" width="280" height="560" fill="yellow" stroke="green" />
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5" />
     <line id="crosshair-v" x1="0" x2="640" stroke="#666" stroke-width="0.5" /><text id="coordinates" font-family="monospace" font-size="12" fill="#666"></text>
@@ -45,7 +45,7 @@
       const ty = matrix.f;
       const realPoint = {
         x: (x - tx) / sx,
-        y: -(y - ty) / sy // Flip y back since we used negative scale
+        y: (y - ty) / sy // Flip y back since we used negative scale
       }
 
       coords.textContent = `(${realPoint.x.toFixed(2)}, ${realPoint.y.toFixed(2)})`;

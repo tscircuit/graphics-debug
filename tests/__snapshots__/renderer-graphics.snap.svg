@@ -49,7 +49,7 @@
       const ty = matrix.f;
       const realPoint = {
         x: (x - tx) / sx,
-        y: -(y - ty) / sy // Flip y back since we used negative scale
+        y: (y - ty) / sy // Flip y back since we used negative scale
       }
 
       coords.textContent = `(${realPoint.x.toFixed(2)}, ${realPoint.y.toFixed(2)})`;
