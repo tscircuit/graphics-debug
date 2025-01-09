@@ -1,6 +1,6 @@
 <svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
-  <rect data-type="rect" data-label="" data-x="0" data-y="0" x="254.11764705882354" y="40.00000000000003" width="131.76470588235293" height="263.52941176470586" fill="yellow" stroke="green" />
-  <rect data-type="rect" data-label="" data-x="0" data-y="30" x="287.05882352941177" y="534.1176470588234" width="65.88235294117646" height="65.88235294117646" fill="red" stroke="black" />
+  <rect data-type="rect" data-label="" data-x="0" data-y="0" x="254.11764705882354" y="600" width="131.76470588235293" height="263.52941176470586" fill="yellow" stroke="green" />
+  <rect data-type="rect" data-label="" data-x="0" data-y="30" x="287.05882352941177" y="105.88235294117652" width="65.88235294117646" height="65.88235294117646" fill="red" stroke="black" />
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5" />
     <line id="crosshair-v" x1="0" x2="640" stroke="#666" stroke-width="0.5" /><text id="coordinates" font-family="monospace" font-size="12" fill="#666"></text>
@@ -33,8 +33,8 @@
         "c": 0,
         "e": 320,
         "b": 0,
-        "d": 13.176470588235293,
-        "f": 171.76470588235296
+        "d": -13.176470588235293,
+        "f": 468.2352941176471
       };
       // Manually invert and apply the affine transform
       // Since we only use translate and scale, we can directly compute:

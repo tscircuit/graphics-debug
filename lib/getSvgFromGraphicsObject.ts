@@ -74,7 +74,7 @@ function getProjectionMatrix(
     translate(DEFAULT_SVG_SIZE / 2, DEFAULT_SVG_SIZE / 2),
     scale(
       scale_factor,
-      coordinateSystem === "screen" ? -scale_factor : scale_factor,
+      coordinateSystem === "screen" ? scale_factor : -scale_factor,
     ),
     translate(-(bounds.minX + width / 2), -(bounds.minY + height / 2)),
   )

@@ -1,5 +1,5 @@
 <svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
-  <polyline data-points="0,0 1,1" data-type="line" points="40,40 600,600" fill="none" stroke="black" stroke-width="2" />
+  <polyline data-points="0,0 1,1" data-type="line" points="40,600 600,40" fill="none" stroke="black" stroke-width="2" />
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5" />
     <line id="crosshair-v" x1="0" x2="640" stroke="#666" stroke-width="0.5" /><text id="coordinates" font-family="monospace" font-size="12" fill="#666"></text>
@@ -32,8 +32,8 @@
         "c": 0,
         "e": 40,
         "b": 0,
-        "d": 560,
-        "f": 40
+        "d": -560,
+        "f": 600
       };
       // Manually invert and apply the affine transform
       // Since we only use translate and scale, we can directly compute:
