@@ -1,5 +1,5 @@
 <svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="320" cy="320" r="280" fill="purple" stroke="orange" />
+  <circle data-type="circle" data-label="" data-x="0" data-y="0" cx="320" cy="320" r="280" fill="purple" stroke="orange" />
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5" />
     <line id="crosshair-v" x1="0" x2="640" stroke="#666" stroke-width="0.5" /><text id="coordinates" font-family="monospace" font-size="12" fill="#666"></text>
@@ -32,7 +32,7 @@
         "c": 0,
         "e": 320,
         "b": 0,
-        "d": 56,
+        "d": -56,
         "f": 320
       };
       // Manually invert and apply the affine transform
@@ -45,7 +45,7 @@
       const ty = matrix.f;
       const realPoint = {
         x: (x - tx) / sx,
-        y: -(y - ty) / sy // Flip y back since we used negative scale
+        y: (y - ty) / sy // Flip y back since we used negative scale
       }
 
       coords.textContent = `(${realPoint.x.toFixed(2)}, ${realPoint.y.toFixed(2)})`;
