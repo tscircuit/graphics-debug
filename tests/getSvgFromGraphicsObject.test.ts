@@ -95,6 +95,12 @@ describe("getSvgFromGraphicsObject", () => {
           fill: "yellow",
           stroke: "green",
         },
+        {
+          center: { x: 0, y: 30 },
+          width: 5,
+          height: 5,
+          fill: "red",
+        },
       ],
     }
 

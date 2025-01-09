@@ -1,9 +1,9 @@
 <svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
   <g>
-    <circle cx="600" cy="600" r="3" fill="red"></circle><text x="605" y="595" font-family="sans-serif" font-size="12">B</text>
+    <circle data-type="point" data-label="B" data-x="10" data-y="10" cx="600" cy="600" r="3" fill="red"></circle><text x="605" y="595" font-family="sans-serif" font-size="12">B</text>
   </g>
-  <polyline points="40,40 320,320" fill="none" stroke="black" stroke-width="1"></polyline>
-  <circle cx="180" cy="180" r="140" fill="none" stroke="black"></circle>
+  <polyline data-points="0,0 5,5" data-type="line" points="40,40 320,320" fill="none" stroke="black" stroke-width="1"></polyline>
+  <circle data-type="circle" data-label="" data-x="2.5" data-y="2.5" cx="180" cy="180" r="140" fill="none" stroke="black"></circle>
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5"></line>
     <line id="crosshair-v" x1="0" x2="640" stroke="#666" stroke-width="0.5"></line><text id="coordinates" font-family="monospace" font-size="12" fill="#666"></text>
