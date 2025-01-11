@@ -150,8 +150,8 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
             .map((p) => `${p.x},${p.y}`)
             .join(" "),
           fill: "none",
-          stroke: "black",
-          "stroke-width": (line.points[0].stroke || 1).toString(),
+          stroke: line.strokeColor || "black",
+          "stroke-width": (line.strokeWidth || 1).toString(),
         },
       })),
       // Rectangles

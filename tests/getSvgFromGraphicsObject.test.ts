@@ -23,14 +23,23 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "points")
   })
 
-  test("should generate SVG with lines", () => {
+  test("should generate SVG with lines and custom stroke properties", () => {
     const input: GraphicsObject = {
       lines: [
         {
           points: [
-            { x: 0, y: 0, stroke: 2 },
+            { x: 0, y: 0 },
             { x: 1, y: 1 },
           ],
+          strokeWidth: 2,
+          strokeColor: "blue",
+        },
+        {
+          points: [
+            { x: 1, y: 0 },
+            { x: 0, y: 1 },
+          ],
+          // Test default values when properties are not specified
         },
       ],
     }
@@ -38,7 +47,11 @@ describe("getSvgFromGraphicsObject", () => {
     const svg = getSvgFromGraphicsObject(input)
     expect(svg).toBeString()
     expect(svg).toContain("<polyline")
+    // Test custom stroke properties
     expect(svg).toContain('stroke-width="2"')
+    expect(svg).toContain('stroke="blue"')
+    // Test default values
+    expect(svg).toContain('stroke-width="1"')
     expect(svg).toContain('stroke="black"')
     expect(svg).toMatchSvgSnapshot(import.meta.path, "lines")
   })
