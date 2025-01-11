@@ -6,7 +6,9 @@ export interface Point {
 }
 
 export interface Line {
-  points: { x: number; y: number; stroke?: number }[]
+  points: { x: number; y: number }[]
+  strokeWidth?: number // new optional line thickness
+  strokeColor?: string // new optional line color
 }
 
 export interface Rect {

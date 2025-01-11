@@ -186,7 +186,8 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
           id: `line-${idx}`,
           properties: {
             points: `[${line.points.map((p) => `(${p.x},${p.y})`).join(", ")}]`,
-            ...(line.points[0].stroke ? { stroke: line.points[0].stroke } : {}),
+            strokeColor: line.strokeColor || "black",
+            strokeWidth: line.strokeWidth || 1,
           },
         })
       })
