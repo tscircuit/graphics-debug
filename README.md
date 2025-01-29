@@ -131,6 +131,36 @@ const graphicsObjects = getGraphicsObjectsFromLogString(logString)
 // Array<GraphicsObject>
 ```
 
+### Example Graphics JSON
+
+An example graphics JSON file is provided in the repository to help you get started quickly.
+
+You can find the example file at `site/src/examples/exampleGraphics.json`. This file contains a sample graphics object that you can use to test the functionality of the `graphics-debug` module.
+
+Here is the content of the `exampleGraphics.json` file:
+
+```JSON
+{
+  "title": "Example Usage",
+  "rects": [
+    {
+      "center": { "x": 0, "y": 0 },
+      "width": 100,
+      "height": 100,
+      "fill": "green"
+    }
+  ],
+  "points": [
+    {
+      "x": 50,
+      "y": 50,
+      "color": "red",
+      "label": "Test Output!"
+    }
+  ]
+}
 ```
 
-```
+You can load this example into the application to visualize the graphics objects and understand how the `graphics-debug` module works.
+
+
