@@ -135,7 +135,7 @@ const graphicsObjects = getGraphicsObjectsFromLogString(logString)
 
 An example graphics JSON file is provided in the repository to help you get started quickly.
 
-You can find the example file at `site/src/examples/exampleGraphics.json`. This file contains a sample graphics object that you can use to test the functionality of the `graphics-debug` module.
+You can find the example file at [`site/examples/exampleGraphics.json`](site/examples/exampleGraphics.json). This file contains a sample graphics object that you can use to test the functionality of the `graphics-debug` module.
 
 Here is the content of the `exampleGraphics.json` file:
 
