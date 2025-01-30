@@ -1,5 +1,6 @@
 import { InteractiveGraphics } from "site/components/InteractiveGraphics/InteractiveGraphics"
+import exampleGraphics from "site/assets/exampleGraphics.json"
 
 export default () => {
-  ;<InteractiveGraphics graphics={undefined} />
+  return <InteractiveGraphics graphics={exampleGraphics} />
 }
