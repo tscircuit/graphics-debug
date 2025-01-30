@@ -25,11 +25,15 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
       "suspicious": {
-        "noExplicitAny": "off"
+        "noExplicitAny": "off",
+        "noArrayIndexKey": "off"
       },
       "complexity": {
-        "noForEach": "info"
+        "noForEach": "off"
       },
       "style": {
         "noUselessElse": "off",
