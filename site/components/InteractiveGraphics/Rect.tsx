@@ -4,14 +4,18 @@ import type { InteractiveState } from "./InteractiveState"
 import { lighten } from "polished"
 import { useState } from "react"
 import { Tooltip } from "./Tooltip"
+import { defaultColors } from "./defaultColors"
 
 export const Rect = ({
   rect,
   interactiveState,
+  index,
 }: {
   rect: Types.Rect
   interactiveState: InteractiveState
+  index: number
 }) => {
+  const defaultColor = defaultColors[index % defaultColors.length]
   const { center, width, height, fill, stroke, layer, step } = rect
   const { activeLayers, activeStep, realToScreen } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
@@ -21,7 +25,6 @@ export const Rect = ({
   const screenHeight = height * Math.abs(realToScreen.d)
 
   // Default style when neither fill nor stroke is specified
-  const defaultColor = "rgba(0, 0, 255, 0.2)" // faded blue
   const hasStrokeOrFill = fill !== undefined || stroke !== undefined
 
   return (
@@ -32,8 +35,10 @@ export const Rect = ({
         top: screenCenter.y - screenHeight / 2,
         width: screenWidth,
         height: screenHeight,
-        backgroundColor: hasStrokeOrFill ? (fill || "transparent") : defaultColor,
-        border: stroke ? `2px solid ${isHovered ? lighten(0.2, stroke) : stroke}` : "none",
+        backgroundColor: hasStrokeOrFill ? fill || "transparent" : defaultColor,
+        border: stroke
+          ? `2px solid ${isHovered ? lighten(0.2, stroke) : stroke}`
+          : "none",
         cursor: "pointer",
         transition: "border-color 0.2s",
       }}

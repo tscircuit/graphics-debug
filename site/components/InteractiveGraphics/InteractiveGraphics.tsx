@@ -49,13 +49,18 @@ export const InteractiveGraphics = ({
       }}
     >
       {graphics.rects?.map((r, i) => (
-        <Rect key={i} rect={r} interactiveState={interactiveState} />
+        <Rect key={i} rect={r} index={i} interactiveState={interactiveState} />
       ))}
       {graphics.lines?.map((l, i) => (
         <Line key={i} line={l} index={i} interactiveState={interactiveState} />
       ))}
       {graphics.points?.map((p, i) => (
-        <Point key={i} point={p} interactiveState={interactiveState} />
+        <Point
+          key={i}
+          point={p}
+          index={i}
+          interactiveState={interactiveState}
+        />
       ))}
       <SuperGrid
         stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}

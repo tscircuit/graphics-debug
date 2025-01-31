@@ -25,6 +25,7 @@ export interface Rect {
   color?: string
   layer?: string
   step?: number
+  label?: string
 }
 
 export interface Circle {
