@@ -6,7 +6,7 @@ import {
   translate,
 } from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
@@ -14,6 +14,7 @@ import useResizeObserver from "@react-hook/resize-observer"
 import { Line } from "./Line"
 import { Point } from "./Point"
 import { Rect } from "./Rect"
+import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
 
 export const InteractiveGraphics = ({
   graphics,
@@ -35,8 +36,40 @@ export const InteractiveGraphics = ({
     ...(graphics.points?.map((p) => p.step!).filter(Boolean) ?? []),
   )
 
+  const graphicsBoundsWithPadding = useMemo(() => {
+    const actualBounds = getGraphicsBounds(graphics)
+    const width = actualBounds.maxX - actualBounds.minX
+    const height = actualBounds.maxY - actualBounds.minY
+    return {
+      minX: actualBounds.minX - width / 10,
+      minY: actualBounds.minY - height / 10,
+      maxX: actualBounds.maxX + width / 10,
+      maxY: actualBounds.maxY + height / 10,
+    }
+  }, [graphics])
+
   const { transform: realToScreen, ref } = useMouseMatrixTransform({
-    initialTransform: compose(translate(0, size.height), scale(1, -1)),
+    initialTransform: compose(
+      translate(size.width / 2, size.height / 2),
+      scale(
+        Math.min(
+          size.width /
+            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
+          size.height /
+            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
+        ),
+        -Math.min(
+          size.width /
+            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
+          size.height /
+            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
+        ),
+      ),
+      translate(
+        -(graphicsBoundsWithPadding.maxX + graphicsBoundsWithPadding.minX) / 2,
+        -(graphicsBoundsWithPadding.maxY + graphicsBoundsWithPadding.minY) / 2,
+      ),
+    ),
   })
 
   useResizeObserver(ref, (entry: ResizeObserverEntry) => {
