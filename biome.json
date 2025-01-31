@@ -39,6 +39,7 @@
         "noForEach": "off"
       },
       "style": {
+        "useImportType": "off",
         "noUselessElse": "off",
         "noNonNullAssertion": "off",
         "useNumberNamespace": "off",
