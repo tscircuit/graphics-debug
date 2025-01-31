@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import exampleGraphicsJson from "../examples/exampleGraphics.json"
+import exampleGraphicsJson from "../assets/exampleGraphics.json"
 import {
   getSvgsFromLogString,
   getGraphicsObjectsFromLogString,

@@ -3,12 +3,17 @@ export interface Point {
   y: number
   color?: string
   label?: string
+  layer?: string
+  step?: number
 }
 
 export interface Line {
   points: { x: number; y: number }[]
   strokeWidth?: number // new optional line thickness
   strokeColor?: string // new optional line color
+  layer?: string
+  step?: number
+  label?: string
 }
 
 export interface Rect {
@@ -18,6 +23,9 @@ export interface Rect {
   fill?: string
   stroke?: string
   color?: string
+  layer?: string
+  step?: number
+  label?: string
 }
 
 export interface Circle {
@@ -25,6 +33,8 @@ export interface Circle {
   radius: number
   fill?: string
   stroke?: string
+  layer?: string
+  step?: number
 }
 
 export interface GraphicsObject {
