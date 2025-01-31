@@ -11,8 +11,14 @@ export const Line = ({
   index,
   interactiveState,
 }: { line: Types.Line; index: number; interactiveState: InteractiveState }) => {
-  const { points, layer, step, strokeColor, strokeWidth = 1 } = line
   const { activeLayers, activeStep, realToScreen } = interactiveState
+  const {
+    points,
+    layer,
+    step,
+    strokeColor,
+    strokeWidth = 1 / realToScreen.a,
+  } = line
   const [isHovered, setIsHovered] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 
@@ -50,7 +56,13 @@ export const Line = ({
 
   return (
     <svg
-      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setIsHovered(false)}
     >

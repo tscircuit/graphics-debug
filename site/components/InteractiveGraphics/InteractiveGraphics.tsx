@@ -12,6 +12,7 @@ import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
 import useResizeObserver from "@react-hook/resize-observer"
 import { Line } from "./Line"
+import { Point } from "./Point"
 
 export const InteractiveGraphics = ({
   graphics,
@@ -47,7 +48,10 @@ export const InteractiveGraphics = ({
       }}
     >
       {graphics.lines?.map((l, i) => (
-        <Line key={i} line={l} interactiveState={interactiveState} />
+        <Line key={i} line={l} index={i} interactiveState={interactiveState} />
+      ))}
+      {graphics.points?.map((p, i) => (
+        <Point key={i} point={p} interactiveState={interactiveState} />
       ))}
       <SuperGrid
         stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
