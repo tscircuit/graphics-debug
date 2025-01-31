@@ -6,6 +6,16 @@
   "files": [
     "dist"
   ],
+  "exports": {
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/lib/index.js"
+    },
+    "./react": {
+      "types": "./dist/lib/react.d.ts",
+      "import": "./dist/lib/react.js"
+    }
+  },
   "bin": {
     "graphics-debug": "./dist/cli/cli.js",
     "gd": "./dist/cli/cli.js"
