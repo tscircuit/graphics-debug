@@ -13,6 +13,7 @@ import { SuperGrid } from "react-supergrid"
 import useResizeObserver from "@react-hook/resize-observer"
 import { Line } from "./Line"
 import { Point } from "./Point"
+import { Rect } from "./Rect"
 
 export const InteractiveGraphics = ({
   graphics,
@@ -47,6 +48,9 @@ export const InteractiveGraphics = ({
         overflow: "hidden",
       }}
     >
+      {graphics.rects?.map((r, i) => (
+        <Rect key={i} rect={r} interactiveState={interactiveState} />
+      ))}
       {graphics.lines?.map((l, i) => (
         <Line key={i} line={l} index={i} interactiveState={interactiveState} />
       ))}
