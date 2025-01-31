@@ -21,7 +21,7 @@ export default () => {
             step: 1,
           },
           {
-            center: { x: 250, y: 100 },
+            center: { x: 300, y: 100 },
             width: 50,
             height: 100,
             layer: "layer1",
