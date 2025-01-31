@@ -27,6 +27,11 @@ export const Rect = ({
   // Default style when neither fill nor stroke is specified
   const hasStrokeOrFill = fill !== undefined || stroke !== undefined
 
+  let backgroundColor = hasStrokeOrFill ? fill || "transparent" : defaultColor
+  if (isHovered) {
+    backgroundColor = lighten(0.2, backgroundColor)
+  }
+
   return (
     <div
       style={{
@@ -35,7 +40,7 @@ export const Rect = ({
         top: screenCenter.y - screenHeight / 2,
         width: screenWidth,
         height: screenHeight,
-        backgroundColor: hasStrokeOrFill ? fill || "transparent" : defaultColor,
+        backgroundColor,
         border: stroke
           ? `2px solid ${isHovered ? lighten(0.2, stroke) : stroke}`
           : "none",

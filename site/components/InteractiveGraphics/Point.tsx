@@ -4,15 +4,18 @@ import type { InteractiveState } from "./InteractiveState"
 import { lighten } from "polished"
 import { useState } from "react"
 import { Tooltip } from "./Tooltip"
+import { defaultColors } from "./defaultColors"
 
 export const Point = ({
   point,
   interactiveState,
+  index,
 }: {
   point: Types.Point
   interactiveState: InteractiveState
+  index: number
 }) => {
-  const { color = "blue", label, layer, step } = point
+  const { color, label, layer, step } = point
   const { activeLayers, activeStep, realToScreen } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
@@ -28,7 +31,11 @@ export const Point = ({
         width: size,
         height: size,
         borderRadius: "50%",
-        border: `2px solid ${isHovered ? lighten(0.2, color) : color}`,
+        border: `2px solid ${
+          isHovered
+            ? lighten(0.2, color ?? defaultColors[index % defaultColors.length])
+            : color ?? defaultColors[index % defaultColors.length]
+        }`,
         cursor: "pointer",
         transition: "border-color 0.2s",
       }}

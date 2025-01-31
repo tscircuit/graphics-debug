@@ -5,6 +5,7 @@ import { lighten } from "polished"
 import { useState } from "react"
 import { Tooltip } from "./Tooltip"
 import { distToLineSegment } from "site/utils/distToLineSegment"
+import { defaultColors } from "./defaultColors"
 
 export const Line = ({
   line,
@@ -52,7 +53,7 @@ export const Line = ({
     setIsHovered(isNearLine)
   }
 
-  const baseColor = strokeColor ?? "blue"
+  const baseColor = strokeColor ?? defaultColors[index % defaultColors.length]
 
   return (
     <svg

@@ -48,11 +48,11 @@ export const InteractiveGraphics = ({
         overflow: "hidden",
       }}
     >
-      {graphics.rects?.map((r, i) => (
-        <Rect key={i} rect={r} index={i} interactiveState={interactiveState} />
-      ))}
       {graphics.lines?.map((l, i) => (
         <Line key={i} line={l} index={i} interactiveState={interactiveState} />
+      ))}
+      {graphics.rects?.map((r, i) => (
+        <Rect key={i} rect={r} index={i} interactiveState={interactiveState} />
       ))}
       {graphics.points?.map((p, i) => (
         <Point
