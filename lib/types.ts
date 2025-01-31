@@ -13,6 +13,7 @@ export interface Line {
   strokeColor?: string // new optional line color
   layer?: string
   step?: number
+  label?: string
 }
 
 export interface Rect {

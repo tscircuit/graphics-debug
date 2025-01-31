@@ -11,6 +11,7 @@ import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
 import useResizeObserver from "@react-hook/resize-observer"
+import { Line } from "./Line"
 
 export const InteractiveGraphics = ({
   graphics,
@@ -45,6 +46,9 @@ export const InteractiveGraphics = ({
         overflow: "hidden",
       }}
     >
+      {graphics.lines?.map((l, i) => (
+        <Line key={i} line={l} interactiveState={interactiveState} />
+      ))}
       <SuperGrid
         stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
         width={size.width}
