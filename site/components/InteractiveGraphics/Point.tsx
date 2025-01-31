@@ -34,7 +34,7 @@ export const Point = ({
         border: `2px solid ${
           isHovered
             ? lighten(0.2, color ?? defaultColors[index % defaultColors.length])
-            : color ?? defaultColors[index % defaultColors.length]
+            : (color ?? defaultColors[index % defaultColors.length])
         }`,
         cursor: "pointer",
         transition: "border-color 0.2s",
@@ -42,7 +42,7 @@ export const Point = ({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {isHovered && label && (
+      {isHovered && (
         <div
           style={{
             position: "absolute",
@@ -52,7 +52,9 @@ export const Point = ({
             marginBottom: 8,
           }}
         >
-          <Tooltip text={label} />
+          <Tooltip
+            text={`${label ? `${label}\n` : ""}x: ${point.x.toFixed(2)}, y: ${point.y.toFixed(2)}`}
+          />
         </div>
       )}
     </div>
