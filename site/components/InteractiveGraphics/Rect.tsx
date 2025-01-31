@@ -16,7 +16,7 @@ export const Rect = ({
   index: number
 }) => {
   const defaultColor = defaultColors[index % defaultColors.length]
-  const { center, width, height, fill, stroke, layer, step } = rect
+  let { center, width, height, fill, stroke, layer, step } = rect
   const { activeLayers, activeStep, realToScreen } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
@@ -29,7 +29,14 @@ export const Rect = ({
 
   let backgroundColor = hasStrokeOrFill ? fill || "transparent" : defaultColor
   if (isHovered) {
-    backgroundColor = lighten(0.2, backgroundColor)
+    try {
+      backgroundColor = lighten(0.2, backgroundColor)
+    } catch (e) {}
+    try {
+      if (stroke) {
+        stroke = lighten(0.2, stroke)
+      }
+    } catch (e) {}
   }
 
   return (
