@@ -13,6 +13,7 @@ export const Tooltip = ({ text }: { text: string }) => {
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "pre-wrap",
+        zIndex: 100,
       }}
     >
       {text}
