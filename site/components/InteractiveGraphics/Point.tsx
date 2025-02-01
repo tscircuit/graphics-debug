@@ -1,10 +1,10 @@
 import type * as Types from "lib/types"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { lighten } from "polished"
 import { useState } from "react"
 import { Tooltip } from "./Tooltip"
 import { defaultColors } from "./defaultColors"
+import { safeLighten } from "site/utils/safeLighten"
 
 export const Point = ({
   point,
@@ -33,7 +33,10 @@ export const Point = ({
         borderRadius: "50%",
         border: `2px solid ${
           isHovered
-            ? lighten(0.2, color ?? defaultColors[index % defaultColors.length])
+            ? safeLighten(
+                0.2,
+                color ?? defaultColors[index % defaultColors.length],
+              )
             : (color ?? defaultColors[index % defaultColors.length])
         }`,
         cursor: "pointer",

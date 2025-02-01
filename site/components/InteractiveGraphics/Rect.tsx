@@ -5,6 +5,7 @@ import { lighten } from "polished"
 import { useState } from "react"
 import { Tooltip } from "./Tooltip"
 import { defaultColors } from "./defaultColors"
+import { safeLighten } from "site/utils/safeLighten"
 
 export const Rect = ({
   rect,
@@ -29,14 +30,8 @@ export const Rect = ({
 
   let backgroundColor = hasStrokeOrFill ? fill || "transparent" : defaultColor
   if (isHovered) {
-    try {
-      backgroundColor = lighten(0.2, backgroundColor)
-    } catch (e) {}
-    try {
-      if (stroke) {
-        stroke = lighten(0.2, stroke)
-      }
-    } catch (e) {}
+    backgroundColor = safeLighten(0.2, backgroundColor)
+    stroke = safeLighten(0.2, stroke!)
   }
 
   return (
@@ -49,7 +44,7 @@ export const Rect = ({
         height: screenHeight,
         backgroundColor,
         border: stroke
-          ? `2px solid ${isHovered ? lighten(0.2, stroke) : stroke}`
+          ? `2px solid ${isHovered ? safeLighten(0.2, stroke) : stroke}`
           : "none",
         cursor: "pointer",
         transition: "border-color 0.2s",

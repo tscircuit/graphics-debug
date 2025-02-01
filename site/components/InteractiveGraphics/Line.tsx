@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Tooltip } from "./Tooltip"
 import { distToLineSegment } from "site/utils/distToLineSegment"
 import { defaultColors } from "./defaultColors"
+import { safeLighten } from "site/utils/safeLighten"
 
 export const Line = ({
   line,
@@ -71,7 +72,7 @@ export const Line = ({
     >
       <polyline
         points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-        stroke={isHovered ? lighten(0.2, baseColor) : baseColor}
+        stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
         strokeWidth={strokeWidth * realToScreen.a}
       />
       {isHovered && line.label && (
