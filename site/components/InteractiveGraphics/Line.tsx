@@ -62,8 +62,6 @@ export const Line = ({
         position: "absolute",
         top: 0,
         left: 0,
-        right: 0,
-        bottom: 0,
         width: "100%",
         height: "100%",
       }}
@@ -73,6 +71,7 @@ export const Line = ({
       <polyline
         points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}
         stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
+        fill="none"
         strokeWidth={strokeWidth * realToScreen.a}
       />
       {isHovered && line.label && (
