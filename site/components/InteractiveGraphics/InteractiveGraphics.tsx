@@ -14,6 +14,7 @@ import useResizeObserver from "@react-hook/resize-observer"
 import { Line } from "./Line"
 import { Point } from "./Point"
 import { Rect } from "./Rect"
+import { Circle } from "./Circle"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
 
 export const InteractiveGraphics = ({
@@ -184,6 +185,9 @@ export const InteractiveGraphics = ({
             index={i}
             interactiveState={interactiveState}
           />
+        ))}
+        {graphics.circles?.filter(filterLayerAndStep)?.map((c, i) => (
+          <Circle key={i} circle={c} index={i} interactiveState={interactiveState} />
         ))}
         <SuperGrid
           stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}

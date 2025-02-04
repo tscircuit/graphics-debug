@@ -45,6 +45,17 @@ export default () => {
             layer: "layer3",
           },
         ],
+        circles: [
+          {
+            center: { x: 400, y: 100 },
+            radius: 25,
+            fill: "blue",
+            stroke: "black",
+            layer: "layer1",
+            step: 0,
+            label: "Circle 1",
+          },
+        ],
       }}
     />
   )
