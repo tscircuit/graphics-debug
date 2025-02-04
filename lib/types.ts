@@ -35,6 +35,7 @@ export interface Circle {
   stroke?: string
   layer?: string
   step?: number
+  label?: string
 }
 
 export interface GraphicsObject {
