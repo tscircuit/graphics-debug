@@ -9,8 +9,9 @@ export interface Point {
 
 export interface Line {
   points: { x: number; y: number }[]
-  strokeWidth?: number // new optional line thickness
-  strokeColor?: string // new optional line color
+  strokeWidth?: number
+  strokeColor?: string
+  strokeDash?: string
   layer?: string
   step?: number
   label?: string

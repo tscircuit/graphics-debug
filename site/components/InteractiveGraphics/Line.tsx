@@ -20,6 +20,7 @@ export const Line = ({
     step,
     strokeColor,
     strokeWidth = 1 / realToScreen.a,
+    strokeDash,
   } = line
   const [isHovered, setIsHovered] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -73,6 +74,8 @@ export const Line = ({
         stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
         fill="none"
         strokeWidth={strokeWidth * realToScreen.a}
+        strokeDasharray={strokeDash}
+        strokeLinecap="round"
       />
       {isHovered && line.label && (
         <foreignObject
