@@ -194,38 +194,46 @@ export const InteractiveGraphics = ({
           overflow: "hidden",
         }}
       >
-        {graphics.lines?.filter(filterLines)?.map((l, i) => (
-          <Line
-            key={i}
-            line={l}
-            index={i}
-            interactiveState={interactiveState}
-          />
-        ))}
-        {graphics.rects?.filter(filterRects)?.map((r, i) => (
-          <Rect
-            key={i}
-            rect={r}
-            index={i}
-            interactiveState={interactiveState}
-          />
-        ))}
-        {graphics.points?.filter(filterPoints)?.map((p, i) => (
-          <Point
-            key={i}
-            point={p}
-            index={i}
-            interactiveState={interactiveState}
-          />
-        ))}
-        {graphics.circles?.filter(filterCircles)?.map((c, i) => (
-          <Circle
-            key={i}
-            circle={c}
-            index={i}
-            interactiveState={interactiveState}
-          />
-        ))}
+        {graphics.lines?.map((l, originalIndex) =>
+          filterLines(l) ? (
+            <Line
+              key={originalIndex}
+              line={l}
+              index={originalIndex}
+              interactiveState={interactiveState}
+            />
+          ) : null,
+        )}
+        {graphics.rects?.map((r, originalIndex) =>
+          filterRects(r) ? (
+            <Rect
+              key={originalIndex}
+              rect={r}
+              index={originalIndex}
+              interactiveState={interactiveState}
+            />
+          ) : null,
+        )}
+        {graphics.points?.map((p, originalIndex) =>
+          filterPoints(p) ? (
+            <Point
+              key={originalIndex}
+              point={p}
+              index={originalIndex}
+              interactiveState={interactiveState}
+            />
+          ) : null,
+        )}
+        {graphics.circles?.map((c, originalIndex) =>
+          filterCircles(c) ? (
+            <Circle
+              key={originalIndex}
+              circle={c}
+              index={originalIndex}
+              interactiveState={interactiveState}
+            />
+          ) : null,
+        )}
         <SuperGrid
           stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
           width={size.width}
