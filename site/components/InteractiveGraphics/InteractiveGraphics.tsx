@@ -1,10 +1,4 @@
-import {
-  compose,
-  type Matrix,
-  applyToPoint,
-  scale,
-  translate,
-} from "transformation-matrix"
+import { compose, scale, translate } from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
 import { useMemo, useState } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
@@ -16,6 +10,14 @@ import { Point } from "./Point"
 import { Rect } from "./Rect"
 import { Circle } from "./Circle"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
+import {
+  useIsPointOnScreen,
+  useDoesLineIntersectViewport,
+  useFilterLines,
+  useFilterPoints,
+  useFilterRects,
+  useFilterCircles,
+} from "./hooks"
 
 export const InteractiveGraphics = ({
   graphics,
@@ -88,6 +90,15 @@ export const InteractiveGraphics = ({
 
   const showToolbar = availableLayers.length > 1 || maxStep > 0
 
+  // Use custom hooks for visibility checks and filtering
+  const isPointOnScreen = useIsPointOnScreen(realToScreen, size)
+
+  const doesLineIntersectViewport = useDoesLineIntersectViewport(
+    realToScreen,
+    size,
+  )
+
+  // Filter by layer and step
   const filterLayerAndStep = (obj: { layer?: string; step?: number }) => {
     if (activeLayers && obj.layer && !activeLayers.includes(obj.layer))
       return false
@@ -99,6 +110,27 @@ export const InteractiveGraphics = ({
       return false
     return true
   }
+
+  const filterLines = useFilterLines(
+    isPointOnScreen,
+    doesLineIntersectViewport,
+    filterLayerAndStep,
+  )
+
+  const filterPoints = useFilterPoints(isPointOnScreen, filterLayerAndStep)
+
+  const filterRects = useFilterRects(
+    isPointOnScreen,
+    doesLineIntersectViewport,
+    filterLayerAndStep,
+  )
+
+  const filterCircles = useFilterCircles(
+    isPointOnScreen,
+    filterLayerAndStep,
+    realToScreen,
+    size,
+  )
 
   return (
     <div>
@@ -162,7 +194,7 @@ export const InteractiveGraphics = ({
           overflow: "hidden",
         }}
       >
-        {graphics.lines?.filter(filterLayerAndStep)?.map((l, i) => (
+        {graphics.lines?.filter(filterLines)?.map((l, i) => (
           <Line
             key={i}
             line={l}
@@ -170,7 +202,7 @@ export const InteractiveGraphics = ({
             interactiveState={interactiveState}
           />
         ))}
-        {graphics.rects?.filter(filterLayerAndStep)?.map((r, i) => (
+        {graphics.rects?.filter(filterRects)?.map((r, i) => (
           <Rect
             key={i}
             rect={r}
@@ -178,7 +210,7 @@ export const InteractiveGraphics = ({
             interactiveState={interactiveState}
           />
         ))}
-        {graphics.points?.filter(filterLayerAndStep)?.map((p, i) => (
+        {graphics.points?.filter(filterPoints)?.map((p, i) => (
           <Point
             key={i}
             point={p}
@@ -186,8 +218,13 @@ export const InteractiveGraphics = ({
             interactiveState={interactiveState}
           />
         ))}
-        {graphics.circles?.filter(filterLayerAndStep)?.map((c, i) => (
-          <Circle key={i} circle={c} index={i} interactiveState={interactiveState} />
+        {graphics.circles?.filter(filterCircles)?.map((c, i) => (
+          <Circle
+            key={i}
+            circle={c}
+            index={i}
+            interactiveState={interactiveState}
+          />
         ))}
         <SuperGrid
           stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
