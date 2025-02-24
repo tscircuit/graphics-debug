@@ -187,7 +187,12 @@ export const InteractiveGraphics = ({
           />
         ))}
         {graphics.circles?.filter(filterLayerAndStep)?.map((c, i) => (
-          <Circle key={i} circle={c} index={i} interactiveState={interactiveState} />
+          <Circle
+            key={i}
+            circle={c}
+            index={i}
+            interactiveState={interactiveState}
+          />
         ))}
         <SuperGrid
           stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
