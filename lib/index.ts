@@ -1,9 +1,28 @@
 import { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
 import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
+import { 
+  drawGraphicsToCanvas, 
+  computeTransformFromViewbox,
+  getBounds 
+} from "./drawGraphicsToCanvas"
 
-export type { Point, Line, Rect, Circle, GraphicsObject } from "./types"
+export type { 
+  Point, 
+  Line, 
+  Rect, 
+  Circle, 
+  GraphicsObject, 
+  Viewbox,
+  CenterViewbox,
+  TransformOptions 
+} from "./types"
 export { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
 export { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
+export { 
+  drawGraphicsToCanvas, 
+  computeTransformFromViewbox,
+  getBounds 
+} from "./drawGraphicsToCanvas"
 
 export function getSvgFromLogString(logString: string): string {
   const objects = getGraphicsObjectsFromLogString(logString)

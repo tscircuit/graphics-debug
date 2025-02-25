@@ -47,3 +47,23 @@ export interface GraphicsObject {
   coordinateSystem?: "cartesian" | "screen"
   title?: string
 }
+
+export interface Viewbox {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
+
+export interface CenterViewbox {
+  center: { x: number; y: number }
+  width: number
+  height: number
+}
+
+export type TransformOptions = {
+  transform?: import("transformation-matrix").Matrix
+  viewbox?: Viewbox | CenterViewbox
+  padding?: number
+  yFlip?: boolean
+}
