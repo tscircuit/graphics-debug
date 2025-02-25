@@ -14,6 +14,10 @@
     "./react": {
       "types": "./dist/lib/react.d.ts",
       "import": "./dist/lib/react.js"
+    },
+    "./matcher": {
+      "types": "./dist/lib/matcher.d.ts",
+      "import": "./dist/lib/matcher.js"
     }
   },
   "bin": {
@@ -38,7 +42,6 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
-    "bun-match-svg": "^0.0.8",
     "commander": "^12.1.0",
     "debug": "^4.3.7",
     "jsdom": "^25.0.1",
@@ -51,7 +54,9 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "bun-match-svg": "^0.0.8",
+    "looksSame": "^9.0.1"
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
