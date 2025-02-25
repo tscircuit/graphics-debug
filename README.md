@@ -36,23 +36,52 @@ https://github.com/user-attachments/assets/9f3f41e6-b0fe-416a-a551-ba5c5b920cad
 The `graphics` json object is very simple, here's the basic schema:
 
 ```typescript
+interface Point {
+  x: number
+  y: number
+  color?: string
+  label?: string
+  layer?: string
+  step?: number
+}
+
+interface Line {
+  points: { x: number; y: number }[]
+  strokeWidth?: number
+  strokeColor?: string
+  strokeDash?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
+interface Rect {
+  center: { x: number; y: number }
+  width: number
+  height: number
+  fill?: string
+  stroke?: string
+  color?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
+interface Circle {
+  center: { x: number; y: number }
+  radius: number
+  fill?: string
+  stroke?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
 interface GraphicsObject {
-  points?: { x: number; y: number; color?: string; label?: string }[]
-  lines?: { points: { x: number; y: number; stroke?: number }[] }[]
-  rects?: Array<{
-    center: { x: number; y: number }
-    width: number
-    height: number
-    fill?: string
-    stroke?: string
-  }>
-  circles?: Array<{
-    center: { x: number; y: number }
-    radius: number
-    fill?: string
-    stroke?: string
-  }>
-  grid?: { cellSize: number; label?: boolean }
+  points?: Point[]
+  lines?: Line[]
+  rects?: Rect[]
+  circles?: Circle[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string
 }
@@ -129,6 +158,23 @@ import { getGraphicsObjectsFromLogString } from "graphics-debug"
 
 const graphicsObjects = getGraphicsObjectsFromLogString(logString)
 // Array<GraphicsObject>
+```
+
+### Generate SVG directly from a GraphicsObject
+
+```tsx
+import { getSvgFromGraphicsObject } from "graphics-debug"
+
+// Create your graphics object
+const graphicsObject = {
+  points: [{ x: 0, y: 0, label: "Origin" }, { x: 100, y: 100, color: "red" }],
+  lines: [{ points: [{ x: 0, y: 0 }, { x: 100, y: 100 }], strokeColor: "blue" }],
+  title: "My Graph"
+}
+
+// Generate SVG string directly from the object
+const svg = getSvgFromGraphicsObject(graphicsObject)
+// Returns a formatted SVG string ready to be written to a file or embedded in HTML
 ```
 
 ### Example Graphics JSON
