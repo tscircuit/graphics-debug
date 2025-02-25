@@ -13,7 +13,7 @@ export const Line = ({
   index,
   interactiveState,
 }: { line: Types.Line; index: number; interactiveState: InteractiveState }) => {
-  const { activeLayers, activeStep, realToScreen } = interactiveState
+  const { activeLayers, activeStep, realToScreen, onObjectClicked } = interactiveState
   const {
     points,
     layer,
@@ -68,6 +68,11 @@ export const Line = ({
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={isHovered ? () => onObjectClicked?.({
+        type: "line",
+        index,
+        object: line
+      }) : undefined}
     >
       <polyline
         points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}

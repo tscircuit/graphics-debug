@@ -19,9 +19,19 @@ import {
   useFilterCircles,
 } from "./hooks"
 
+export type GraphicsObjectClickEvent = {
+  type: "point" | "line" | "rect" | "circle"
+  index: number
+  object: any
+}
+
 export const InteractiveGraphics = ({
   graphics,
-}: { graphics: GraphicsObject }) => {
+  onObjectClicked,
+}: { 
+  graphics: GraphicsObject
+  onObjectClicked?: (event: GraphicsObjectClickEvent) => void 
+}) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
@@ -86,6 +96,7 @@ export const InteractiveGraphics = ({
     activeLayers: activeLayers,
     activeStep: activeStep,
     realToScreen: realToScreen,
+    onObjectClicked: onObjectClicked,
   }
 
   const showToolbar = availableLayers.length > 1 || maxStep > 0
