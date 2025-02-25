@@ -18,7 +18,7 @@ export const Rect = ({
 }) => {
   const defaultColor = defaultColors[index % defaultColors.length]
   let { center, width, height, fill, stroke, layer, step } = rect
-  const { activeLayers, activeStep, realToScreen } = interactiveState
+  const { activeLayers, activeStep, realToScreen, onObjectClicked } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
   const screenCenter = applyToPoint(realToScreen, center)
@@ -51,6 +51,11 @@ export const Rect = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onObjectClicked?.({
+        type: "rect",
+        index,
+        object: rect
+      })}
     >
       {isHovered && rect.label && (
         <div

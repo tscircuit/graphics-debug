@@ -17,7 +17,7 @@ export const Circle = ({
 }) => {
   const defaultColor = defaultColors[index % defaultColors.length]
   let { center, radius, fill, stroke, layer, step, label } = circle
-  const { activeLayers, activeStep, realToScreen } = interactiveState
+  const { activeLayers, activeStep, realToScreen, onObjectClicked } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
   const screenCenter = applyToPoint(realToScreen, center)
   const screenRadius = radius * realToScreen.a
@@ -42,6 +42,11 @@ export const Circle = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onObjectClicked?.({
+        type: "circle",
+        index,
+        object: circle
+      })}
     >
       {isHovered && label && (
         <div

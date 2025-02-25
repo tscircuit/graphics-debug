@@ -16,7 +16,7 @@ export const Point = ({
   index: number
 }) => {
   const { color, label, layer, step } = point
-  const { activeLayers, activeStep, realToScreen } = interactiveState
+  const { activeLayers, activeStep, realToScreen, onObjectClicked } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
   const screenPoint = applyToPoint(realToScreen, point)
@@ -44,6 +44,11 @@ export const Point = ({
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => onObjectClicked?.({
+        type: "point",
+        index,
+        object: point
+      })}
     >
       {isHovered && (
         <div
