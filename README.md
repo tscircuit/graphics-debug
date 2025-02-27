@@ -177,6 +177,48 @@ const svg = getSvgFromGraphicsObject(graphicsObject)
 // Returns a formatted SVG string ready to be written to a file or embedded in HTML
 ```
 
+### Testing GraphicsObjects with Bun's Test Framework
+
+If you're using Bun for testing, you can use the `toMatchGraphicsSvg` matcher to compare graphics objects against saved snapshots.
+
+First, install the required peer dependencies:
+
+```bash
+bun add -d bun-match-svg looksSame
+```
+
+Then use the matcher in your tests:
+
+```tsx
+import { expect, test } from "bun:test"
+import "graphics-debug/matcher"
+import type { GraphicsObject } from "graphics-debug" 
+
+// Your test graphics object
+const graphicsObject: GraphicsObject = {
+  points: [{ x: 0, y: 0, label: "Origin" }, { x: 100, y: 100, color: "red" }],
+  lines: [{ points: [{ x: 0, y: 0 }, { x: 100, y: 100 }], strokeColor: "blue" }],
+  title: "My Test Graphics"
+}
+
+test("should match the expected visualization", async () => {
+  // First run creates the snapshot
+  // Subsequent runs will compare against saved snapshot
+  await expect(graphicsObject).toMatchGraphicsSvg(import.meta.path)
+  
+  // You can also provide a custom name for the snapshot:
+  await expect(graphicsObject).toMatchGraphicsSvg(import.meta.path, "custom-name")
+})
+```
+
+Snapshots are stored as SVG files in an `__snapshots__` directory next to your test file. To update snapshots, run your tests with the `-u` or `--update-snapshots` flag:
+
+```bash
+bun test -u
+```
+
+This is powered by the same technology as bun-match-svg but integrated specifically for GraphicsObject testing.
+
 ### Example Graphics JSON
 
 An example graphics JSON file is provided in the repository to help you get started quickly.
