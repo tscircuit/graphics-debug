@@ -55,8 +55,8 @@
   },
   "peerDependencies": {
     "typescript": "^5.0.0",
-    "bun-match-svg": "^0.0.8",
-    "looksSame": "^9.0.1"
+    "bun-match-svg": "^0.0.9",
+    "looks-same": "^9.0.1"
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
