@@ -1,27 +1,27 @@
 import { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
 import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
-import { 
-  drawGraphicsToCanvas, 
+import {
+  drawGraphicsToCanvas,
   computeTransformFromViewbox,
-  getBounds 
+  getBounds,
 } from "./drawGraphicsToCanvas"
 
-export type { 
-  Point, 
-  Line, 
-  Rect, 
-  Circle, 
-  GraphicsObject, 
+export type {
+  Point,
+  Line,
+  Rect,
+  Circle,
+  GraphicsObject,
   Viewbox,
   CenterViewbox,
-  TransformOptions 
+  TransformOptions,
 } from "./types"
 export { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
 export { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
-export { 
-  drawGraphicsToCanvas, 
+export {
+  drawGraphicsToCanvas,
   computeTransformFromViewbox,
-  getBounds 
+  getBounds,
 } from "./drawGraphicsToCanvas"
 
 export function getSvgFromLogString(logString: string): string {

@@ -107,26 +107,23 @@ export function drawGraphicsToCanvas(
   options: TransformOptions = {},
 ): void {
   // Get the context
-  const ctx = target instanceof HTMLCanvasElement 
-    ? target.getContext("2d") 
-    : target
-  
+  const ctx =
+    target instanceof HTMLCanvasElement ? target.getContext("2d") : target
+
   if (!ctx) {
     throw new Error("Could not get 2D context from canvas")
   }
-  
+
   // Get canvas dimensions
-  const canvasWidth = target instanceof HTMLCanvasElement 
-    ? target.width 
-    : target.canvas.width
-  
-  const canvasHeight = target instanceof HTMLCanvasElement 
-    ? target.height 
-    : target.canvas.height
+  const canvasWidth =
+    target instanceof HTMLCanvasElement ? target.width : target.canvas.width
+
+  const canvasHeight =
+    target instanceof HTMLCanvasElement ? target.height : target.canvas.height
 
   // Get or compute the transform matrix
   let matrix: Matrix
-  
+
   if (options.transform) {
     matrix = options.transform
   } else if (options.viewbox) {
@@ -134,141 +131,136 @@ export function drawGraphicsToCanvas(
       options.viewbox,
       canvasWidth,
       canvasHeight,
-      { 
-        padding: options.padding, 
-        yFlip: options.yFlip 
-      }
+      {
+        padding: options.padding,
+        yFlip: options.yFlip,
+      },
     )
   } else {
     // Auto-compute bounds and transform if not provided
     const bounds = getBounds(graphics)
     const yFlip = graphics.coordinateSystem === "cartesian"
-    matrix = computeTransformFromViewbox(
-      bounds,
-      canvasWidth,
-      canvasHeight,
-      { 
-        padding: options.padding ?? 40, 
-        yFlip 
-      }
-    )
+    matrix = computeTransformFromViewbox(bounds, canvasWidth, canvasHeight, {
+      padding: options.padding ?? 40,
+      yFlip,
+    })
   }
 
   // Clear the canvas
   ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-  
+
   // Save the current transform state
   ctx.save()
-  
+
   // Draw the graphics elements
   // Draw rectangles
   if (graphics.rects && graphics.rects.length > 0) {
     graphics.rects.forEach((rect) => {
       const halfWidth = rect.width / 2
       const halfHeight = rect.height / 2
-      
+
       const topLeft = applyToPoint(matrix, {
         x: rect.center.x - halfWidth,
         y: rect.center.y - halfHeight,
       })
-      
+
       const bottomRight = applyToPoint(matrix, {
         x: rect.center.x + halfWidth,
         y: rect.center.y + halfHeight,
       })
-      
+
       const width = Math.abs(bottomRight.x - topLeft.x)
       const height = Math.abs(bottomRight.y - topLeft.y)
-      
+
       ctx.beginPath()
       ctx.rect(
         Math.min(topLeft.x, bottomRight.x),
         Math.min(topLeft.y, bottomRight.y),
         width,
-        height
+        height,
       )
-      
+
       if (rect.fill) {
         ctx.fillStyle = rect.fill
         ctx.fill()
       }
-      
+
       if (rect.stroke) {
         ctx.strokeStyle = rect.stroke
         ctx.stroke()
       }
     })
   }
-  
+
   // Draw circles
   if (graphics.circles && graphics.circles.length > 0) {
     graphics.circles.forEach((circle) => {
       const projected = applyToPoint(matrix, circle.center)
       const scaledRadius = circle.radius * Math.abs(matrix.a) // Use matrix scale factor
-      
+
       ctx.beginPath()
       ctx.arc(projected.x, projected.y, scaledRadius, 0, 2 * Math.PI)
-      
+
       if (circle.fill) {
         ctx.fillStyle = circle.fill
         ctx.fill()
       }
-      
+
       if (circle.stroke) {
         ctx.strokeStyle = circle.stroke
         ctx.stroke()
       }
     })
   }
-  
+
   // Draw lines
   if (graphics.lines && graphics.lines.length > 0) {
     graphics.lines.forEach((line) => {
       if (line.points.length === 0) return
-      
+
       ctx.beginPath()
-      
+
       const firstPoint = applyToPoint(matrix, line.points[0])
       ctx.moveTo(firstPoint.x, firstPoint.y)
-      
+
       for (let i = 1; i < line.points.length; i++) {
         const projected = applyToPoint(matrix, line.points[i])
         ctx.lineTo(projected.x, projected.y)
       }
-      
+
       ctx.strokeStyle = line.strokeColor || "black"
       ctx.lineWidth = line.strokeWidth || 1
-      
+
       if (line.strokeDash) {
         ctx.setLineDash(line.strokeDash.split(",").map(Number))
       } else {
         ctx.setLineDash([])
       }
-      
+
       ctx.stroke()
     })
   }
-  
+
   // Draw points
   if (graphics.points && graphics.points.length > 0) {
     graphics.points.forEach((point) => {
       const projected = applyToPoint(matrix, point)
-      
+
       // Draw point as a small circle
       ctx.beginPath()
       ctx.arc(projected.x, projected.y, 3, 0, 2 * Math.PI)
       ctx.fillStyle = point.color || "black"
       ctx.fill()
-      
-      // Draw label if present
-      if (point.label) {
+
+      // Draw label if present and labels aren't disabled
+      if (point.label && !options.disableLabels) {
         ctx.fillStyle = point.color || "black"
         ctx.font = "12px sans-serif"
         ctx.fillText(point.label, projected.x + 5, projected.y - 5)
       }
     })
   }
-  
+
   // Restore the original transform
   ctx.restore()
 }

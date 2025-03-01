@@ -11,24 +11,24 @@ const testGraphicsObject: GraphicsObject = {
     { x: 50, y: 50, label: "Point B", color: "blue" },
   ],
   lines: [
-    { 
+    {
       points: [
-        { x: 10, y: 10 }, 
-        { x: 50, y: 50 }
-      ], 
+        { x: 10, y: 10 },
+        { x: 50, y: 50 },
+      ],
       strokeColor: "green",
-      strokeWidth: 2
-    }
+      strokeWidth: 2,
+    },
   ],
   circles: [
     {
       center: { x: 30, y: 30 },
       radius: 15,
       fill: "rgba(255, 0, 0, 0.2)",
-      stroke: "red"
-    }
+      stroke: "red",
+    },
   ],
-  coordinateSystem: "cartesian"
+  coordinateSystem: "cartesian",
 }
 
 const snapshotDir = path.join(__dirname, "__snapshots__")
@@ -64,7 +64,7 @@ test("toMatchGraphicsSvg creates and matches snapshot", async () => {
 
 test("toMatchGraphicsSvg with custom name", async () => {
   const customNamePath = path.join(snapshotDir, "custom-name.snap.svg")
-  
+
   // Add cleanup for this specific test
   afterAll(() => {
     if (fs.existsSync(customNamePath)) {
@@ -73,6 +73,9 @@ test("toMatchGraphicsSvg with custom name", async () => {
   })
 
   // Create and match with custom name
-  await expect(testGraphicsObject).toMatchGraphicsSvg(import.meta.path, "custom-name")
+  await expect(testGraphicsObject).toMatchGraphicsSvg(
+    import.meta.path,
+    "custom-name",
+  )
   expect(fs.existsSync(customNamePath)).toBe(true)
 })

@@ -83,10 +83,12 @@ export default function BasicCanvasExample() {
           height: 600,
         }}
       />
-      
+
       <h3>Usage Example</h3>
-      <pre style={{ background: "#f5f5f5", padding: "10px", borderRadius: "5px" }}>
-{`// Import the function
+      <pre
+        style={{ background: "#f5f5f5", padding: "10px", borderRadius: "5px" }}
+      >
+        {`// Import the function
 import { drawGraphicsToCanvas } from "graphics-debug";
 
 // Get a reference to your canvas
