@@ -14,6 +14,7 @@ interface CanvasGraphicsProps {
   height?: number
   withGrid?: boolean
   initialTransform?: Matrix
+  disableLabels?: boolean
 }
 
 // Create a container component that handles the mouse matrix transform
