@@ -7,7 +7,7 @@ import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
 
 /**
  * Custom matcher for Bun tests to compare GraphicsObjects as SVGs
- * 
+ *
  * @param this Matcher context
  * @param receivedMaybePromise GraphicsObject or Promise<GraphicsObject> to test
  * @param testPathOriginal Path to the test file

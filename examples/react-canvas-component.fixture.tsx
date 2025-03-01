@@ -80,25 +80,24 @@ export default function ReactCanvasExample() {
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 300px" }}>
           <h3>Default (with grid)</h3>
-          <CanvasGraphics 
-            graphics={complexExample} 
-            height={300}
-          />
+          <CanvasGraphics graphics={complexExample} height={300} />
         </div>
-        
+
         <div style={{ flex: "1 1 300px" }}>
           <h3>Without grid</h3>
-          <CanvasGraphics 
-            graphics={complexExample} 
+          <CanvasGraphics
+            graphics={complexExample}
             height={300}
             withGrid={false}
           />
         </div>
       </div>
-      
+
       <h3>Usage Example</h3>
-      <pre style={{ background: "#f5f5f5", padding: "10px", borderRadius: "5px" }}>
-{`// Import the component
+      <pre
+        style={{ background: "#f5f5f5", padding: "10px", borderRadius: "5px" }}
+      >
+        {`// Import the component
 import { CanvasGraphics } from "graphics-debug/react";
 
 // Define a graphics object

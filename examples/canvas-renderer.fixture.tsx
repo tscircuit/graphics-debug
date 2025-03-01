@@ -1,9 +1,9 @@
 import React, { useRef, useEffect, useState } from "react"
-import { 
-  drawGraphicsToCanvas, 
+import {
+  drawGraphicsToCanvas,
   computeTransformFromViewbox,
   getBounds,
-  GraphicsObject 
+  GraphicsObject,
 } from "../lib"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { compose, scale, translate } from "transformation-matrix"
@@ -18,42 +18,42 @@ const exampleGraphics: GraphicsObject = {
     { x: -50, y: 20, label: "Point B", color: "green" },
   ],
   lines: [
-    { 
+    {
       points: [
         { x: 0, y: 0 },
         { x: 50, y: 50 },
-        { x: -50, y: 20 }
+        { x: -50, y: 20 },
       ],
-      strokeColor: "gray", 
+      strokeColor: "gray",
       strokeWidth: 2,
-      strokeDash: "5,5"
-    }
+      strokeDash: "5,5",
+    },
   ],
   rects: [
-    { 
-      center: { x: 0, y: 30 }, 
-      width: 40, 
-      height: 20, 
+    {
+      center: { x: 0, y: 30 },
+      width: 40,
+      height: 20,
       fill: "rgba(255, 0, 0, 0.2)",
-      stroke: "red" 
-    }
+      stroke: "red",
+    },
   ],
   circles: [
-    { 
-      center: { x: 25, y: 25 }, 
-      radius: 15, 
+    {
+      center: { x: 25, y: 25 },
+      radius: 15,
       fill: "rgba(0, 255, 0, 0.2)",
-      stroke: "green" 
-    }
+      stroke: "green",
+    },
   ],
-  coordinateSystem: "cartesian"
+  coordinateSystem: "cartesian",
 }
 
 export default function CanvasRenderer() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
-  
+
   // Get bounds of the graphics with padding
   const graphicsBoundsWithPadding = React.useMemo(() => {
     const bounds = getBounds(exampleGraphics)
@@ -73,12 +73,16 @@ export default function CanvasRenderer() {
       translate(size.width / 2, size.height / 2),
       scale(
         Math.min(
-          size.width / (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
-          size.height / (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
+          size.width /
+            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
+          size.height /
+            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
         ),
         -Math.min(
-          size.width / (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
-          size.height / (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
+          size.width /
+            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
+          size.height /
+            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
         ),
       ),
       translate(
@@ -99,91 +103,91 @@ export default function CanvasRenderer() {
   // Draw function that uses our canvas renderer
   const drawCanvas = () => {
     if (!canvasRef.current) return
-    
+
     // Make sure canvas dimensions match container
     canvasRef.current.width = size.width
     canvasRef.current.height = size.height
-    
+
     // Draw the graphics with the current transform
     drawGraphicsToCanvas(exampleGraphics, canvasRef.current, {
       transform: transform,
     })
-    
+
     // Draw a grid for reference
     drawGrid(canvasRef.current, transform)
   }
-  
+
   // Draw a grid to help with visualization
   const drawGrid = (canvas: HTMLCanvasElement, transform: any) => {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
-    
+
     ctx.save()
-    
+
     // Draw coordinate axes
     ctx.beginPath()
-    
+
     // X-axis
     const xAxisStart = { x: -1000, y: 0 }
     const xAxisEnd = { x: 1000, y: 0 }
     const xAxisStartTransformed = transformPoint(xAxisStart, transform)
     const xAxisEndTransformed = transformPoint(xAxisEnd, transform)
-    
+
     ctx.moveTo(xAxisStartTransformed.x, xAxisStartTransformed.y)
     ctx.lineTo(xAxisEndTransformed.x, xAxisEndTransformed.y)
-    
+
     // Y-axis
     const yAxisStart = { x: 0, y: -1000 }
     const yAxisEnd = { x: 0, y: 1000 }
     const yAxisStartTransformed = transformPoint(yAxisStart, transform)
     const yAxisEndTransformed = transformPoint(yAxisEnd, transform)
-    
+
     ctx.moveTo(yAxisStartTransformed.x, yAxisStartTransformed.y)
     ctx.lineTo(yAxisEndTransformed.x, yAxisEndTransformed.y)
-    
+
     ctx.strokeStyle = "#aaa"
     ctx.lineWidth = 1
     ctx.stroke()
-    
+
     // Draw grid lines
     ctx.beginPath()
     ctx.setLineDash([2, 2])
-    
+
     // Determine grid spacing based on zoom level
     const gridSize = 10
-    
+
     // Draw vertical grid lines
     for (let x = -100; x <= 100; x += gridSize) {
       if (x === 0) continue // Skip the axis
-      
+
       const start = transformPoint({ x, y: -100 }, transform)
       const end = transformPoint({ x, y: 100 }, transform)
-      
+
       ctx.moveTo(start.x, start.y)
       ctx.lineTo(end.x, end.y)
     }
-    
+
     // Draw horizontal grid lines
     for (let y = -100; y <= 100; y += gridSize) {
       if (y === 0) continue // Skip the axis
-      
+
       const start = transformPoint({ x: -100, y }, transform)
       const end = transformPoint({ x: 100, y }, transform)
-      
+
       ctx.moveTo(start.x, start.y)
       ctx.lineTo(end.x, end.y)
     }
-    
+
     ctx.strokeStyle = "#ddd"
     ctx.stroke()
     ctx.restore()
   }
-  
+
   // Helper to transform a point through the matrix
   const transformPoint = (point: { x: number; y: number }, matrix: any) => {
     return {
       x: matrix.a * point.x + matrix.c * point.y + matrix.e,
-      y: matrix.b * point.x + matrix.d * point.y + matrix.f
+      y: matrix.b * point.x + matrix.d * point.y + matrix.f,
     }
   }
 
@@ -201,7 +205,7 @@ export default function CanvasRenderer() {
           // Apply both refs to the same element
           containerRef.current = el
           if (mouseTransformRef) {
-            mouseTransformRef.current = el 
+            mouseTransformRef.current = el
           }
         }}
         style={{

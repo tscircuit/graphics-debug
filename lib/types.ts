@@ -66,4 +66,5 @@ export type TransformOptions = {
   viewbox?: Viewbox | CenterViewbox
   padding?: number
   yFlip?: boolean
+  disableLabels?: boolean
 }

@@ -28,9 +28,9 @@ export type GraphicsObjectClickEvent = {
 export const InteractiveGraphics = ({
   graphics,
   onObjectClicked,
-}: { 
+}: {
   graphics: GraphicsObject
-  onObjectClicked?: (event: GraphicsObjectClickEvent) => void 
+  onObjectClicked?: (event: GraphicsObjectClickEvent) => void
 }) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
