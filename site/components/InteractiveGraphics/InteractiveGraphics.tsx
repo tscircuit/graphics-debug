@@ -1,6 +1,6 @@
 import { compose, scale, translate } from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
@@ -19,6 +19,12 @@ import {
   useFilterCircles,
 } from "./hooks"
 
+// Type for tracking animated elements
+type AnimatedElementsMap = {
+  lines: Record<string, { points: { x: number; y: number }[] }>
+  points: Record<string, { x: number; y: number }>
+}
+
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle"
   index: number
@@ -35,6 +41,12 @@ export const InteractiveGraphics = ({
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
+  const [animatedElements, setAnimatedElements] = useState<AnimatedElementsMap>(
+    {
+      lines: {},
+      points: {},
+    },
+  )
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
@@ -97,9 +109,67 @@ export const InteractiveGraphics = ({
     activeStep: activeStep,
     realToScreen: realToScreen,
     onObjectClicked: onObjectClicked,
+    animatedElements: animatedElements,
   }
 
   const showToolbar = availableLayers.length > 1 || maxStep > 0
+
+  // Effect to track elements with animationKey
+  useEffect(() => {
+    // Create a copy of current state to build the new state
+    const newAnimatedElements: AnimatedElementsMap = {
+      lines: {},
+      points: {},
+    }
+
+    // First, copy all existing animation keys (for cases where elements were removed)
+    Object.keys(animatedElements.lines).forEach((key) => {
+      newAnimatedElements.lines[key] = animatedElements.lines[key]
+    })
+
+    Object.keys(animatedElements.points).forEach((key) => {
+      newAnimatedElements.points[key] = animatedElements.points[key]
+    })
+
+    // Then process current graphics objects
+    // Track lines with animationKey
+    graphics.lines?.forEach((line) => {
+      if (line.animationKey) {
+        // Only update if we don't already have this key or the points have changed
+        const existingLine = animatedElements.lines[line.animationKey]
+
+        if (!existingLine) {
+          // First time we're seeing this line
+          newAnimatedElements.lines[line.animationKey] = {
+            points: [...line.points],
+          }
+        }
+        // Otherwise keep the existing entry for animation purposes
+      }
+    })
+
+    // Track points with animationKey
+    graphics.points?.forEach((point) => {
+      if (point.animationKey) {
+        // Only update if we don't already have this key or the point has changed
+        const existingPoint = animatedElements.points[point.animationKey]
+
+        if (!existingPoint) {
+          // First time we're seeing this point
+          newAnimatedElements.points[point.animationKey] = {
+            x: point.x,
+            y: point.y,
+          }
+        }
+        // Otherwise keep the existing entry for animation purposes
+      }
+    })
+
+    // After animation completes, we need to update the stored positions
+    // This is handled in the individual components
+
+    setAnimatedElements(newAnimatedElements)
+  }, [graphics])
 
   // Use custom hooks for visibility checks and filtering
   const isPointOnScreen = useIsPointOnScreen(realToScreen, size)
@@ -208,7 +278,11 @@ export const InteractiveGraphics = ({
         {graphics.lines?.map((l, originalIndex) =>
           filterLines(l) ? (
             <Line
-              key={originalIndex}
+              key={
+                l.animationKey
+                  ? `line-${l.animationKey}`
+                  : `line-${originalIndex}`
+              }
               line={l}
               index={originalIndex}
               interactiveState={interactiveState}
@@ -228,7 +302,11 @@ export const InteractiveGraphics = ({
         {graphics.points?.map((p, originalIndex) =>
           filterPoints(p) ? (
             <Point
-              key={originalIndex}
+              key={
+                p.animationKey
+                  ? `point-${p.animationKey}`
+                  : `point-${originalIndex}`
+              }
               point={p}
               index={originalIndex}
               interactiveState={interactiveState}

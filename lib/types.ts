@@ -5,6 +5,7 @@ export interface Point {
   label?: string
   layer?: string
   step?: number
+  animationKey?: string
 }
 
 export interface Line {
@@ -15,6 +16,7 @@ export interface Line {
   layer?: string
   step?: number
   label?: string
+  animationKey?: string
 }
 
 export interface Rect {
