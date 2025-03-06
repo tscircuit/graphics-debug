@@ -31,40 +31,91 @@ export const Line = ({
   } = line
   const [isHovered, setIsHovered] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-  const [animating, setAnimating] = useState(false)
-  const [prevPoints, setPrevPoints] =
+
+  // For animation
+  const [animatedPoints, setAnimatedPoints] =
     useState<{ x: number; y: number }[]>(points)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const animationRef = useRef<number | null>(null)
+  const startTimeRef = useRef<number>(0)
+  const prevPointsRef = useRef<{ x: number; y: number }[]>(points)
+  const targetPointsRef = useRef<{ x: number; y: number }[]>(points)
 
-  // Store and animate between points when they change
+  // Animation function
+  const animate = (timestamp: number) => {
+    if (!startTimeRef.current) {
+      startTimeRef.current = timestamp
+    }
+
+    const elapsed = timestamp - startTimeRef.current
+    const duration = 500 // Animation duration in ms
+    const progress = Math.min(elapsed / duration, 1)
+
+    // Easing function (ease-in-out)
+    const easedProgress =
+      progress < 0.5
+        ? 2 * progress * progress
+        : 1 - Math.pow(-2 * progress + 2, 2) / 2
+
+    // Interpolate between previous and current points
+    const newPoints = prevPointsRef.current.map((prevPoint, i) => {
+      const targetPoint = targetPointsRef.current[i]
+      return {
+        x: prevPoint.x + (targetPoint.x - prevPoint.x) * easedProgress,
+        y: prevPoint.y + (targetPoint.y - prevPoint.y) * easedProgress,
+      }
+    })
+
+    setAnimatedPoints(newPoints)
+
+    if (progress < 1) {
+      animationRef.current = requestAnimationFrame(animate)
+    } else {
+      setIsAnimating(false)
+      startTimeRef.current = 0
+      animationRef.current = null
+    }
+  }
+
+  // Start animation when points change and we have an animation key
   useEffect(() => {
-    if (animationKey) {
-      // Get previously stored points for this animation key
-      const storedLine = animatedElements?.lines[animationKey]
+    if (!animationKey) {
+      setAnimatedPoints(points)
+      return
+    }
 
-      if (storedLine) {
-        // Check if points have changed
-        const pointsChanged =
-          JSON.stringify(points) !== JSON.stringify(storedLine.points)
+    // Get stored previous points for this animation key
+    const storedLine = animatedElements?.lines[animationKey]
 
-        if (pointsChanged) {
-          // Set previous points from stored position
-          setPrevPoints(storedLine.points)
-          setAnimating(true)
+    if (
+      storedLine &&
+      JSON.stringify(points) !== JSON.stringify(storedLine.points)
+    ) {
+      // Start a new animation
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
 
-          // Reset after animation completes
-          const timer = setTimeout(() => {
-            setAnimating(false)
-          }, 500) // Animation duration matches CSS transition
+      prevPointsRef.current = storedLine.points
+      targetPointsRef.current = points
+      setIsAnimating(true)
+      startTimeRef.current = 0
+      animationRef.current = requestAnimationFrame(animate)
+    } else if (!isAnimating) {
+      // If not animating, just update points directly
+      setAnimatedPoints(points)
+    }
 
-          return () => clearTimeout(timer)
-        }
+    // Clean up animation on unmount
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
       }
     }
   }, [points, animationKey, animatedElements])
 
-  // Use previous points for animation or current points if not animating
-  const pointsToRender = animationKey && animating ? prevPoints : points
-  const screenPoints = pointsToRender.map((p) => applyToPoint(realToScreen, p))
+  // Map animated points to screen coordinates
+  const screenPoints = animatedPoints.map((p) => applyToPoint(realToScreen, p))
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -125,9 +176,6 @@ export const Line = ({
         strokeWidth={strokeWidth * realToScreen.a}
         strokeDasharray={strokeDash}
         strokeLinecap="round"
-        style={{
-          transition: animationKey ? "all 0.5s ease-in-out" : "none",
-        }}
       />
       {isHovered && line.label && (
         <foreignObject
