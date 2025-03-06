@@ -2,7 +2,7 @@ import type * as Types from "lib/types"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
 import { lighten } from "polished"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Tooltip } from "./Tooltip"
 import { distToLineSegment } from "site/utils/distToLineSegment"
 import { defaultColors } from "./defaultColors"
@@ -13,8 +13,13 @@ export const Line = ({
   index,
   interactiveState,
 }: { line: Types.Line; index: number; interactiveState: InteractiveState }) => {
-  const { activeLayers, activeStep, realToScreen, onObjectClicked } =
-    interactiveState
+  const {
+    activeLayers,
+    activeStep,
+    realToScreen,
+    onObjectClicked,
+    animatedElements,
+  } = interactiveState
   const {
     points,
     layer,
@@ -22,11 +27,44 @@ export const Line = ({
     strokeColor,
     strokeWidth = 1 / realToScreen.a,
     strokeDash,
+    animationKey,
   } = line
   const [isHovered, setIsHovered] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const [animating, setAnimating] = useState(false)
+  const [prevPoints, setPrevPoints] =
+    useState<{ x: number; y: number }[]>(points)
 
-  const screenPoints = points.map((p) => applyToPoint(realToScreen, p))
+  // Store and animate between points when they change
+  useEffect(() => {
+    if (animationKey) {
+      // Get previously stored points for this animation key
+      const storedLine = animatedElements?.lines[animationKey]
+
+      if (storedLine) {
+        // Check if points have changed
+        const pointsChanged =
+          JSON.stringify(points) !== JSON.stringify(storedLine.points)
+
+        if (pointsChanged) {
+          // Set previous points from stored position
+          setPrevPoints(storedLine.points)
+          setAnimating(true)
+
+          // Reset after animation completes
+          const timer = setTimeout(() => {
+            setAnimating(false)
+          }, 500) // Animation duration matches CSS transition
+
+          return () => clearTimeout(timer)
+        }
+      }
+    }
+  }, [points, animationKey, animatedElements])
+
+  // Use previous points for animation or current points if not animating
+  const pointsToRender = animationKey && animating ? prevPoints : points
+  const screenPoints = pointsToRender.map((p) => applyToPoint(realToScreen, p))
 
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -87,6 +125,9 @@ export const Line = ({
         strokeWidth={strokeWidth * realToScreen.a}
         strokeDasharray={strokeDash}
         strokeLinecap="round"
+        style={{
+          transition: animationKey ? "all 0.5s ease-in-out" : "none",
+        }}
       />
       {isHovered && line.label && (
         <foreignObject

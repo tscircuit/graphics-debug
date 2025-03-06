@@ -1,6 +1,6 @@
 import { compose, scale, translate } from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useRef, useEffect } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
@@ -19,6 +19,12 @@ import {
   useFilterCircles,
 } from "./hooks"
 
+// Type for tracking animated elements
+type AnimatedElementsMap = {
+  lines: Record<string, { points: { x: number; y: number }[] }>
+  points: Record<string, { x: number; y: number }>
+}
+
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle"
   index: number
@@ -35,6 +41,12 @@ export const InteractiveGraphics = ({
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
+  const [animatedElements, setAnimatedElements] = useState<AnimatedElementsMap>(
+    {
+      lines: {},
+      points: {},
+    },
+  )
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
@@ -97,9 +109,41 @@ export const InteractiveGraphics = ({
     activeStep: activeStep,
     realToScreen: realToScreen,
     onObjectClicked: onObjectClicked,
+    animatedElements: animatedElements,
   }
 
   const showToolbar = availableLayers.length > 1 || maxStep > 0
+
+  // Effect to track elements with animationKey
+  useEffect(() => {
+    const newAnimatedElements: AnimatedElementsMap = {
+      lines: { ...animatedElements.lines },
+      points: { ...animatedElements.points },
+    }
+
+    // Track lines with animationKey
+    graphics.lines?.forEach((line) => {
+      if (line.animationKey) {
+        // Store current position for animation
+        newAnimatedElements.lines[line.animationKey] = {
+          points: [...line.points],
+        }
+      }
+    })
+
+    // Track points with animationKey
+    graphics.points?.forEach((point) => {
+      if (point.animationKey) {
+        // Store current position for animation
+        newAnimatedElements.points[point.animationKey] = {
+          x: point.x,
+          y: point.y,
+        }
+      }
+    })
+
+    setAnimatedElements(newAnimatedElements)
+  }, [graphics])
 
   // Use custom hooks for visibility checks and filtering
   const isPointOnScreen = useIsPointOnScreen(realToScreen, size)
