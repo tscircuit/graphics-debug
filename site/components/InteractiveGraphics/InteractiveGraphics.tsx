@@ -116,31 +116,57 @@ export const InteractiveGraphics = ({
 
   // Effect to track elements with animationKey
   useEffect(() => {
+    // Create a copy of current state to build the new state
     const newAnimatedElements: AnimatedElementsMap = {
-      lines: { ...animatedElements.lines },
-      points: { ...animatedElements.points },
+      lines: {},
+      points: {},
     }
 
+    // First, copy all existing animation keys (for cases where elements were removed)
+    Object.keys(animatedElements.lines).forEach((key) => {
+      newAnimatedElements.lines[key] = animatedElements.lines[key]
+    })
+
+    Object.keys(animatedElements.points).forEach((key) => {
+      newAnimatedElements.points[key] = animatedElements.points[key]
+    })
+
+    // Then process current graphics objects
     // Track lines with animationKey
     graphics.lines?.forEach((line) => {
       if (line.animationKey) {
-        // Store current position for animation
-        newAnimatedElements.lines[line.animationKey] = {
-          points: [...line.points],
+        // Only update if we don't already have this key or the points have changed
+        const existingLine = animatedElements.lines[line.animationKey]
+
+        if (!existingLine) {
+          // First time we're seeing this line
+          newAnimatedElements.lines[line.animationKey] = {
+            points: [...line.points],
+          }
         }
+        // Otherwise keep the existing entry for animation purposes
       }
     })
 
     // Track points with animationKey
     graphics.points?.forEach((point) => {
       if (point.animationKey) {
-        // Store current position for animation
-        newAnimatedElements.points[point.animationKey] = {
-          x: point.x,
-          y: point.y,
+        // Only update if we don't already have this key or the point has changed
+        const existingPoint = animatedElements.points[point.animationKey]
+
+        if (!existingPoint) {
+          // First time we're seeing this point
+          newAnimatedElements.points[point.animationKey] = {
+            x: point.x,
+            y: point.y,
+          }
         }
+        // Otherwise keep the existing entry for animation purposes
       }
     })
+
+    // After animation completes, we need to update the stored positions
+    // This is handled in the individual components
 
     setAnimatedElements(newAnimatedElements)
   }, [graphics])
@@ -252,7 +278,11 @@ export const InteractiveGraphics = ({
         {graphics.lines?.map((l, originalIndex) =>
           filterLines(l) ? (
             <Line
-              key={originalIndex}
+              key={
+                l.animationKey
+                  ? `line-${l.animationKey}`
+                  : `line-${originalIndex}`
+              }
               line={l}
               index={originalIndex}
               interactiveState={interactiveState}
@@ -272,7 +302,11 @@ export const InteractiveGraphics = ({
         {graphics.points?.map((p, originalIndex) =>
           filterPoints(p) ? (
             <Point
-              key={originalIndex}
+              key={
+                p.animationKey
+                  ? `point-${p.animationKey}`
+                  : `point-${originalIndex}`
+              }
               point={p}
               index={originalIndex}
               interactiveState={interactiveState}
