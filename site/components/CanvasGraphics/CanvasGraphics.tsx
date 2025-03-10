@@ -7,6 +7,7 @@ import {
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { compose, scale, translate, type Matrix } from "transformation-matrix"
 import useResizeObserver from "@react-hook/resize-observer"
+import { DimensionOverlay } from "../DimensionOverlay"
 
 interface CanvasGraphicsProps {
   graphics: GraphicsObject
@@ -251,16 +252,21 @@ export const CanvasGraphics = ({
         initialTransform={computedInitialTransform}
         onTransformChange={handleTransformChange}
       >
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-          }}
-        />
+        <DimensionOverlay
+          transform={currentTransform || computedInitialTransform}
+          focusOnHover={true}
+        >
+          <canvas
+            ref={canvasRef}
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+            }}
+          />
+        </DimensionOverlay>
       </TransformContainer>
     </div>
   )

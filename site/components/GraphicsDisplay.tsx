@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import type { GraphicsObject, Point, Line, Rect, Circle } from "../../lib/types"
 import { GraphicObjectsTable } from "./GraphicObjectsTable"
 import { getTableItemsFromGraphicsObjects } from "../utils/getTableItemsFromGraphicsObjects"
+import { DimensionOverlay } from "./DimensionOverlay"
 
 export interface GraphicsDisplayProps {
   graphics: Array<{
@@ -87,32 +88,37 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
               >
-                <div
-                  className="w-full h-full"
-                  dangerouslySetInnerHTML={{
-                    __html: svg
-                      .replace(/<svg([^>]*)>/, '<svg$1 class="w-full h-full">')
-                      .replace(
-                        /<(circle|rect|polyline|g)(\s[^>]*)?>/g,
-                        (match, tag, attrs = "") => {
-                          const types = {
-                            circle: "circle",
-                            rect: "rect",
-                            polyline: "line",
-                            g: "point",
-                          }
-                          const type = types[tag as keyof typeof types]
-                          if (!type) return match
-                          const [typeId, svgIndex, objIndex] =
-                            highlightedId.split("-")
-                          const dataId = `${type}-${index}-${objIndex || ""}`
-                          const highlightClass =
-                            dataId === highlightedId ? " highlight" : ""
-                          return `<${tag}${attrs} data-id="${dataId}" class="${highlightClass}">`
-                        },
-                      ),
-                  }}
-                />
+                <DimensionOverlay focusOnHover={true}>
+                  <div
+                    className="w-full h-full"
+                    dangerouslySetInnerHTML={{
+                      __html: svg
+                        .replace(
+                          /<svg([^>]*)>/,
+                          '<svg$1 class="w-full h-full">',
+                        )
+                        .replace(
+                          /<(circle|rect|polyline|g)(\s[^>]*)?>/g,
+                          (match, tag, attrs = "") => {
+                            const types = {
+                              circle: "circle",
+                              rect: "rect",
+                              polyline: "line",
+                              g: "point",
+                            }
+                            const type = types[tag as keyof typeof types]
+                            if (!type) return match
+                            const [typeId, svgIndex, objIndex] =
+                              highlightedId.split("-")
+                            const dataId = `${type}-${index}-${objIndex || ""}`
+                            const highlightClass =
+                              dataId === highlightedId ? " highlight" : ""
+                            return `<${tag}${attrs} data-id="${dataId}" class="${highlightClass}">`
+                          },
+                        ),
+                    }}
+                  />
+                </DimensionOverlay>
                 {tooltip && (
                   <div
                     className="absolute bg-black bg-opacity-75 text-white p-2 rounded pointer-events-none"
