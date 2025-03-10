@@ -92,13 +92,13 @@ export default function Home() {
       )}
       {graphics.length > 0 && (
         <>
+          <GraphicsDisplay graphics={graphics} />
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg text-blue-700">
             <strong>Tip:</strong> Press the{" "}
             <kbd className="px-2 py-1 bg-gray-200 rounded">d</kbd> key while
             hovering over a graphic to activate the dimension measurement tool.
             Click to finish measuring.
           </div>
-          <GraphicsDisplay graphics={graphics} />
         </>
       )}
     </div>
