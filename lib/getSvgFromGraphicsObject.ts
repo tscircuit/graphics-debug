@@ -182,6 +182,7 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
             height: scaledHeight.toString(),
             fill: rect.fill || "none",
             stroke: rect.stroke || "black",
+            "stroke-width": Math.abs(1 / matrix.a).toString(),
           },
         }
       }),
@@ -202,6 +203,7 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
             r: scaledRadius.toString(),
             fill: circle.fill || "none",
             stroke: circle.stroke || "black",
+            "stroke-width": Math.abs(1 / matrix.a).toString(),
           },
         }
       }),
