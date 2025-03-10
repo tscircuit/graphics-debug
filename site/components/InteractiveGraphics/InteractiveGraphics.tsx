@@ -18,6 +18,7 @@ import {
   useFilterRects,
   useFilterCircles,
 } from "./hooks"
+import { DimensionOverlay } from "./DimensionOverlay"
 
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle"
@@ -197,60 +198,65 @@ export const InteractiveGraphics = ({
         </div>
       )}
 
-      <div
-        ref={ref}
-        style={{
-          position: "relative",
-          height: 600,
-          overflow: "hidden",
-        }}
-      >
-        {graphics.lines?.map((l, originalIndex) =>
-          filterLines(l) ? (
-            <Line
-              key={originalIndex}
-              line={l}
-              index={originalIndex}
-              interactiveState={interactiveState}
+      <div style={{ position: "relative", height: 600 }}>
+        <DimensionOverlay transform={realToScreen} focusOnHover={true}>
+          <div
+            ref={ref}
+            style={{
+              position: "relative",
+              width: "100%",
+              height: "100%",
+              overflow: "hidden",
+            }}
+          >
+            {graphics.lines?.map((l, originalIndex) =>
+              filterLines(l) ? (
+                <Line
+                  key={originalIndex}
+                  line={l}
+                  index={originalIndex}
+                  interactiveState={interactiveState}
+                />
+              ) : null,
+            )}
+            {graphics.rects?.map((r, originalIndex) =>
+              filterRects(r) ? (
+                <Rect
+                  key={originalIndex}
+                  rect={r}
+                  index={originalIndex}
+                  interactiveState={interactiveState}
+                />
+              ) : null,
+            )}
+            {graphics.points?.map((p, originalIndex) =>
+              filterPoints(p) ? (
+                <Point
+                  key={originalIndex}
+                  point={p}
+                  index={originalIndex}
+                  interactiveState={interactiveState}
+                />
+              ) : null,
+            )}
+            {graphics.circles?.map((c, originalIndex) =>
+              filterCircles(c) ? (
+                <Circle
+                  key={originalIndex}
+                  circle={c}
+                  index={originalIndex}
+                  interactiveState={interactiveState}
+                />
+              ) : null,
+            )}
+            <SuperGrid
+              stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
+              width={size.width}
+              height={size.height}
+              transform={realToScreen}
             />
-          ) : null,
-        )}
-        {graphics.rects?.map((r, originalIndex) =>
-          filterRects(r) ? (
-            <Rect
-              key={originalIndex}
-              rect={r}
-              index={originalIndex}
-              interactiveState={interactiveState}
-            />
-          ) : null,
-        )}
-        {graphics.points?.map((p, originalIndex) =>
-          filterPoints(p) ? (
-            <Point
-              key={originalIndex}
-              point={p}
-              index={originalIndex}
-              interactiveState={interactiveState}
-            />
-          ) : null,
-        )}
-        {graphics.circles?.map((c, originalIndex) =>
-          filterCircles(c) ? (
-            <Circle
-              key={originalIndex}
-              circle={c}
-              index={originalIndex}
-              interactiveState={interactiveState}
-            />
-          ) : null,
-        )}
-        <SuperGrid
-          stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
-          width={size.width}
-          height={size.height}
-          transform={realToScreen}
-        />
+          </div>
+        </DimensionOverlay>
       </div>
     </div>
   )
