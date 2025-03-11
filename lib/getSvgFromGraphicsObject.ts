@@ -151,7 +151,7 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
             .join(" "),
           fill: "none",
           stroke: line.strokeColor || "black",
-          "stroke-width": (line.strokeWidth || 1).toString(),
+          "stroke-width": ((line.strokeWidth || 1) / Math.abs(matrix.a) * DEFAULT_SVG_SIZE / 100).toString(),
         },
       })),
       // Rectangles
