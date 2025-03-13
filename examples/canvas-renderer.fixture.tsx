@@ -51,7 +51,7 @@ const exampleGraphics: GraphicsObject = {
 
 export default function CanvasRenderer() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
 
   // Get bounds of the graphics with padding
@@ -201,11 +201,12 @@ export default function CanvasRenderer() {
       <h2>Canvas Renderer with Mouse Panning/Zooming</h2>
       <p>Drag to pan, scroll to zoom</p>
       <div
-        ref={(el) => {
-          // Apply both refs to the same element
-          containerRef.current = el
-          if (mouseTransformRef) {
-            mouseTransformRef.current = el
+        ref={node => {
+          // Using a callback ref approach
+          containerRef.current = node
+          // Apply the mouse transform ref if available
+          if (mouseTransformRef && node) {
+            mouseTransformRef.current = node
           }
         }}
         style={{
