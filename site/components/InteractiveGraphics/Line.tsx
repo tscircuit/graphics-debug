@@ -85,7 +85,13 @@ export const Line = ({
         stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
         fill="none"
         strokeWidth={strokeWidth * realToScreen.a}
-        strokeDasharray={strokeDash}
+        strokeDasharray={
+          !strokeDash
+            ? undefined
+            : typeof strokeDash === "string"
+              ? strokeDash
+              : `${strokeDash[0] * realToScreen.a}, ${strokeDash[1] * realToScreen.a}`
+        }
         strokeLinecap="round"
       />
       {isHovered && line.label && (

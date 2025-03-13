@@ -16,9 +16,12 @@
   ],
   "lines": [
     {
-      "points": [{ "x": 0, "y": 0 }, { "x": 100, "y": 100 }],
+      "points": [
+        { "x": 0, "y": 0 },
+        { "x": 100, "y": 100 }
+      ],
       "strokeWidth": 1,
-      "strokeDash": "10 5",
+      "strokeDash": [10, 5],
       "label": "hello"
     }
   ]
