@@ -11,7 +11,7 @@ export interface Line {
   points: { x: number; y: number }[]
   strokeWidth?: number
   strokeColor?: string
-  strokeDash?: string | [number, number]
+  strokeDash?: string | number[]
   layer?: string
   step?: number
   label?: string
