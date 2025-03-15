@@ -5,14 +5,9 @@ import type { Matrix } from "transformation-matrix"
 interface Props {
   transform?: Matrix
   children: React.ReactNode
-  focusOnHover?: boolean
 }
 
-export const DimensionOverlay: React.FC<Props> = ({
-  children,
-  transform,
-  focusOnHover = false,
-}) => {
+export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
   if (!transform) transform = identity()
   const [dimensionToolVisible, setDimensionToolVisible] = useState(false)
   const [dimensionToolStretching, setDimensionToolStretching] = useState(false)
@@ -25,7 +20,7 @@ export const DimensionOverlay: React.FC<Props> = ({
   const container = containerRef.current!
   const containerBounds = container?.getBoundingClientRect()
 
-  useEffect(() => {
+  const bindKeys = () => {
     const container = containerRef.current
 
     const down = (e: KeyboardEvent) => {
@@ -67,7 +62,9 @@ export const DimensionOverlay: React.FC<Props> = ({
         container.removeEventListener("mouseleave", removeKeyListener)
       }
     }
-  }, [containerRef])
+  }
+
+  useEffect(bindKeys, [containerBounds?.width, containerBounds?.height])
 
   const screenDStart = applyToPoint(transform, dStart)
   const screenDEnd = applyToPoint(transform, dEnd)
@@ -90,16 +87,6 @@ export const DimensionOverlay: React.FC<Props> = ({
       ref={containerRef}
       tabIndex={0}
       style={{ position: "relative" }}
-      onMouseEnter={() => {
-        if (focusOnHover && containerRef.current) {
-          containerRef.current.focus()
-        }
-      }}
-      onMouseLeave={() => {
-        if (containerRef.current) {
-          containerRef.current.blur()
-        }
-      }}
       onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect()
         const x = e.clientX - rect.left
@@ -117,6 +104,11 @@ export const DimensionOverlay: React.FC<Props> = ({
           setDimensionToolStretching(false)
         } else if (dimensionToolVisible) {
           setDimensionToolVisible(false)
+        }
+      }}
+      onMouseEnter={() => {
+        if (containerRef.current) {
+          bindKeys()
         }
       }}
     >
