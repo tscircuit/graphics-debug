@@ -20,7 +20,7 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
   const container = containerRef.current!
   const containerBounds = container?.getBoundingClientRect()
 
-  useEffect(() => {
+  const bindKeys = () => {
     const container = containerRef.current
 
     const down = (e: KeyboardEvent) => {
@@ -62,7 +62,9 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
         container.removeEventListener("mouseleave", removeKeyListener)
       }
     }
-  }, [containerRef])
+  }
+
+  useEffect(bindKeys, [containerBounds?.width, containerBounds?.height])
 
   const screenDStart = applyToPoint(transform, dStart)
   const screenDEnd = applyToPoint(transform, dEnd)
@@ -102,6 +104,11 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
           setDimensionToolStretching(false)
         } else if (dimensionToolVisible) {
           setDimensionToolVisible(false)
+        }
+      }}
+      onMouseEnter={() => {
+        if (containerRef.current) {
+          bindKeys()
         }
       }}
     >
