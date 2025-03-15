@@ -88,7 +88,7 @@ export function GraphicsDisplay({ graphics }: GraphicsDisplayProps) {
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
               >
-                <DimensionOverlay focusOnHover={true}>
+                <DimensionOverlay>
                   <div
                     className="w-full h-full"
                     dangerouslySetInnerHTML={{
