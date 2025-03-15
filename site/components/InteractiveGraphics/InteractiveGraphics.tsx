@@ -206,7 +206,7 @@ export const InteractiveGraphics = ({
           overflow: "hidden",
         }}
       >
-        <DimensionOverlay transform={realToScreen} focusOnHover={true}>
+        <DimensionOverlay transform={realToScreen}>
           {graphics.lines?.map((l, originalIndex) =>
             filterLines(l) ? (
               <Line

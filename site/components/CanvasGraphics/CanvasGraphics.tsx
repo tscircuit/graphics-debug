@@ -254,7 +254,6 @@ export const CanvasGraphics = ({
       >
         <DimensionOverlay
           transform={currentTransform || computedInitialTransform}
-          focusOnHover={true}
         >
           <canvas
             ref={canvasRef}

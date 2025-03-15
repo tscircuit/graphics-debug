@@ -5,14 +5,9 @@ import type { Matrix } from "transformation-matrix"
 interface Props {
   transform?: Matrix
   children: React.ReactNode
-  focusOnHover?: boolean
 }
 
-export const DimensionOverlay: React.FC<Props> = ({
-  children,
-  transform,
-  focusOnHover = false,
-}) => {
+export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
   if (!transform) transform = identity()
   const [dimensionToolVisible, setDimensionToolVisible] = useState(false)
   const [dimensionToolStretching, setDimensionToolStretching] = useState(false)
@@ -90,16 +85,6 @@ export const DimensionOverlay: React.FC<Props> = ({
       ref={containerRef}
       tabIndex={0}
       style={{ position: "relative" }}
-      onMouseEnter={() => {
-        if (focusOnHover && containerRef.current) {
-          containerRef.current.focus()
-        }
-      }}
-      onMouseLeave={() => {
-        if (containerRef.current) {
-          containerRef.current.blur()
-        }
-      }}
       onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => {
         const rect = e.currentTarget.getBoundingClientRect()
         const x = e.clientX - rect.left
