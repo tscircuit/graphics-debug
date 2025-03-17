@@ -149,9 +149,11 @@ export const InteractiveGraphics = ({
   const filterAndLimit = <T,>(
     objects: T[] | undefined,
     filterFn: (obj: T) => boolean,
-  ): T[] => {
+  ): (T & { originalIndex: number })[] => {
     if (!objects) return []
-    const filtered = objects.filter(filterFn)
+    const filtered = objects
+      .map((obj, index) => ({ ...obj, originalIndex: index }))
+      .filter(filterFn)
     return objectLimit ? filtered.slice(-objectLimit) : filtered
   }
 
@@ -248,35 +250,35 @@ export const InteractiveGraphics = ({
         }}
       >
         <DimensionOverlay transform={realToScreen}>
-          {filteredLines.map((line, index) => (
+          {filteredLines.map((line) => (
             <Line
-              key={index}
+              key={line.originalIndex}
               line={line}
-              index={index}
+              index={line.originalIndex}
               interactiveState={interactiveState}
             />
           ))}
-          {filteredRects.map((rect, index) => (
+          {filteredRects.map((rect) => (
             <Rect
-              key={index}
+              key={rect.originalIndex}
               rect={rect}
-              index={index}
+              index={rect.originalIndex}
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPoints.map((point, index) => (
+          {filteredPoints.map((point) => (
             <Point
-              key={index}
+              key={point.originalIndex}
               point={point}
-              index={index}
+              index={point.originalIndex}
               interactiveState={interactiveState}
             />
           ))}
-          {filteredCircles.map((circle, index) => (
+          {filteredCircles.map((circle) => (
             <Circle
-              key={index}
+              key={circle.originalIndex}
               circle={circle}
-              index={index}
+              index={circle.originalIndex}
               interactiveState={interactiveState}
             />
           ))}
