@@ -1,9 +1,9 @@
 import { InteractiveGraphics } from "site/components/InteractiveGraphics/InteractiveGraphics"
-import exampleGraphics from "site/assets/exampleGraphics.json"
 
 export default () => {
   return (
     <InteractiveGraphics
+      objectLimit={3}
       graphics={{
         rects: [
           {

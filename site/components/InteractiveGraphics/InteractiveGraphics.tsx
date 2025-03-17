@@ -146,17 +146,45 @@ export const InteractiveGraphics = ({
     size,
   )
 
-  const filteredObjects = [
-    ...(graphics.lines?.filter(filterLines) ?? []),
-    ...(graphics.rects?.filter(filterRects) ?? []),
-    ...(graphics.points?.filter(filterPoints) ?? []),
-    ...(graphics.circles?.filter(filterCircles) ?? []),
+  const filterAndLimit = <T,>(
+    objects: T[] | undefined,
+    filterFn: (obj: T) => boolean,
+  ): T[] => {
+    if (!objects) return []
+    const filtered = objects.filter(filterFn)
+    return objectLimit ? filtered.slice(-objectLimit) : filtered
+  }
+
+  const filteredLines = useMemo(
+    () => filterAndLimit(graphics.lines, filterLines),
+    [graphics.lines, filterLines, objectLimit],
+  )
+  const filteredRects = useMemo(
+    () => filterAndLimit(graphics.rects, filterRects),
+    [graphics.rects, filterRects, objectLimit],
+  )
+  const filteredPoints = useMemo(
+    () => filterAndLimit(graphics.points, filterPoints),
+    [graphics.points, filterPoints, objectLimit],
+  )
+  const filteredCircles = useMemo(
+    () => filterAndLimit(graphics.circles, filterCircles),
+    [graphics.circles, filterCircles, objectLimit],
+  )
+
+  const limitedObjects = [
+    ...filteredLines,
+    ...filteredRects,
+    ...filteredPoints,
+    ...filteredCircles,
   ]
 
-  const limitedObjects = objectLimit
-    ? filteredObjects.slice(0, objectLimit)
-    : filteredObjects
-  const isLimitReached = objectLimit && filteredObjects.length > objectLimit
+  const totalFilteredObjects =
+    filteredLines.length +
+    filteredRects.length +
+    filteredPoints.length +
+    filteredCircles.length
+  const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
 
   return (
     <div>
@@ -210,7 +238,7 @@ export const InteractiveGraphics = ({
               {isLimitReached && (
                 <span style={{ color: "red", fontSize: "12px" }}>
                   Display limited to {objectLimit} objects. Received:{" "}
-                  {filteredObjects.length}.
+                  {totalFilteredObjects}.
                 </span>
               )}
             </div>
