@@ -1,62 +1,73 @@
-import React, { useRef, useEffect, useState } from "react"
-import {
-  drawGraphicsToCanvas,
-  computeTransformFromViewbox,
-  getBounds,
-  GraphicsObject,
-} from "../lib"
+import React, { useRef, useEffect, useState, useMemo } from "react"
+import { drawGraphicsToCanvas, getBounds, type GraphicsObject } from "../../lib"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { compose, scale, translate } from "transformation-matrix"
 import useResizeObserver from "@react-hook/resize-observer"
 
-// Example graphics object with different elements
-const exampleGraphics: GraphicsObject = {
-  title: "Canvas Renderer Demo",
-  points: [
-    { x: 0, y: 0, label: "Origin", color: "blue" },
-    { x: 50, y: 50, label: "Point A", color: "red" },
-    { x: -50, y: 20, label: "Point B", color: "green" },
-  ],
-  lines: [
-    {
-      points: [
-        { x: 0, y: 0 },
-        { x: 50, y: 50 },
-        { x: -50, y: 20 },
-      ],
-      strokeColor: "gray",
-      strokeWidth: 2,
-      strokeDash: "5,5",
-    },
-  ],
-  rects: [
-    {
-      center: { x: 0, y: 30 },
-      width: 40,
-      height: 20,
-      fill: "rgba(255, 0, 0, 0.2)",
-      stroke: "red",
-    },
-  ],
-  circles: [
-    {
-      center: { x: 25, y: 25 },
-      radius: 15,
-      fill: "rgba(0, 255, 0, 0.2)",
-      stroke: "green",
-    },
-  ],
-  coordinateSystem: "cartesian",
+interface InteractiveGraphicsCanvasProps {
+  graphics: GraphicsObject
+  showLabelsByDefault?: boolean
+  showGrid?: boolean
+  height?: number | string
+  width?: number | string
 }
 
-export default function CanvasRenderer() {
+export default function InteractiveGraphicsCanvas({
+  graphics,
+  showLabelsByDefault = true,
+  showGrid = true,
+  height = 500,
+  width = "100%",
+}: InteractiveGraphicsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
+  const [activeStep, setActiveStep] = useState<number | null>(null)
+  const [showLabels, setShowLabels] = useState(showLabelsByDefault)
+  const [showLastStep, setShowLastStep] = useState(true)
+
+  // Calculate the maximum step value from all graphics objects
+  const maxStep = useMemo(() => {
+    return Math.max(
+      0,
+      ...(graphics.points?.map((p) => p.step ?? 0) ?? []),
+      ...(graphics.lines?.map((l) => l.step ?? 0) ?? []),
+      ...(graphics.rects?.map((r) => r.step ?? 0) ?? []),
+      ...(graphics.circles?.map((c) => c.step ?? 0) ?? []),
+    )
+  }, [graphics])
+
+  // Filter graphics objects based on step
+  const filteredGraphics = useMemo(() => {
+    if (activeStep === null) {
+      return graphics
+    }
+
+    // If showLastStep is enabled and we're filtering by step, show everything up to and including the current step
+    const maxStep = Math.max(
+      ...(graphics.points?.map((p) => p.step ?? 0) ?? []),
+      ...(graphics.lines?.map((l) => l.step ?? 0) ?? []),
+      ...(graphics.rects?.map((r) => r.step ?? 0) ?? []),
+      ...(graphics.circles?.map((c) => c.step ?? 0) ?? []),
+    )
+    const filterByStep = showLastStep
+      ? (objStep?: number) => objStep === undefined || objStep === maxStep
+      : activeStep
+        ? (objStep?: number) => objStep === undefined || objStep === activeStep
+        : () => true
+
+    return {
+      ...graphics,
+      points: graphics.points?.filter((p) => filterByStep(p.step)),
+      lines: graphics.lines?.filter((l) => filterByStep(l.step)),
+      rects: graphics.rects?.filter((r) => filterByStep(r.step)),
+      circles: graphics.circles?.filter((c) => filterByStep(c.step)),
+    }
+  }, [graphics, activeStep, showLastStep])
 
   // Get bounds of the graphics with padding
-  const graphicsBoundsWithPadding = React.useMemo(() => {
-    const bounds = getBounds(exampleGraphics)
+  const graphicsBoundsWithPadding = useMemo(() => {
+    const bounds = getBounds(graphics)
     const width = bounds.maxX - bounds.minX
     const height = bounds.maxY - bounds.minY
     return {
@@ -65,7 +76,7 @@ export default function CanvasRenderer() {
       maxX: bounds.maxX + width / 10,
       maxY: bounds.maxY + height / 10,
     }
-  }, [])
+  }, [graphics])
 
   // Use mouse transform hook for panning/zooming
   const { transform, ref: mouseTransformRef } = useMouseMatrixTransform({
@@ -109,12 +120,15 @@ export default function CanvasRenderer() {
     canvasRef.current.height = size.height
 
     // Draw the graphics with the current transform
-    drawGraphicsToCanvas(exampleGraphics, canvasRef.current, {
+    drawGraphicsToCanvas(filteredGraphics, canvasRef.current, {
       transform: transform,
+      disableLabels: !showLabels,
     })
 
-    // Draw a grid for reference
-    drawGrid(canvasRef.current, transform)
+    // Draw a grid for reference if requested
+    if (showGrid) {
+      drawGrid(canvasRef.current, transform)
+    }
   }
 
   // Draw a grid to help with visualization
@@ -194,12 +208,71 @@ export default function CanvasRenderer() {
   // Apply the drawing when transform changes
   useEffect(() => {
     drawCanvas()
-  }, [transform, size])
+  }, [transform, size, filteredGraphics, showGrid, showLabels])
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <h2>Canvas Renderer with Mouse Panning/Zooming</h2>
-      <p>Drag to pan, scroll to zoom</p>
+      {maxStep > 0 && (
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label>
+              <input
+                type="checkbox"
+                style={{ marginRight: 4 }}
+                checked={activeStep !== null}
+                onChange={(e) => {
+                  setActiveStep(e.target.checked ? 0 : null)
+                }}
+              />
+              Filter by step
+            </label>
+
+            <input
+              type="number"
+              min={0}
+              max={maxStep}
+              value={activeStep ?? 0}
+              onChange={(e) => {
+                const value = parseInt(e.target.value)
+                setShowLastStep(false)
+                setActiveStep(
+                  Number.isNaN(value) ? 0 : Math.min(value, maxStep),
+                )
+              }}
+              disabled={activeStep === null}
+              style={{ width: "60px" }}
+            />
+
+            <label>
+              <input
+                type="checkbox"
+                style={{ marginRight: 4 }}
+                checked={showLastStep}
+                onChange={(e) => {
+                  setShowLastStep(e.target.checked)
+                  setActiveStep(null)
+                }}
+              />
+              Show last step
+            </label>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label>
+              <input
+                type="checkbox"
+                style={{ marginRight: 4 }}
+                checked={showLabels}
+                onChange={(e) => {
+                  setShowLabels(e.target.checked)
+                }}
+              />
+              Show labels
+            </label>
+          </div>
+        </div>
+      )}
+
       <div
         ref={(node) => {
           // Using a callback ref approach
@@ -211,8 +284,8 @@ export default function CanvasRenderer() {
         }}
         style={{
           position: "relative",
-          width: "100%",
-          height: 500,
+          width: width,
+          height: height,
           border: "1px solid #ccc",
           overflow: "hidden",
         }}
