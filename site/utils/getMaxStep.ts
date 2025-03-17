@@ -1,26 +1,21 @@
 import { GraphicsObject } from "lib/types"
 
 export function getMaxStep(graphics: GraphicsObject) {
-  const maxPointStep = Math.max(
-    0,
-    ...(graphics.points?.map((p) => (Number.isNaN(p.step) ? 0 : p.step || 0)) ??
-      []),
-  )
-  const maxLineStep = Math.max(
-    0,
-    ...(graphics.lines?.map((l) => (Number.isNaN(l.step) ? 0 : l.step || 0)) ??
-      []),
-  )
-  const maxRectStep = Math.max(
-    0,
-    ...(graphics.rects?.map((r) => (Number.isNaN(r.step) ? 0 : r.step || 0)) ??
-      []),
-  )
-  const maxCircleStep = Math.max(
-    0,
-    ...(graphics.circles?.map((c) =>
-      Number.isNaN(c.step) ? 0 : c.step || 0,
-    ) ?? []),
-  )
+  // Helper function to safely get max step from an array
+  const getMaxStepFromArray = (items?: any[]) => {
+    if (!items || items.length === 0) return 0
+
+    // Use reduce instead of spreading a potentially large array
+    return items.reduce((max, item) => {
+      const step = Number.isNaN(item.step) ? 0 : item.step || 0
+      return Math.max(max, step)
+    }, 0)
+  }
+
+  const maxPointStep = getMaxStepFromArray(graphics.points)
+  const maxLineStep = getMaxStepFromArray(graphics.lines)
+  const maxRectStep = getMaxStepFromArray(graphics.rects)
+  const maxCircleStep = getMaxStepFromArray(graphics.circles)
+
   return Math.max(maxPointStep, maxLineStep, maxRectStep, maxCircleStep)
 }
