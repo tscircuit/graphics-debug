@@ -29,9 +29,11 @@ export type GraphicsObjectClickEvent = {
 export const InteractiveGraphics = ({
   graphics,
   onObjectClicked,
+  objectLimit,
 }: {
   graphics: GraphicsObject
   onObjectClicked?: (event: GraphicsObjectClickEvent) => void
+  objectLimit?: number
 }) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
@@ -144,6 +146,18 @@ export const InteractiveGraphics = ({
     size,
   )
 
+  const filteredObjects = [
+    ...(graphics.lines?.filter(filterLines) ?? []),
+    ...(graphics.rects?.filter(filterRects) ?? []),
+    ...(graphics.points?.filter(filterPoints) ?? []),
+    ...(graphics.circles?.filter(filterCircles) ?? []),
+  ]
+
+  const limitedObjects = objectLimit
+    ? filteredObjects.slice(0, objectLimit)
+    : filteredObjects
+  const isLimitReached = objectLimit && filteredObjects.length > objectLimit
+
   return (
     <div>
       {showToolbar && (
@@ -193,6 +207,12 @@ export const InteractiveGraphics = ({
                 />
                 Filter by step
               </label>
+              {isLimitReached && (
+                <span style={{ color: "red", fontSize: "12px" }}>
+                  Display limited to {objectLimit} objects. Received:{" "}
+                  {filteredObjects.length}.
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -207,46 +227,47 @@ export const InteractiveGraphics = ({
         }}
       >
         <DimensionOverlay transform={realToScreen}>
-          {graphics.lines?.map((l, originalIndex) =>
-            filterLines(l) ? (
-              <Line
-                key={originalIndex}
-                line={l}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
-          {graphics.rects?.map((r, originalIndex) =>
-            filterRects(r) ? (
-              <Rect
-                key={originalIndex}
-                rect={r}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
-          {graphics.points?.map((p, originalIndex) =>
-            filterPoints(p) ? (
-              <Point
-                key={originalIndex}
-                point={p}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
-          {graphics.circles?.map((c, originalIndex) =>
-            filterCircles(c) ? (
-              <Circle
-                key={originalIndex}
-                circle={c}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
+          {limitedObjects.map((obj, index) => {
+            if ("points" in obj) {
+              return (
+                <Line
+                  key={index}
+                  line={obj}
+                  index={index}
+                  interactiveState={interactiveState}
+                />
+              )
+            } else if ("width" in obj && "height" in obj) {
+              return (
+                <Rect
+                  key={index}
+                  rect={obj}
+                  index={index}
+                  interactiveState={interactiveState}
+                />
+              )
+            } else if ("x" in obj && "y" in obj) {
+              return (
+                <Point
+                  key={index}
+                  point={obj}
+                  index={index}
+                  interactiveState={interactiveState}
+                />
+              )
+            } else if ("radius" in obj) {
+              return (
+                <Circle
+                  key={index}
+                  circle={obj}
+                  index={index}
+                  interactiveState={interactiveState}
+                />
+              )
+            } else {
+              return null
+            }
+          })}
           <SuperGrid
             stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
             width={size.width}

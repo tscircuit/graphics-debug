@@ -4,6 +4,7 @@ import exampleGraphics from "site/assets/exampleGraphics.json"
 export default () => {
   return (
     <InteractiveGraphics
+      objectLimit={2}
       graphics={{
         rects: [
           {
