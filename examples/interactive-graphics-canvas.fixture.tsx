@@ -92,7 +92,6 @@ export default function InteractiveGraphicsCanvasFixture() {
         graphics={steppedGraphics}
         height={500}
         showGrid={true}
-        showDimensionTool={true}
       />
     </div>
   )
