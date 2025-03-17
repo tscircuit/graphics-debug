@@ -207,7 +207,7 @@ export function drawGraphicsToCanvas(
       }
 
       if (circle.stroke) {
-        ctx.strokeStyle = circle.stroke
+        ctx.strokeStyle = circle.stroke ?? "transparent"
         ctx.stroke()
       }
     })
