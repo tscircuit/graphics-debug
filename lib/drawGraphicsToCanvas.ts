@@ -232,10 +232,15 @@ export function drawGraphicsToCanvas(
       ctx.lineWidth = line.strokeWidth || 1
 
       if (line.strokeDash) {
-        if (typeof line.strokeDash === 'string') {
-          ctx.setLineDash(line.strokeDash.split(",").map(Number).map(n => n * Math.abs(matrix.a)))
+        if (typeof line.strokeDash === "string") {
+          ctx.setLineDash(
+            line.strokeDash
+              .split(",")
+              .map(Number)
+              .map((n) => n * Math.abs(matrix.a)),
+          )
         } else {
-          ctx.setLineDash(line.strokeDash.map(n => n * Math.abs(matrix.a)))
+          ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
         }
       } else {
         ctx.setLineDash([])

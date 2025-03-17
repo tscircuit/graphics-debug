@@ -201,7 +201,7 @@ export default function CanvasRenderer() {
       <h2>Canvas Renderer with Mouse Panning/Zooming</h2>
       <p>Drag to pan, scroll to zoom</p>
       <div
-        ref={node => {
+        ref={(node) => {
           // Using a callback ref approach
           containerRef.current = node
           // Apply the mouse transform ref if available
