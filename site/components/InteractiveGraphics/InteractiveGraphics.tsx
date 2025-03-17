@@ -172,13 +172,6 @@ export const InteractiveGraphics = ({
     [graphics.circles, filterCircles, objectLimit],
   )
 
-  const limitedObjects = [
-    ...filteredLines,
-    ...filteredRects,
-    ...filteredPoints,
-    ...filteredCircles,
-  ]
-
   const totalFilteredObjects =
     filteredLines.length +
     filteredRects.length +
@@ -255,47 +248,38 @@ export const InteractiveGraphics = ({
         }}
       >
         <DimensionOverlay transform={realToScreen}>
-          {limitedObjects.map((obj, index) => {
-            if ("points" in obj) {
-              return (
-                <Line
-                  key={index}
-                  line={obj}
-                  index={index}
-                  interactiveState={interactiveState}
-                />
-              )
-            } else if ("width" in obj && "height" in obj) {
-              return (
-                <Rect
-                  key={index}
-                  rect={obj}
-                  index={index}
-                  interactiveState={interactiveState}
-                />
-              )
-            } else if ("x" in obj && "y" in obj) {
-              return (
-                <Point
-                  key={index}
-                  point={obj}
-                  index={index}
-                  interactiveState={interactiveState}
-                />
-              )
-            } else if ("radius" in obj) {
-              return (
-                <Circle
-                  key={index}
-                  circle={obj}
-                  index={index}
-                  interactiveState={interactiveState}
-                />
-              )
-            } else {
-              return null
-            }
-          })}
+          {filteredLines.map((line, index) => (
+            <Line
+              key={index}
+              line={line}
+              index={index}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {filteredRects.map((rect, index) => (
+            <Rect
+              key={index}
+              rect={rect}
+              index={index}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {filteredPoints.map((point, index) => (
+            <Point
+              key={index}
+              point={point}
+              index={index}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {filteredCircles.map((circle, index) => (
+            <Circle
+              key={index}
+              circle={circle}
+              index={index}
+              interactiveState={interactiveState}
+            />
+          ))}
           <SuperGrid
             stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
             width={size.width}
