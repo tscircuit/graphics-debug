@@ -4,6 +4,9 @@ import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { compose, scale, translate } from "transformation-matrix"
 import useResizeObserver from "@react-hook/resize-observer"
 import { DimensionOverlay } from "./DimensionOverlay"
+import { getMaxStep } from "site/utils/getMaxStep"
+import { getGraphicsFilteredByStep } from "site/utils/getGraphicsFilteredByStep"
+import { getGraphicsBoundsWithPadding } from "site/utils/getGraphicsBoundsWithPadding"
 
 interface InteractiveGraphicsCanvasProps {
   graphics: GraphicsObject
@@ -28,66 +31,17 @@ export function InteractiveGraphicsCanvas({
   const [showLastStep, setShowLastStep] = useState(true)
 
   // Calculate the maximum step value from all graphics objects
-  const maxStep = useMemo(() => {
-    const maxPointStep = Math.max(
-      0,
-      ...(graphics.points?.map((p) =>
-        Number.isNaN(p.step) ? 0 : p.step || 0,
-      ) ?? []),
-    )
-    const maxLineStep = Math.max(
-      0,
-      ...(graphics.lines?.map((l) =>
-        Number.isNaN(l.step) ? 0 : l.step || 0,
-      ) ?? []),
-    )
-    const maxRectStep = Math.max(
-      0,
-      ...(graphics.rects?.map((r) =>
-        Number.isNaN(r.step) ? 0 : r.step || 0,
-      ) ?? []),
-    )
-    const maxCircleStep = Math.max(
-      0,
-      ...(graphics.circles?.map((c) =>
-        Number.isNaN(c.step) ? 0 : c.step || 0,
-      ) ?? []),
-    )
-    return Math.max(maxPointStep, maxLineStep, maxRectStep, maxCircleStep)
-  }, [graphics])
+  const maxStep = getMaxStep(graphics)
 
   // Filter graphics objects based on step
-  const filteredGraphics = useMemo(() => {
-    const selectedStep = showLastStep ? maxStep : activeStep
-
-    if (selectedStep === null) {
-      return graphics
-    }
-
-    const filterByStep = (objStep?: number) =>
-      objStep === undefined || objStep === selectedStep
-
-    return {
-      ...graphics,
-      points: graphics.points?.filter((p) => filterByStep(p.step)),
-      lines: graphics.lines?.filter((l) => filterByStep(l.step)),
-      rects: graphics.rects?.filter((r) => filterByStep(r.step)),
-      circles: graphics.circles?.filter((c) => filterByStep(c.step)),
-    }
-  }, [graphics, activeStep, showLastStep, maxStep])
+  const filteredGraphics = getGraphicsFilteredByStep(graphics, {
+    activeStep,
+    showLastStep,
+    maxStep,
+  })
 
   // Get bounds of the graphics with padding
-  const graphicsBoundsWithPadding = useMemo(() => {
-    const bounds = getBounds(graphics)
-    const width = bounds.maxX - bounds.minX
-    const height = bounds.maxY - bounds.minY
-    return {
-      minX: bounds.minX - width / 10,
-      minY: bounds.minY - height / 10,
-      maxX: bounds.maxX + width / 10,
-      maxY: bounds.maxY + height / 10,
-    }
-  }, [graphics])
+  const graphicsBoundsWithPadding = getGraphicsBoundsWithPadding(graphics)
 
   // Use mouse transform hook for panning/zooming
   const { transform, ref: mouseTransformRef } = useMouseMatrixTransform({
