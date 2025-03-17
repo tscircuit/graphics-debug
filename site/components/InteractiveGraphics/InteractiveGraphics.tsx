@@ -146,25 +146,33 @@ export const InteractiveGraphics = ({
     size,
   )
 
-  const filteredLines = useMemo(
-    () => graphics.lines?.filter(filterLines) || [],
-    [graphics.lines, filterLines],
-  )
+  const filteredLines = useMemo(() => {
+    if (!graphics.lines) return []
+    return graphics.lines
+      .map((line, index) => ({ line, originalIndex: index }))
+      .filter((item) => filterLines(item.line))
+  }, [graphics.lines, filterLines])
 
-  const filteredPoints = useMemo(
-    () => graphics.points?.filter(filterPoints) || [],
-    [graphics.points, filterPoints],
-  )
+  const filteredPoints = useMemo(() => {
+    if (!graphics.points) return []
+    return graphics.points
+      .map((point, index) => ({ point, originalIndex: index }))
+      .filter((item) => filterPoints(item.point))
+  }, [graphics.points, filterPoints])
 
-  const filteredRects = useMemo(
-    () => graphics.rects?.filter(filterRects) || [],
-    [graphics.rects, filterRects],
-  )
+  const filteredRects = useMemo(() => {
+    if (!graphics.rects) return []
+    return graphics.rects
+      .map((rect, index) => ({ rect, originalIndex: index }))
+      .filter((item) => filterRects(item.rect))
+  }, [graphics.rects, filterRects])
 
-  const filteredCircles = useMemo(
-    () => graphics.circles?.filter(filterCircles) || [],
-    [graphics.circles, filterCircles],
-  )
+  const filteredCircles = useMemo(() => {
+    if (!graphics.circles) return []
+    return graphics.circles
+      .map((circle, index) => ({ circle, originalIndex: index }))
+      .filter((item) => filterCircles(item.circle))
+  }, [graphics.circles, filterCircles])
 
   const visibleObjectCount = useMemo(
     () =>
@@ -303,35 +311,35 @@ export const InteractiveGraphics = ({
         }}
       >
         <DimensionOverlay transform={realToScreen}>
-          {displayedLines.map((line) => (
+          {displayedLines.map(({ line, originalIndex }) => (
             <Line
-              key={`line-${graphics.lines!.indexOf(line)}`}
+              key={`line-${originalIndex}`}
               line={line}
-              index={graphics.lines!.indexOf(line)}
+              index={originalIndex}
               interactiveState={interactiveState}
             />
           ))}
-          {displayedRects.map((rect) => (
+          {displayedRects.map(({ rect, originalIndex }) => (
             <Rect
-              key={`rect-${graphics.rects!.indexOf(rect)}`}
+              key={`rect-${originalIndex}`}
               rect={rect}
-              index={graphics.rects!.indexOf(rect)}
+              index={originalIndex}
               interactiveState={interactiveState}
             />
           ))}
-          {displayedPoints.map((point) => (
+          {displayedPoints.map(({ point, originalIndex }) => (
             <Point
-              key={`point-${graphics.points!.indexOf(point)}`}
+              key={`point-${originalIndex}`}
               point={point}
-              index={graphics.points!.indexOf(point)}
+              index={originalIndex}
               interactiveState={interactiveState}
             />
           ))}
-          {displayedCircles.map((circle) => (
+          {displayedCircles.map(({ circle, originalIndex }) => (
             <Circle
-              key={`circle-${graphics.circles!.indexOf(circle)}`}
+              key={`circle-${originalIndex}`}
               circle={circle}
-              index={graphics.circles!.indexOf(circle)}
+              index={originalIndex}
               interactiveState={interactiveState}
             />
           ))}
