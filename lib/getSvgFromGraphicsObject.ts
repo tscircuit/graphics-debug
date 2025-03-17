@@ -84,7 +84,14 @@ function projectPoint(point: Point, matrix: Matrix) {
   return { ...point, ...projected }
 }
 
-export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
+export function getSvgFromGraphicsObject(
+  graphics: GraphicsObject,
+  {
+    includeTextLabels = false,
+  }: {
+    includeTextLabels?: boolean
+  } = {},
+): string {
   const bounds = getBounds(graphics)
   const matrix = getProjectionMatrix(bounds, graphics.coordinateSystem)
 
@@ -120,7 +127,7 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
                 fill: point.color || "black",
               },
             },
-            ...(point.label
+            ...(includeTextLabels && point.label
               ? [
                   {
                     name: "text",
@@ -151,7 +158,10 @@ export function getSvgFromGraphicsObject(graphics: GraphicsObject): string {
             .join(" "),
           fill: "none",
           stroke: line.strokeColor || "black",
-          "stroke-width": (line.strokeWidth || 1).toString(),
+          "stroke-width": (line.strokeWidth
+            ? line.strokeWidth * matrix.a
+            : 1
+          ).toString(),
         },
       })),
       // Rectangles
