@@ -29,33 +29,43 @@ export function InteractiveGraphicsCanvas({
 
   // Calculate the maximum step value from all graphics objects
   const maxStep = useMemo(() => {
-    return Math.max(
+    const maxPointStep = Math.max(
       0,
-      ...(graphics.points?.map((p) => p.step ?? 0) ?? []),
-      ...(graphics.lines?.map((l) => l.step ?? 0) ?? []),
-      ...(graphics.rects?.map((r) => r.step ?? 0) ?? []),
-      ...(graphics.circles?.map((c) => c.step ?? 0) ?? []),
+      ...(graphics.points?.map((p) =>
+        Number.isNaN(p.step) ? 0 : p.step || 0,
+      ) ?? []),
     )
+    const maxLineStep = Math.max(
+      0,
+      ...(graphics.lines?.map((l) =>
+        Number.isNaN(l.step) ? 0 : l.step || 0,
+      ) ?? []),
+    )
+    const maxRectStep = Math.max(
+      0,
+      ...(graphics.rects?.map((r) =>
+        Number.isNaN(r.step) ? 0 : r.step || 0,
+      ) ?? []),
+    )
+    const maxCircleStep = Math.max(
+      0,
+      ...(graphics.circles?.map((c) =>
+        Number.isNaN(c.step) ? 0 : c.step || 0,
+      ) ?? []),
+    )
+    return Math.max(maxPointStep, maxLineStep, maxRectStep, maxCircleStep)
   }, [graphics])
 
   // Filter graphics objects based on step
   const filteredGraphics = useMemo(() => {
-    if (activeStep === null) {
+    const selectedStep = showLastStep ? maxStep : activeStep
+
+    if (selectedStep === null) {
       return graphics
     }
 
-    // If showLastStep is enabled and we're filtering by step, show everything up to and including the current step
-    const maxStep = Math.max(
-      ...(graphics.points?.map((p) => p.step ?? 0) ?? []),
-      ...(graphics.lines?.map((l) => l.step ?? 0) ?? []),
-      ...(graphics.rects?.map((r) => r.step ?? 0) ?? []),
-      ...(graphics.circles?.map((c) => c.step ?? 0) ?? []),
-    )
-    const filterByStep = showLastStep
-      ? (objStep?: number) => objStep === undefined || objStep === maxStep
-      : activeStep
-        ? (objStep?: number) => objStep === undefined || objStep === activeStep
-        : () => true
+    const filterByStep = (objStep?: number) =>
+      objStep === undefined || objStep === selectedStep
 
     return {
       ...graphics,
@@ -64,7 +74,7 @@ export function InteractiveGraphicsCanvas({
       rects: graphics.rects?.filter((r) => filterByStep(r.step)),
       circles: graphics.circles?.filter((c) => filterByStep(c.step)),
     }
-  }, [graphics, activeStep, showLastStep])
+  }, [graphics, activeStep, showLastStep, maxStep])
 
   // Get bounds of the graphics with padding
   const graphicsBoundsWithPadding = useMemo(() => {
