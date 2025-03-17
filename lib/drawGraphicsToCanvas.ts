@@ -229,7 +229,12 @@ export function drawGraphicsToCanvas(
       }
 
       ctx.strokeStyle = line.strokeColor || "black"
-      ctx.lineWidth = line.strokeWidth || 1
+      if (line.strokeWidth) {
+        ctx.lineWidth = line.strokeWidth * matrix.a
+      } else {
+        ctx.lineWidth = 2
+      }
+      ctx.lineCap = "round"
 
       if (line.strokeDash) {
         if (typeof line.strokeDash === "string") {

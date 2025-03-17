@@ -18,7 +18,7 @@ const steppedGraphics: GraphicsObject = {
         { x: 50, y: 50 },
       ],
       strokeColor: "gray",
-      strokeWidth: 2,
+      strokeWidth: 0.5,
       step: 1,
     },
     {
@@ -27,7 +27,7 @@ const steppedGraphics: GraphicsObject = {
         { x: -50, y: 20 },
       ],
       strokeColor: "green",
-      strokeWidth: 2,
+      strokeWidth: 0.5,
       step: 2,
     },
     {
@@ -36,7 +36,7 @@ const steppedGraphics: GraphicsObject = {
         { x: -20, y: -30 },
       ],
       strokeColor: "purple",
-      strokeWidth: 2,
+      strokeWidth: 0.5,
       step: 3,
     },
   ],
