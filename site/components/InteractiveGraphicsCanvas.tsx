@@ -3,6 +3,7 @@ import { drawGraphicsToCanvas, getBounds, type GraphicsObject } from "../../lib"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { compose, scale, translate } from "transformation-matrix"
 import useResizeObserver from "@react-hook/resize-observer"
+import { DimensionOverlay } from "./DimensionOverlay"
 
 interface InteractiveGraphicsCanvasProps {
   graphics: GraphicsObject
@@ -296,8 +297,8 @@ export default function InteractiveGraphicsCanvas({
             position: "absolute",
             top: 0,
             left: 0,
-            width: "100%",
-            height: "100%",
+            width,
+            height,
           }}
         />
       </div>

@@ -83,11 +83,16 @@ export default function InteractiveGraphicsCanvasFixture() {
       <h2>Interactive Graphics Canvas</h2>
       <p>Drag to pan, scroll to zoom</p>
       <p>Use the step controls to visualize the graphics step by step</p>
+      <p>
+        When dimension tool is enabled, press 'd' key to measure distances and
+        coordinates
+      </p>
 
       <InteractiveGraphicsCanvas
         graphics={steppedGraphics}
         height={500}
         showGrid={true}
+        showDimensionTool={true}
       />
     </div>
   )
