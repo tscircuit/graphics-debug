@@ -1,6 +1,6 @@
 import { compose, scale, translate } from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
@@ -29,9 +29,11 @@ export type GraphicsObjectClickEvent = {
 export const InteractiveGraphics = ({
   graphics,
   onObjectClicked,
+  objectLimit,
 }: {
   graphics: GraphicsObject
   onObjectClicked?: (event: GraphicsObjectClickEvent) => void
+  objectLimit?: number
 }) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
@@ -144,6 +146,63 @@ export const InteractiveGraphics = ({
     size,
   )
 
+  const [visibleObjectCount, setVisibleObjectCount] = useState(0)
+  const [limitReached, setLimitReached] = useState(false)
+  
+  const filteredLines = useMemo(() => {
+    if (!graphics.lines) return []
+    return graphics.lines.filter(filterLines)
+  }, [graphics.lines, filterLines])
+  
+  const filteredPoints = useMemo(() => {
+    if (!graphics.points) return []
+    return graphics.points.filter(filterPoints)
+  }, [graphics.points, filterPoints])
+  
+  const filteredRects = useMemo(() => {
+    if (!graphics.rects) return []
+    return graphics.rects.filter(filterRects)
+  }, [graphics.rects, filterRects])
+  
+  const filteredCircles = useMemo(() => {
+    if (!graphics.circles) return []
+    return graphics.circles.filter(filterCircles)
+  }, [graphics.circles, filterCircles])
+  
+  useEffect(() => {
+    const totalObjects = 
+      filteredLines.length + 
+      filteredPoints.length + 
+      filteredRects.length + 
+      filteredCircles.length
+    
+    setVisibleObjectCount(totalObjects)
+    setLimitReached(!!objectLimit && totalObjects > objectLimit)
+  }, [filteredLines, filteredPoints, filteredRects, filteredCircles, objectLimit])
+  
+  const limitObjects = <T,>(objects: T[], currentCount: number): T[] => {
+    if (!objectLimit || currentCount >= objectLimit) return []
+    const remaining = objectLimit - currentCount
+    return objects.slice(0, remaining)
+  }
+  
+  const limitedLines = useMemo(() => 
+    objectLimit ? filteredLines.slice(0, objectLimit) : filteredLines
+  , [filteredLines, objectLimit])
+  
+  const limitedPoints = useMemo(() => 
+    limitObjects(filteredPoints, limitedLines.length)
+  , [filteredPoints, limitedLines.length, objectLimit])
+  
+  const limitedRects = useMemo(() => 
+    limitObjects(filteredRects, limitedLines.length + limitedPoints.length)
+  , [filteredRects, limitedLines.length, limitedPoints.length, objectLimit])
+  
+  const limitedCircles = useMemo(() => 
+    limitObjects(filteredCircles, limitedLines.length + limitedPoints.length + limitedRects.length)
+  , [filteredCircles, limitedLines.length, limitedPoints.length, limitedRects.length, objectLimit])
+
+
   return (
     <div>
       {showToolbar && (
@@ -193,6 +252,11 @@ export const InteractiveGraphics = ({
                 />
                 Filter by step
               </label>
+              {limitReached && (
+                <span style={{ color: 'red', marginLeft: 8 }}>
+                  Showing {objectLimit} of {visibleObjectCount} objects
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -207,46 +271,38 @@ export const InteractiveGraphics = ({
         }}
       >
         <DimensionOverlay transform={realToScreen}>
-          {graphics.lines?.map((l, originalIndex) =>
-            filterLines(l) ? (
-              <Line
-                key={originalIndex}
-                line={l}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
-          {graphics.rects?.map((r, originalIndex) =>
-            filterRects(r) ? (
-              <Rect
-                key={originalIndex}
-                rect={r}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
-          {graphics.points?.map((p, originalIndex) =>
-            filterPoints(p) ? (
-              <Point
-                key={originalIndex}
-                point={p}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
-          {graphics.circles?.map((c, originalIndex) =>
-            filterCircles(c) ? (
-              <Circle
-                key={originalIndex}
-                circle={c}
-                index={originalIndex}
-                interactiveState={interactiveState}
-              />
-            ) : null,
-          )}
+          {limitedLines.map((l, originalIndex) => (
+            <Line
+              key={originalIndex}
+              line={l}
+              index={graphics.lines!.indexOf(l)}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {limitedRects.map((r, originalIndex) => (
+            <Rect
+              key={originalIndex}
+              rect={r}
+              index={graphics.rects!.indexOf(r)}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {limitedPoints.map((p, originalIndex) => (
+            <Point
+              key={originalIndex}
+              point={p}
+              index={graphics.points!.indexOf(p)}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {limitedCircles.map((c, originalIndex) => (
+            <Circle
+              key={originalIndex}
+              circle={c}
+              index={graphics.circles!.indexOf(c)}
+              interactiveState={interactiveState}
+            />
+          ))}
           <SuperGrid
             stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
             width={size.width}
