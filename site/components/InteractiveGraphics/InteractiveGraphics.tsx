@@ -19,6 +19,7 @@ import {
   useFilterCircles,
 } from "./hooks"
 import { DimensionOverlay } from "../DimensionOverlay"
+import { getMaxStep } from "site/utils/getMaxStep"
 
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle"
@@ -45,12 +46,7 @@ export const InteractiveGraphics = ({
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
     ]),
   )
-  const maxStep = Math.max(
-    0,
-    ...(graphics.lines?.map((l) => l.step!).filter(Boolean) ?? []),
-    ...(graphics.rects?.map((r) => r.step!).filter(Boolean) ?? []),
-    ...(graphics.points?.map((p) => p.step!).filter(Boolean) ?? []),
-  )
+  const maxStep = getMaxStep(graphics)
 
   const graphicsBoundsWithPadding = useMemo(() => {
     const actualBounds = getGraphicsBounds(graphics)
