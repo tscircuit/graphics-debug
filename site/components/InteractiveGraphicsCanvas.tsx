@@ -13,7 +13,7 @@ interface InteractiveGraphicsCanvasProps {
   width?: number | string
 }
 
-export default function InteractiveGraphicsCanvas({
+export function InteractiveGraphicsCanvas({
   graphics,
   showLabelsByDefault = true,
   showGrid = true,
@@ -305,3 +305,5 @@ export default function InteractiveGraphicsCanvas({
     </div>
   )
 }
+
+export default InteractiveGraphicsCanvas
