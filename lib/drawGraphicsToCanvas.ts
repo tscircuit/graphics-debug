@@ -11,6 +11,7 @@ import type {
   CenterViewbox,
   TransformOptions,
 } from "./types"
+import { defaultColors } from "site/components/InteractiveGraphics/defaultColors"
 
 /**
  * Computes a transformation matrix based on a provided viewbox
@@ -215,7 +216,7 @@ export function drawGraphicsToCanvas(
 
   // Draw lines
   if (graphics.lines && graphics.lines.length > 0) {
-    graphics.lines.forEach((line) => {
+    graphics.lines.forEach((line, lineIndex) => {
       if (line.points.length === 0) return
 
       ctx.beginPath()
@@ -228,7 +229,8 @@ export function drawGraphicsToCanvas(
         ctx.lineTo(projected.x, projected.y)
       }
 
-      ctx.strokeStyle = line.strokeColor || "black"
+      ctx.strokeStyle =
+        line.strokeColor || defaultColors[lineIndex % defaultColors.length]
       if (line.strokeWidth) {
         ctx.lineWidth = line.strokeWidth * matrix.a
       } else {
