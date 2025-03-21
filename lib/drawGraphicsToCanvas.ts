@@ -271,13 +271,14 @@ export function drawGraphicsToCanvas(
 
   // Draw points
   if (graphics.points && graphics.points.length > 0) {
-    graphics.points.forEach((point) => {
+    graphics.points.forEach((point, pointIndex) => {
       const projected = applyToPoint(matrix, point)
 
       // Draw point as a small circle
       ctx.beginPath()
       ctx.arc(projected.x, projected.y, 3, 0, 2 * Math.PI)
-      ctx.fillStyle = point.color || "black"
+      ctx.fillStyle =
+        point.color || defaultColors[pointIndex % defaultColors.length]
       ctx.fill()
 
       // Draw label if present and labels aren't disabled
