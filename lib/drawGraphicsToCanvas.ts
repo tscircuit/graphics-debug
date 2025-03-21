@@ -238,13 +238,25 @@ export function drawGraphicsToCanvas(
 
       if (line.strokeDash) {
         if (typeof line.strokeDash === "string") {
-          ctx.setLineDash(
-            line.strokeDash
+          // Convert string to array of numbers, handling single values properly
+          let dashArray: number[]
+
+          // If the string contains commas, split and convert to numbers
+          if (line.strokeDash.includes(",")) {
+            dashArray = line.strokeDash
               .split(",")
-              .map(Number)
-              .map((n) => n * Math.abs(matrix.a)),
-          )
+              .map((s) => parseFloat(s.trim()))
+              .filter((n) => !Number.isNaN(n))
+          } else {
+            // Handle single value case
+            const value = parseFloat(line.strokeDash.trim())
+            dashArray = !Number.isNaN(value) ? [value] : []
+          }
+
+          // Scale dash values based on transform matrix
+          ctx.setLineDash(dashArray)
         } else {
+          // Handle array format
           ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
         }
       } else {
