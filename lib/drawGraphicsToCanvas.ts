@@ -11,6 +11,7 @@ import type {
   CenterViewbox,
   TransformOptions,
 } from "./types"
+import { defaultColors } from "site/components/InteractiveGraphics/defaultColors"
 
 /**
  * Computes a transformation matrix based on a provided viewbox
@@ -215,7 +216,7 @@ export function drawGraphicsToCanvas(
 
   // Draw lines
   if (graphics.lines && graphics.lines.length > 0) {
-    graphics.lines.forEach((line) => {
+    graphics.lines.forEach((line, lineIndex) => {
       if (line.points.length === 0) return
 
       ctx.beginPath()
@@ -228,7 +229,8 @@ export function drawGraphicsToCanvas(
         ctx.lineTo(projected.x, projected.y)
       }
 
-      ctx.strokeStyle = line.strokeColor || "black"
+      ctx.strokeStyle =
+        line.strokeColor || defaultColors[lineIndex % defaultColors.length]
       if (line.strokeWidth) {
         ctx.lineWidth = line.strokeWidth * matrix.a
       } else {
@@ -238,13 +240,25 @@ export function drawGraphicsToCanvas(
 
       if (line.strokeDash) {
         if (typeof line.strokeDash === "string") {
-          ctx.setLineDash(
-            line.strokeDash
+          // Convert string to array of numbers, handling single values properly
+          let dashArray: number[]
+
+          // If the string contains commas, split and convert to numbers
+          if (line.strokeDash.includes(",")) {
+            dashArray = line.strokeDash
               .split(",")
-              .map(Number)
-              .map((n) => n * Math.abs(matrix.a)),
-          )
+              .map((s) => parseFloat(s.trim()))
+              .filter((n) => !Number.isNaN(n))
+          } else {
+            // Handle single value case
+            const value = parseFloat(line.strokeDash.trim())
+            dashArray = !Number.isNaN(value) ? [value] : []
+          }
+
+          // Scale dash values based on transform matrix
+          ctx.setLineDash(dashArray)
         } else {
+          // Handle array format
           ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
         }
       } else {
@@ -257,13 +271,14 @@ export function drawGraphicsToCanvas(
 
   // Draw points
   if (graphics.points && graphics.points.length > 0) {
-    graphics.points.forEach((point) => {
+    graphics.points.forEach((point, pointIndex) => {
       const projected = applyToPoint(matrix, point)
 
       // Draw point as a small circle
       ctx.beginPath()
       ctx.arc(projected.x, projected.y, 3, 0, 2 * Math.PI)
-      ctx.fillStyle = point.color || "black"
+      ctx.fillStyle =
+        point.color || defaultColors[pointIndex % defaultColors.length]
       ctx.fill()
 
       // Draw label if present and labels aren't disabled
