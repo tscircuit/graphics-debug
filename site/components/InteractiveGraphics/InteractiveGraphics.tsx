@@ -38,6 +38,7 @@ export const InteractiveGraphics = ({
 }) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
+  const [showLastStep, setShowLastStep] = useState(true)
   const [size, setSize] = useState({ width: 600, height: 600 })
   const availableLayers: string[] = Array.from(
     new Set([
@@ -93,7 +94,7 @@ export const InteractiveGraphics = ({
 
   const interactiveState: InteractiveState = {
     activeLayers: activeLayers,
-    activeStep: activeStep,
+    activeStep: showLastStep ? maxStep : activeStep,
     realToScreen: realToScreen,
     onObjectClicked: onObjectClicked,
   }
@@ -112,10 +113,12 @@ export const InteractiveGraphics = ({
   const filterLayerAndStep = (obj: { layer?: string; step?: number }) => {
     if (activeLayers && obj.layer && !activeLayers.includes(obj.layer))
       return false
+
+    const selectedStep = showLastStep ? maxStep : activeStep
     if (
-      activeStep !== null &&
+      selectedStep !== null &&
       obj.step !== undefined &&
-      obj.step !== activeStep
+      obj.step !== selectedStep
     )
       return false
     return true
@@ -211,6 +214,7 @@ export const InteractiveGraphics = ({
                 value={activeStep ?? 0}
                 onChange={(e) => {
                   const value = parseInt(e.target.value)
+                  setShowLastStep(false)
                   setActiveStep(Number.isNaN(value) ? null : value)
                 }}
                 disabled={activeStep === null}
@@ -221,10 +225,23 @@ export const InteractiveGraphics = ({
                   style={{ marginRight: 4 }}
                   checked={activeStep !== null}
                   onChange={(e) => {
+                    setShowLastStep(false)
                     setActiveStep(e.target.checked ? 0 : null)
                   }}
                 />
                 Filter by step
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  style={{ marginRight: 4 }}
+                  checked={showLastStep}
+                  onChange={(e) => {
+                    setShowLastStep(e.target.checked)
+                    setActiveStep(null)
+                  }}
+                />
+                Show last step
               </label>
               {isLimitReached && (
                 <span style={{ color: "red", fontSize: "12px" }}>
