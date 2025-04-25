@@ -40,17 +40,19 @@ export const ContextMenu = ({
     top: y,
     backgroundColor: "white",
     border: "1px solid #ccc",
-    borderRadius: 4,
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+    borderRadius: 3,
+    boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
     padding: 0,
     zIndex: 1000,
-    minWidth: 180,
+    minWidth: 160,
+    fontSize: "12px",
   }
 
   const menuItemStyle: React.CSSProperties = {
-    padding: "8px 12px",
+    padding: "4px 8px",
     cursor: "pointer",
     userSelect: "none",
+    lineHeight: "1.5",
   }
 
   const handleItemHover = (e: React.MouseEvent) => {

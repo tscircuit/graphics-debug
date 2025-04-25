@@ -153,11 +153,43 @@ export const InteractiveGraphics = ({
 
   const handleContextMenu = useCallback((event: React.MouseEvent) => {
     event.preventDefault()
+
+    // Get mouse position
+    const mouseX = event.clientX
+    const mouseY = event.clientY
+
+    // Get element position
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    const elementX = rect.left
+    const elementY = rect.top
+
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+
+    // Menu dimensions (approximate)
+    const menuWidth = 160
+    const menuHeight = 100
+
+    // Position based on quadrant of the screen
+    let x = mouseX - elementX
+    let y = mouseY - elementY
+
+    // If mouse is in right half of viewport, position menu to the left
+    if (mouseX > viewportWidth / 2) {
+      x = x - menuWidth
+    }
+
+    // If mouse is in bottom half of viewport, position menu above
+    if (mouseY > viewportHeight / 2) {
+      y = y - menuHeight
+    }
+
     setContextMenu({
-      x: event.clientX - (event.currentTarget as HTMLElement).offsetLeft,
-      y: event.clientY - (event.currentTarget as HTMLElement).offsetTop,
-      clientX: event.clientX,
-      clientY: event.clientY,
+      x,
+      y,
+      clientX: mouseX,
+      clientY: mouseY,
     })
   }, [])
 
