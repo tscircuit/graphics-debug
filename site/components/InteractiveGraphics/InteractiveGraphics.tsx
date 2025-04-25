@@ -1,4 +1,10 @@
-import { compose, scale, translate } from "transformation-matrix"
+import {
+  compose,
+  scale,
+  translate,
+  inverse,
+  applyToPoint,
+} from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
 import { useMemo, useState, useEffect, useCallback } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
@@ -21,6 +27,7 @@ import {
 import { DimensionOverlay } from "../DimensionOverlay"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { ContextMenu } from "./ContextMenu"
+import { Marker, MarkerPoint } from "./Marker"
 
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle"
@@ -44,7 +51,10 @@ export const InteractiveGraphics = ({
   const [contextMenu, setContextMenu] = useState<{
     x: number
     y: number
+    clientX: number
+    clientY: number
   } | null>(null)
+  const [markers, setMarkers] = useState<MarkerPoint[]>([])
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
@@ -96,17 +106,27 @@ export const InteractiveGraphics = ({
     )
   }, [size, graphicsBoundsWithPadding])
 
-  const getSavedTransform = useCallback(() => {
+  type SavedData = {
+    transform: any
+    markers: MarkerPoint[]
+  }
+
+  const getSavedData = useCallback((): SavedData | null => {
     try {
-      const savedTransform = localStorage.getItem(getStorageKey())
-      if (savedTransform) {
-        return JSON.parse(savedTransform)
+      const savedData = localStorage.getItem(getStorageKey())
+      if (savedData) {
+        return JSON.parse(savedData)
       }
     } catch (error) {
-      console.error("Error loading saved camera position:", error)
+      console.error("Error loading saved data:", error)
     }
     return null
   }, [getStorageKey])
+
+  const getSavedTransform = useCallback(() => {
+    const savedData = getSavedData()
+    return savedData?.transform || null
+  }, [getSavedData])
 
   const {
     transform: realToScreen,
@@ -123,30 +143,87 @@ export const InteractiveGraphics = ({
     })
   })
 
+  // Load saved markers on mount
+  useEffect(() => {
+    const savedData = getSavedData()
+    if (savedData?.markers) {
+      setMarkers(savedData.markers)
+    }
+  }, [getSavedData])
+
   const handleContextMenu = useCallback((event: React.MouseEvent) => {
     event.preventDefault()
     setContextMenu({
       x: event.clientX,
       y: event.clientY,
+      clientX: event.clientX,
+      clientY: event.clientY,
     })
   }, [])
 
+  const saveToLocalStorage = useCallback(
+    (transform: any, markerPoints: MarkerPoint[]) => {
+      try {
+        const dataToSave: SavedData = {
+          transform,
+          markers: markerPoints,
+        }
+        localStorage.setItem(getStorageKey(), JSON.stringify(dataToSave))
+      } catch (error) {
+        console.error("Error saving data:", error)
+      }
+    },
+    [getStorageKey],
+  )
+
   const handleSaveCamera = useCallback(() => {
-    try {
-      localStorage.setItem(getStorageKey(), JSON.stringify(realToScreen))
-    } catch (error) {
-      console.error("Error saving camera position:", error)
-    }
-  }, [getStorageKey, realToScreen])
+    saveToLocalStorage(realToScreen, markers)
+  }, [saveToLocalStorage, realToScreen, markers])
 
   const handleClearCamera = useCallback(() => {
     try {
-      localStorage.removeItem(getStorageKey())
-      setTransform(getDefaultTransform())
+      const defaultTransform = getDefaultTransform()
+      saveToLocalStorage(defaultTransform, markers)
+      setTransform(defaultTransform)
     } catch (error) {
       console.error("Error clearing camera position:", error)
     }
-  }, [getStorageKey, getDefaultTransform, setTransform])
+  }, [saveToLocalStorage, getDefaultTransform, setTransform, markers])
+
+  const handleAddMark = useCallback(() => {
+    if (!contextMenu) return
+
+    try {
+      // Convert screen coordinates to real-world coordinates
+      const screenPoint = { x: contextMenu.clientX, y: contextMenu.clientY }
+      const rect = ref.current?.getBoundingClientRect()
+
+      if (rect) {
+        const screenX = screenPoint.x - rect.left
+        const screenY = screenPoint.y - rect.top
+
+        // Apply inverse transform to get real-world coordinates
+        const inverseTransform = inverse(realToScreen)
+        const [realX, realY] = applyToPoint(inverseTransform, [
+          screenX,
+          screenY,
+        ])
+
+        const newMarker: MarkerPoint = { x: realX, y: realY }
+        const newMarkers = [...markers, newMarker]
+
+        setMarkers(newMarkers)
+        saveToLocalStorage(realToScreen, newMarkers)
+      }
+    } catch (error) {
+      console.error("Error adding marker:", error)
+    }
+  }, [contextMenu, ref, realToScreen, markers, saveToLocalStorage])
+
+  const handleClearMarks = useCallback(() => {
+    setMarkers([])
+    saveToLocalStorage(realToScreen, [])
+  }, [realToScreen, saveToLocalStorage])
 
   const interactiveState: InteractiveState = {
     activeLayers: activeLayers,
@@ -359,12 +436,22 @@ export const InteractiveGraphics = ({
             transform={realToScreen}
           />
         </DimensionOverlay>
+        {markers.map((marker, index) => (
+          <Marker
+            key={index}
+            marker={marker}
+            index={index}
+            transform={realToScreen}
+          />
+        ))}
         {contextMenu && (
           <ContextMenu
             x={contextMenu.x}
             y={contextMenu.y}
             onSaveCamera={handleSaveCamera}
             onClearCamera={handleClearCamera}
+            onAddMark={handleAddMark}
+            onClearMarks={handleClearMarks}
             onClose={() => setContextMenu(null)}
           />
         )}

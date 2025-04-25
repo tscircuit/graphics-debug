@@ -5,6 +5,8 @@ type ContextMenuProps = {
   y: number
   onSaveCamera: () => void
   onClearCamera: () => void
+  onAddMark: () => void
+  onClearMarks: () => void
   onClose: () => void
 }
 
@@ -13,6 +15,8 @@ export const ContextMenu = ({
   y,
   onSaveCamera,
   onClearCamera,
+  onAddMark,
+  onClearMarks,
   onClose,
 }: ContextMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null)
@@ -81,6 +85,28 @@ export const ContextMenu = ({
         onMouseLeave={handleItemLeave}
       >
         Clear Saved Camera Position
+      </div>
+      <div
+        style={menuItemStyle}
+        onClick={() => {
+          onAddMark()
+          onClose()
+        }}
+        onMouseEnter={handleItemHover}
+        onMouseLeave={handleItemLeave}
+      >
+        Add Mark
+      </div>
+      <div
+        style={menuItemStyle}
+        onClick={() => {
+          onClearMarks()
+          onClose()
+        }}
+        onMouseEnter={handleItemHover}
+        onMouseLeave={handleItemLeave}
+      >
+        Clear Marks
       </div>
     </div>
   )

@@ -38,6 +38,9 @@
       "complexity": {
         "noForEach": "off"
       },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
       "style": {
         "useImportType": "off",
         "noUselessElse": "off",
