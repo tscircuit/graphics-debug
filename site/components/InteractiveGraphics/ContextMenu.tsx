@@ -38,7 +38,6 @@ export const ContextMenu = ({
     position: "absolute",
     left: x,
     top: y,
-    transform: "translate(0, -100%)",
     backgroundColor: "white",
     border: "1px solid #ccc",
     borderRadius: 4,

@@ -154,8 +154,8 @@ export const InteractiveGraphics = ({
   const handleContextMenu = useCallback((event: React.MouseEvent) => {
     event.preventDefault()
     setContextMenu({
-      x: event.clientX,
-      y: event.clientY,
+      x: event.clientX - (event.currentTarget as HTMLElement).offsetLeft,
+      y: event.clientY - (event.currentTarget as HTMLElement).offsetTop,
       clientX: event.clientX,
       clientY: event.clientY,
     })
