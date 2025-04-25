@@ -1,6 +1,6 @@
 import { compose, scale, translate } from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect, useCallback } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
@@ -20,6 +20,7 @@ import {
 } from "./hooks"
 import { DimensionOverlay } from "../DimensionOverlay"
 import { getMaxStep } from "site/utils/getMaxStep"
+import { ContextMenu } from "./ContextMenu"
 
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle"
@@ -40,6 +41,10 @@ export const InteractiveGraphics = ({
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [showLastStep, setShowLastStep] = useState(true)
   const [size, setSize] = useState({ width: 600, height: 600 })
+  const [contextMenu, setContextMenu] = useState<{
+    x: number
+    y: number
+  } | null>(null)
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
@@ -61,8 +66,12 @@ export const InteractiveGraphics = ({
     }
   }, [graphics])
 
-  const { transform: realToScreen, ref } = useMouseMatrixTransform({
-    initialTransform: compose(
+  const getStorageKey = useCallback(() => {
+    return `saved-camera-position-${window.location.pathname}`
+  }, [])
+
+  const getDefaultTransform = useCallback(() => {
+    return compose(
       translate(size.width / 2, size.height / 2),
       scale(
         Math.min(
@@ -82,7 +91,27 @@ export const InteractiveGraphics = ({
         -(graphicsBoundsWithPadding.maxX + graphicsBoundsWithPadding.minX) / 2,
         -(graphicsBoundsWithPadding.maxY + graphicsBoundsWithPadding.minY) / 2,
       ),
-    ),
+    )
+  }, [size, graphicsBoundsWithPadding])
+
+  const getSavedTransform = useCallback(() => {
+    try {
+      const savedTransform = localStorage.getItem(getStorageKey())
+      if (savedTransform) {
+        return JSON.parse(savedTransform)
+      }
+    } catch (error) {
+      console.error("Error loading saved camera position:", error)
+    }
+    return null
+  }, [getStorageKey])
+
+  const {
+    transform: realToScreen,
+    ref,
+    setTransform,
+  } = useMouseMatrixTransform({
+    initialTransform: getSavedTransform() || getDefaultTransform(),
   })
 
   useResizeObserver(ref, (entry: ResizeObserverEntry) => {
@@ -91,6 +120,31 @@ export const InteractiveGraphics = ({
       height: entry.contentRect.height,
     })
   })
+
+  const handleContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault()
+    setContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+    })
+  }, [])
+
+  const handleSaveCamera = useCallback(() => {
+    try {
+      localStorage.setItem(getStorageKey(), JSON.stringify(realToScreen))
+    } catch (error) {
+      console.error("Error saving camera position:", error)
+    }
+  }, [getStorageKey, realToScreen])
+
+  const handleClearCamera = useCallback(() => {
+    try {
+      localStorage.removeItem(getStorageKey())
+      setTransform(getDefaultTransform())
+    } catch (error) {
+      console.error("Error clearing camera position:", error)
+    }
+  }, [getStorageKey, getDefaultTransform, setTransform])
 
   const interactiveState: InteractiveState = {
     activeLayers: activeLayers,
@@ -261,6 +315,7 @@ export const InteractiveGraphics = ({
           height: 600,
           overflow: "hidden",
         }}
+        onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
           {filteredLines.map((line) => (
@@ -302,6 +357,15 @@ export const InteractiveGraphics = ({
             transform={realToScreen}
           />
         </DimensionOverlay>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onSaveCamera={handleSaveCamera}
+            onClearCamera={handleClearCamera}
+            onClose={() => setContextMenu(null)}
+          />
+        )}
       </div>
     </div>
   )
