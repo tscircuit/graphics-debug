@@ -54,12 +54,11 @@ export const ContextMenu = ({
     userSelect: "none",
     lineHeight: "1.5",
   }
-
-  const handleItemHover = (e: React.MouseEvent) => {
+  const handleItemHover = (e: React.MouseEvent<HTMLElement>) => {
     e.currentTarget.style.backgroundColor = "#f5f5f5"
   }
 
-  const handleItemLeave = (e: React.MouseEvent) => {
+  const handleItemLeave = (e: React.MouseEvent<HTMLElement>) => {
     e.currentTarget.style.backgroundColor = ""
   }
 
