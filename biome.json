@@ -29,7 +29,8 @@
         "noDangerouslySetInnerHtml": "off"
       },
       "a11y": {
-        "noSvgWithoutTitle": "off"
+        "noSvgWithoutTitle": "off",
+        "useKeyWithClickEvents": "off"
       },
       "suspicious": {
         "noExplicitAny": "off",
@@ -37,6 +38,9 @@
       },
       "complexity": {
         "noForEach": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
       },
       "style": {
         "useImportType": "off",

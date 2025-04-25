@@ -1,6 +1,12 @@
-import { compose, scale, translate } from "transformation-matrix"
+import {
+  compose,
+  scale,
+  translate,
+  inverse,
+  applyToPoint,
+} from "transformation-matrix"
 import { GraphicsObject } from "../../../lib"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect, useCallback } from "react"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
@@ -20,6 +26,8 @@ import {
 } from "./hooks"
 import { DimensionOverlay } from "../DimensionOverlay"
 import { getMaxStep } from "site/utils/getMaxStep"
+import { ContextMenu } from "./ContextMenu"
+import { Marker, MarkerPoint } from "./Marker"
 
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle"
@@ -40,6 +48,13 @@ export const InteractiveGraphics = ({
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [showLastStep, setShowLastStep] = useState(true)
   const [size, setSize] = useState({ width: 600, height: 600 })
+  const [contextMenu, setContextMenu] = useState<{
+    x: number
+    y: number
+    clientX: number
+    clientY: number
+  } | null>(null)
+  const [markers, setMarkers] = useState<MarkerPoint[]>([])
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
@@ -61,8 +76,14 @@ export const InteractiveGraphics = ({
     }
   }, [graphics])
 
-  const { transform: realToScreen, ref } = useMouseMatrixTransform({
-    initialTransform: compose(
+  const getStorageKey = useCallback(() => {
+    const path = window.location.pathname
+    const search = window.location.search
+    return `saved-camera-position-${path}${search}`
+  }, [])
+
+  const getDefaultTransform = useCallback(() => {
+    return compose(
       translate(size.width / 2, size.height / 2),
       scale(
         Math.min(
@@ -82,7 +103,37 @@ export const InteractiveGraphics = ({
         -(graphicsBoundsWithPadding.maxX + graphicsBoundsWithPadding.minX) / 2,
         -(graphicsBoundsWithPadding.maxY + graphicsBoundsWithPadding.minY) / 2,
       ),
-    ),
+    )
+  }, [size, graphicsBoundsWithPadding])
+
+  type SavedData = {
+    transform: any
+    markers: MarkerPoint[]
+  }
+
+  const getSavedData = useCallback((): SavedData | null => {
+    try {
+      const savedData = localStorage.getItem(getStorageKey())
+      if (savedData) {
+        return JSON.parse(savedData)
+      }
+    } catch (error) {
+      console.error("Error loading saved data:", error)
+    }
+    return null
+  }, [getStorageKey])
+
+  const getSavedTransform = useCallback(() => {
+    const savedData = getSavedData()
+    return savedData?.transform || null
+  }, [getSavedData])
+
+  const {
+    transform: realToScreen,
+    ref,
+    setTransform,
+  } = useMouseMatrixTransform({
+    initialTransform: getSavedTransform() || getDefaultTransform(),
   })
 
   useResizeObserver(ref, (entry: ResizeObserverEntry) => {
@@ -91,6 +142,120 @@ export const InteractiveGraphics = ({
       height: entry.contentRect.height,
     })
   })
+
+  // Load saved markers on mount
+  useEffect(() => {
+    const savedData = getSavedData()
+    if (savedData?.markers) {
+      setMarkers(savedData.markers)
+    }
+  }, [getSavedData])
+
+  const handleContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault()
+
+    // Get mouse position
+    const mouseX = event.clientX
+    const mouseY = event.clientY
+
+    // Get element position
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    const elementX = rect.left
+    const elementY = rect.top
+
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+
+    // Menu dimensions (approximate)
+    const menuWidth = 160
+    const menuHeight = 100
+
+    // Position based on quadrant of the screen
+    let x = mouseX - elementX
+    let y = mouseY - elementY
+
+    // If mouse is in right half of viewport, position menu to the left
+    if (mouseX > viewportWidth / 2) {
+      x = x - menuWidth
+    }
+
+    // If mouse is in bottom half of viewport, position menu above
+    if (mouseY > viewportHeight / 2) {
+      y = y - menuHeight
+    }
+
+    setContextMenu({
+      x,
+      y,
+      clientX: mouseX,
+      clientY: mouseY,
+    })
+  }, [])
+
+  const saveToLocalStorage = useCallback(
+    (transform: any, markerPoints: MarkerPoint[]) => {
+      try {
+        const dataToSave: SavedData = {
+          transform,
+          markers: markerPoints,
+        }
+        localStorage.setItem(getStorageKey(), JSON.stringify(dataToSave))
+      } catch (error) {
+        console.error("Error saving data:", error)
+      }
+    },
+    [getStorageKey],
+  )
+
+  const handleSaveCamera = useCallback(() => {
+    saveToLocalStorage(realToScreen, markers)
+  }, [saveToLocalStorage, realToScreen, markers])
+
+  const handleClearCamera = useCallback(() => {
+    try {
+      const defaultTransform = getDefaultTransform()
+      saveToLocalStorage(defaultTransform, markers)
+      setTransform(defaultTransform)
+    } catch (error) {
+      console.error("Error clearing camera position:", error)
+    }
+  }, [saveToLocalStorage, getDefaultTransform, setTransform, markers])
+
+  const handleAddMark = useCallback(() => {
+    if (!contextMenu) return
+
+    try {
+      // Convert screen coordinates to real-world coordinates
+      const screenPoint = { x: contextMenu.clientX, y: contextMenu.clientY }
+      const rect = ref.current?.getBoundingClientRect()
+
+      if (rect) {
+        const screenX = screenPoint.x - rect.left
+        const screenY = screenPoint.y - rect.top
+
+        // Apply inverse transform to get real-world coordinates
+        const inverseTransform = inverse(realToScreen)
+        const [realX, realY] = applyToPoint(inverseTransform, [
+          screenX,
+          screenY,
+        ])
+
+        const newMarker: MarkerPoint = { x: realX, y: realY }
+        const newMarkers = [...markers, newMarker]
+
+        setMarkers(newMarkers)
+        saveToLocalStorage(realToScreen, newMarkers)
+      }
+    } catch (error) {
+      console.error("Error adding marker:", error)
+    }
+  }, [contextMenu, ref, realToScreen, markers, saveToLocalStorage])
+
+  const handleClearMarks = useCallback(() => {
+    setMarkers([])
+    saveToLocalStorage(realToScreen, [])
+  }, [realToScreen, saveToLocalStorage])
 
   const interactiveState: InteractiveState = {
     activeLayers: activeLayers,
@@ -261,6 +426,7 @@ export const InteractiveGraphics = ({
           height: 600,
           overflow: "hidden",
         }}
+        onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
           {filteredLines.map((line) => (
@@ -302,6 +468,25 @@ export const InteractiveGraphics = ({
             transform={realToScreen}
           />
         </DimensionOverlay>
+        {markers.map((marker, index) => (
+          <Marker
+            key={index}
+            marker={marker}
+            index={index}
+            transform={realToScreen}
+          />
+        ))}
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onSaveCamera={handleSaveCamera}
+            onClearCamera={handleClearCamera}
+            onAddMark={handleAddMark}
+            onClearMarks={handleClearMarks}
+            onClose={() => setContextMenu(null)}
+          />
+        )}
       </div>
     </div>
   )
