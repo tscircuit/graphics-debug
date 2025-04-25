@@ -67,7 +67,9 @@ export const InteractiveGraphics = ({
   }, [graphics])
 
   const getStorageKey = useCallback(() => {
-    return `saved-camera-position-${window.location.pathname}`
+    const path = window.location.pathname
+    const search = window.location.search
+    return `saved-camera-position-${path}${search}`
   }, [])
 
   const getDefaultTransform = useCallback(() => {
