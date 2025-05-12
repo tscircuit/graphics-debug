@@ -178,6 +178,11 @@ export function getSvgFromGraphicsObject(
             ? line.strokeWidth * matrix.a
             : 1
           ).toString(),
+          ...(line.strokeDash && {
+            "stroke-dasharray": Array.isArray(line.strokeDash)
+              ? line.strokeDash.join(" ")
+              : line.strokeDash,
+          }),
         },
       })),
       // Rectangles
