@@ -88,8 +88,10 @@ export function getSvgFromGraphicsObject(
   graphics: GraphicsObject,
   {
     includeTextLabels = false,
+    backgroundColor,
   }: {
     includeTextLabels?: boolean
+    backgroundColor?: string
   } = {},
 ): string {
   const bounds = getBounds(graphics)
@@ -105,6 +107,20 @@ export function getSvgFromGraphicsObject(
       xmlns: "http://www.w3.org/2000/svg",
     },
     children: [
+      // Background rectangle (optional)
+      ...(backgroundColor
+        ? [
+            {
+              name: "rect",
+              type: "element",
+              attributes: {
+                width: "100%",
+                height: "100%",
+                fill: backgroundColor,
+              },
+            },
+          ]
+        : []),
       // Points
       ...(graphics.points || []).map((point) => {
         const projected = projectPoint(point, matrix)
