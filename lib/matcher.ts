@@ -19,7 +19,7 @@ async function toMatchGraphicsSvg(
   this: any,
   receivedMaybePromise: GraphicsObject | Promise<GraphicsObject>,
   testPathOriginal: string,
-  opts: { backgroundColor?: string; svgName?: string },
+  opts: { backgroundColor?: string; svgName?: string } = {},
 ): Promise<MatcherResult> {
   const received = await receivedMaybePromise
   const testPath = testPathOriginal.replace(/\.test\.tsx?$/, "")
@@ -95,7 +95,7 @@ declare module "bun:test" {
   interface Matchers<T = unknown> {
     toMatchGraphicsSvg(
       testPath: string,
-      opts: { backgroundColor?: string; svgName?: string },
+      opts?: { backgroundColor?: string; svgName?: string },
     ): Promise<MatcherResult>
   }
 }
