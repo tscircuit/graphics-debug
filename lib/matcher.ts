@@ -19,13 +19,13 @@ async function toMatchGraphicsSvg(
   this: any,
   receivedMaybePromise: GraphicsObject | Promise<GraphicsObject>,
   testPathOriginal: string,
-  svgName?: string,
+  opts: { backgroundColor?: string; svgName?: string } = {},
 ): Promise<MatcherResult> {
   const received = await receivedMaybePromise
   const testPath = testPathOriginal.replace(/\.test\.tsx?$/, "")
   const snapshotDir = path.join(path.dirname(testPath), "__snapshots__")
-  const snapshotName = svgName
-    ? `${svgName}.snap.svg`
+  const snapshotName = opts.svgName
+    ? `${opts.svgName}.snap.svg`
     : `${path.basename(testPath)}.snap.svg`
   const filePath = path.join(snapshotDir, snapshotName)
 
@@ -34,7 +34,9 @@ async function toMatchGraphicsSvg(
   }
 
   // Convert GraphicsObject to SVG
-  const receivedSvg = getSvgFromGraphicsObject(received)
+  const receivedSvg = getSvgFromGraphicsObject(received, {
+    backgroundColor: opts.backgroundColor,
+  })
 
   const updateSnapshot =
     process.argv.includes("--update-snapshots") ||
@@ -93,7 +95,7 @@ declare module "bun:test" {
   interface Matchers<T = unknown> {
     toMatchGraphicsSvg(
       testPath: string,
-      svgName?: string,
+      opts?: { backgroundColor?: string; svgName?: string },
     ): Promise<MatcherResult>
   }
 }

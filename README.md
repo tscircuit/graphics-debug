@@ -30,7 +30,6 @@ Don't have access to the cli? Paste into the online version: https://graphicsdeb
 
 https://github.com/user-attachments/assets/9f3f41e6-b0fe-416a-a551-ba5c5b920cad
 
-
 ## Format
 
 The `graphics` json object is very simple, here's the basic schema:
@@ -167,9 +166,20 @@ import { getSvgFromGraphicsObject } from "graphics-debug"
 
 // Create your graphics object
 const graphicsObject = {
-  points: [{ x: 0, y: 0, label: "Origin" }, { x: 100, y: 100, color: "red" }],
-  lines: [{ points: [{ x: 0, y: 0 }, { x: 100, y: 100 }], strokeColor: "blue" }],
-  title: "My Graph"
+  points: [
+    { x: 0, y: 0, label: "Origin" },
+    { x: 100, y: 100, color: "red" },
+  ],
+  lines: [
+    {
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 100 },
+      ],
+      strokeColor: "blue",
+    },
+  ],
+  title: "My Graph",
 }
 
 // Generate SVG string directly from the object
@@ -192,22 +202,35 @@ Then use the matcher in your tests:
 ```tsx
 import { expect, test } from "bun:test"
 import "graphics-debug/matcher"
-import type { GraphicsObject } from "graphics-debug" 
+import type { GraphicsObject } from "graphics-debug"
 
 // Your test graphics object
 const graphicsObject: GraphicsObject = {
-  points: [{ x: 0, y: 0, label: "Origin" }, { x: 100, y: 100, color: "red" }],
-  lines: [{ points: [{ x: 0, y: 0 }, { x: 100, y: 100 }], strokeColor: "blue" }],
-  title: "My Test Graphics"
+  points: [
+    { x: 0, y: 0, label: "Origin" },
+    { x: 100, y: 100, color: "red" },
+  ],
+  lines: [
+    {
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 100 },
+      ],
+      strokeColor: "blue",
+    },
+  ],
+  title: "My Test Graphics",
 }
 
 test("should match the expected visualization", async () => {
   // First run creates the snapshot
   // Subsequent runs will compare against saved snapshot
   await expect(graphicsObject).toMatchGraphicsSvg(import.meta.path)
-  
+
   // You can also provide a custom name for the snapshot:
-  await expect(graphicsObject).toMatchGraphicsSvg(import.meta.path, "custom-name")
+  await expect(graphicsObject).toMatchGraphicsSvg(import.meta.path, {
+    svgName: "custom-name",
+  })
 })
 ```
 
@@ -250,5 +273,3 @@ Here is the content of the `exampleGraphics.json` file:
 ```
 
 You can load this example into the application to visualize the graphics objects and understand how the `graphics-debug` module works.
-
-
