@@ -73,9 +73,8 @@ test("toMatchGraphicsSvg with custom name", async () => {
   })
 
   // Create and match with custom name
-  await expect(testGraphicsObject).toMatchGraphicsSvg(
-    import.meta.path,
-    "custom-name",
-  )
+  await expect(testGraphicsObject).toMatchGraphicsSvg(import.meta.path, {
+    svgName: "custom-name",
+  })
   expect(fs.existsSync(customNamePath)).toBe(true)
 })
