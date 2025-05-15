@@ -90,12 +90,22 @@ export function getSvgFromGraphicsObject(
     includeTextLabels = false,
     backgroundColor,
   }: {
-    includeTextLabels?: boolean
+    includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
     backgroundColor?: string
   } = {},
 ): string {
   const bounds = getBounds(graphics)
   const matrix = getProjectionMatrix(bounds, graphics.coordinateSystem)
+
+  const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
+    if (typeof includeTextLabels === "boolean") {
+      return includeTextLabels
+    }
+    if (Array.isArray(includeTextLabels)) {
+      return includeTextLabels.includes(type)
+    }
+    return false
+  }
 
   const svgObject = {
     name: "svg",
@@ -143,7 +153,7 @@ export function getSvgFromGraphicsObject(
                 fill: point.color || "black",
               },
             },
-            ...(includeTextLabels && point.label
+            ...(shouldRenderLabel("points") && point.label
               ? [
                   {
                     name: "text",
@@ -162,29 +172,55 @@ export function getSvgFromGraphicsObject(
         }
       }),
       // Lines
-      ...(graphics.lines || []).map((line) => ({
-        name: "polyline",
-        type: "element",
-        attributes: {
-          "data-points": line.points.map((p) => `${p.x},${p.y}`).join(" "),
-          "data-type": "line",
-          points: line.points
-            .map((p) => projectPoint(p, matrix))
-            .map((p) => `${p.x},${p.y}`)
-            .join(" "),
-          fill: "none",
-          stroke: line.strokeColor || "black",
-          "stroke-width": (line.strokeWidth
-            ? line.strokeWidth * matrix.a
-            : 1
-          ).toString(),
-          ...(line.strokeDash && {
-            "stroke-dasharray": Array.isArray(line.strokeDash)
-              ? line.strokeDash.join(" ")
-              : line.strokeDash,
-          }),
-        },
-      })),
+      ...(graphics.lines || []).map((line) => {
+        const projectedPoints = line.points.map((p) => projectPoint(p, matrix))
+        return {
+          name: "g",
+          type: "element",
+          attributes: {},
+          children: [
+            {
+              name: "polyline",
+              type: "element",
+              attributes: {
+                "data-points": line.points.map((p) => `${p.x},${p.y}`).join(" "),
+                "data-type": "line",
+                "data-label": line.label || "",
+                points: projectedPoints
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" "),
+                fill: "none",
+                stroke: line.strokeColor || "black",
+                "stroke-width": (line.strokeWidth
+                  ? line.strokeWidth * matrix.a
+                  : 1
+                ).toString(),
+                ...(line.strokeDash && {
+                  "stroke-dasharray": Array.isArray(line.strokeDash)
+                    ? line.strokeDash.join(" ")
+                    : line.strokeDash,
+                }),
+              },
+            },
+            ...(shouldRenderLabel("lines") && line.label && projectedPoints.length > 0
+              ? [
+                  {
+                    name: "text",
+                    type: "element",
+                    attributes: {
+                      x: (projectedPoints[0].x + 5).toString(),
+                      y: (projectedPoints[0].y - 5).toString(),
+                      "font-family": "sans-serif",
+                      "font-size": "12",
+                      fill: line.strokeColor || "black",
+                    },
+                    children: [{ type: "text", value: line.label }],
+                  },
+                ]
+              : []),
+          ],
+        }
+      }),
       // Rectangles
       ...(graphics.rects || []).map((rect) => {
         const corner1 = {
@@ -199,22 +235,48 @@ export function getSvgFromGraphicsObject(
         const projectedCorner2 = projectPoint(corner2, matrix)
         const scaledWidth = Math.abs(projectedCorner2.x - projectedCorner1.x)
         const scaledHeight = Math.abs(projectedCorner2.y - projectedCorner1.y)
+        const rectX = Math.min(projectedCorner1.x, projectedCorner2.x)
+        const rectY = Math.min(projectedCorner1.y, projectedCorner2.y)
+
         return {
-          name: "rect",
+          name: "g",
           type: "element",
-          attributes: {
-            "data-type": "rect",
-            "data-label": "",
-            "data-x": rect.center.x.toString(),
-            "data-y": rect.center.y.toString(),
-            x: Math.min(projectedCorner1.x, projectedCorner2.x).toString(),
-            y: Math.min(projectedCorner1.y, projectedCorner2.y).toString(),
-            width: scaledWidth.toString(),
-            height: scaledHeight.toString(),
-            fill: rect.fill || "none",
-            stroke: rect.stroke || "black",
-            "stroke-width": Math.abs(1 / matrix.a).toString(),
-          },
+          attributes: {},
+          children: [
+            {
+              name: "rect",
+              type: "element",
+              attributes: {
+                "data-type": "rect",
+                "data-label": rect.label || "",
+                "data-x": rect.center.x.toString(),
+                "data-y": rect.center.y.toString(),
+                x: rectX.toString(),
+                y: rectY.toString(),
+                width: scaledWidth.toString(),
+                height: scaledHeight.toString(),
+                fill: rect.fill || "none",
+                stroke: rect.stroke || "black",
+                "stroke-width": Math.abs(1 / matrix.a).toString(), // Consider scaling stroke width like lines if needed
+              },
+            },
+            ...(shouldRenderLabel("rects") && rect.label
+              ? [
+                  {
+                    name: "text",
+                    type: "element",
+                    attributes: {
+                      x: (rectX + 5).toString(),
+                      y: (rectY - 5).toString(), // Position above the top-left corner
+                      "font-family": "sans-serif",
+                      "font-size": "12",
+                      fill: rect.stroke || "black", // Default to stroke color for label
+                    },
+                    children: [{ type: "text", value: rect.label }],
+                  },
+                ]
+              : []),
+          ],
         }
       }),
       // Circles
