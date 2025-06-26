@@ -5,6 +5,8 @@ import {
   computeTransformFromViewbox,
   getBounds,
 } from "./drawGraphicsToCanvas"
+import { translateGraphics } from "./translateGraphics"
+import { mergeGraphics } from "./mergeGraphics"
 
 export type {
   Point,
@@ -23,6 +25,8 @@ export {
   computeTransformFromViewbox,
   getBounds,
 } from "./drawGraphicsToCanvas"
+export { translateGraphics } from "./translateGraphics"
+export { mergeGraphics } from "./mergeGraphics"
 
 export function getSvgFromLogString(logString: string): string {
   const objects = getGraphicsObjectsFromLogString(logString)

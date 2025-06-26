@@ -187,6 +187,26 @@ const svg = getSvgFromGraphicsObject(graphicsObject)
 // Returns a formatted SVG string ready to be written to a file or embedded in HTML
 ```
 
+### Translate a GraphicsObject
+
+You can shift every element in a `GraphicsObject` by a fixed amount using `translateGraphics`.
+
+```tsx
+import { translateGraphics } from "graphics-debug"
+
+const moved = translateGraphics(graphicsObject, 10, 5)
+```
+
+### Merge two GraphicsObjects
+
+Combine the contents of two graphics objects into one using `mergeGraphics`.
+
+```tsx
+import { mergeGraphics } from "graphics-debug"
+
+const combined = mergeGraphics(graphicsObjectA, graphicsObjectB)
+```
+
 ### Testing GraphicsObjects with Bun's Test Framework
 
 If you're using Bun for testing, you can use the `toMatchGraphicsSvg` matcher to compare graphics objects against saved snapshots.
