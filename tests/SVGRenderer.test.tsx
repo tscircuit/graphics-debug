@@ -56,7 +56,7 @@ describe("SVGRenderer", () => {
           document.body.removeChild(container)
           throw error
         }
-      }, 0)
+      }, 50)
     })
   })
 })

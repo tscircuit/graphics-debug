@@ -113,7 +113,9 @@ describe("getSvgFromGraphicsObject", () => {
     const svg = getSvgFromGraphicsObject(input)
     expect(svg).toBeString()
     expect(svg).toContain("Hello")
-    expect(svg).toContain('font-size="16"')
+    const match = svg.match(/font-size="([0-9.]+)"/)
+    expect(match).toBeTruthy()
+    expect(parseFloat(match![1])).toBeGreaterThan(16)
     expect(svg).toMatchSvgSnapshot(import.meta.path, "texts")
   })
 

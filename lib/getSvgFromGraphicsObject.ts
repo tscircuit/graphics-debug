@@ -10,6 +10,7 @@ import {
 import type { GraphicsObject, Point } from "./types"
 import { stringify } from "svgson"
 import pretty from "pretty"
+import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
 
 const DEFAULT_SVG_SIZE = 640
 const PADDING = 40
@@ -41,7 +42,15 @@ function getBounds(graphics: GraphicsObject): Bounds {
       { x: circle.center.x, y: circle.center.y - circle.radius }, // top
       { x: circle.center.x, y: circle.center.y + circle.radius }, // bottom
     ]),
-    ...(graphics.texts || []).map((t) => ({ x: t.x, y: t.y })),
+    ...(graphics.texts || []).flatMap((t) => {
+      const fontSize = t.fontSize ?? 12
+      const width = t.text.length * fontSize * FONT_SIZE_WIDTH_RATIO
+      const height = fontSize * FONT_SIZE_HEIGHT_RATIO
+      return [
+        { x: t.x, y: t.y },
+        { x: t.x + width, y: t.y + height },
+      ]
+    }),
   ]
 
   if (points.length === 0) {
@@ -337,7 +346,7 @@ export function getSvgFromGraphicsObject(
             x: projected.x.toString(),
             y: projected.y.toString(),
             fill: txt.color || "black",
-            "font-size": (txt.fontSize ?? 12).toString(),
+            "font-size": ((txt.fontSize ?? 12) * Math.abs(matrix.a)).toString(),
             "font-family": "sans-serif",
             "text-anchor": alignMap[anchor],
             "dominant-baseline": baselineMap[anchor],
