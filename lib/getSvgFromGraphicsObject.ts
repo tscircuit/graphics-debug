@@ -183,12 +183,12 @@ export function getSvgFromGraphicsObject(
               name: "polyline",
               type: "element",
               attributes: {
-                "data-points": line.points.map((p) => `${p.x},${p.y}`).join(" "),
-                "data-type": "line",
-                "data-label": line.label || "",
-                points: projectedPoints
+                "data-points": line.points
                   .map((p) => `${p.x},${p.y}`)
                   .join(" "),
+                "data-type": "line",
+                "data-label": line.label || "",
+                points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
                 fill: "none",
                 stroke: line.strokeColor || "black",
                 "stroke-width": (line.strokeWidth
@@ -202,7 +202,9 @@ export function getSvgFromGraphicsObject(
                 }),
               },
             },
-            ...(shouldRenderLabel("lines") && line.label && projectedPoints.length > 0
+            ...(shouldRenderLabel("lines") &&
+            line.label &&
+            projectedPoints.length > 0
               ? [
                   {
                     name: "text",
@@ -298,6 +300,29 @@ export function getSvgFromGraphicsObject(
             stroke: circle.stroke || "black",
             "stroke-width": Math.abs(1 / matrix.a).toString(),
           },
+        }
+      }),
+      // Texts
+      ...(graphics.texts || []).map((txt) => {
+        const projected = projectPoint(
+          { x: txt.position.x, y: txt.position.y },
+          matrix,
+        )
+        return {
+          name: "text",
+          type: "element",
+          attributes: {
+            "data-type": "text",
+            "data-label": txt.text,
+            "data-x": txt.position.x.toString(),
+            "data-y": txt.position.y.toString(),
+            x: projected.x.toString(),
+            y: projected.y.toString(),
+            fill: txt.color || "black",
+            "font-size": (txt.fontSize ?? 12).toString(),
+            "font-family": "sans-serif",
+          },
+          children: [{ type: "text", value: txt.text }],
         }
       }),
       // Crosshair lines and coordinates (initially hidden)

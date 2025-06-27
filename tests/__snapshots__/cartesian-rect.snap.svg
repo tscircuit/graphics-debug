@@ -1,6 +1,10 @@
 <svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
-  <rect data-type="rect" data-label="" data-x="0" data-y="0" x="254.11764705882354" y="336.47058823529414" width="131.76470588235293" height="263.52941176470586" fill="yellow" stroke="green" stroke-width="0.07589285714285715" />
-  <rect data-type="rect" data-label="" data-x="0" data-y="30" x="287.05882352941177" y="40.00000000000006" width="65.88235294117646" height="65.88235294117646" fill="red" stroke="black" stroke-width="0.07589285714285715" />
+  <g>
+    <rect data-type="rect" data-label="" data-x="0" data-y="0" x="254.11764705882354" y="336.47058823529414" width="131.76470588235293" height="263.52941176470586" fill="yellow" stroke="green" stroke-width="0.07589285714285715" />
+  </g>
+  <g>
+    <rect data-type="rect" data-label="" data-x="0" data-y="30" x="287.05882352941177" y="40.00000000000006" width="65.88235294117646" height="65.88235294117646" fill="red" stroke="black" stroke-width="0.07589285714285715" />
+  </g>
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5" />
     <line id="crosshair-v" x1="0" x2="640" stroke="#666" stroke-width="0.5" /><text id="coordinates" font-family="monospace" font-size="12" fill="#666"></text>

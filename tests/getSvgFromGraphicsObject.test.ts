@@ -97,6 +97,25 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "circles")
   })
 
+  test("should generate SVG with texts", () => {
+    const input: GraphicsObject = {
+      texts: [
+        {
+          position: { x: 0, y: 0 },
+          text: "Hello",
+          color: "green",
+          fontSize: 16,
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+    expect(svg).toBeString()
+    expect(svg).toContain("Hello")
+    expect(svg).toContain('font-size="16"')
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "texts")
+  })
+
   test("should handle cartesian coordinates correctly", () => {
     const input: GraphicsObject = {
       coordinateSystem: "cartesian",

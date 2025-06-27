@@ -24,5 +24,9 @@ export function translateGraphics(
       ...circle,
       center: { x: circle.center.x + dx, y: circle.center.y + dy },
     })),
+    texts: graphics.texts?.map((text) => ({
+      ...text,
+      position: { x: text.position.x + dx, y: text.position.y + dy },
+    })),
   }
 }

@@ -16,6 +16,7 @@ describe("translateGraphics", () => {
       ],
       rects: [{ center: { x: 2, y: 2 }, width: 2, height: 2 }],
       circles: [{ center: { x: 3, y: 3 }, radius: 1 }],
+      texts: [{ position: { x: 4, y: 4 }, text: "hi" }],
     }
     const result = translateGraphics(original, 5, -3)
     expect(result).toEqual({
@@ -30,6 +31,7 @@ describe("translateGraphics", () => {
       ],
       rects: [{ center: { x: 7, y: -1 }, width: 2, height: 2 }],
       circles: [{ center: { x: 8, y: 0 }, radius: 1 }],
+      texts: [{ position: { x: 9, y: 1 }, text: "hi" }],
     })
     // ensure original object was not mutated
     expect(original.points?.[0].x).toBe(1)

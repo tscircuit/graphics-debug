@@ -39,11 +39,21 @@ export interface Circle {
   label?: string
 }
 
+export interface Text {
+  position: { x: number; y: number }
+  text: string
+  color?: string
+  fontSize?: number
+  layer?: string
+  step?: number
+}
+
 export interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
   rects?: Rect[]
   circles?: Circle[]
+  texts?: Text[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string
 }

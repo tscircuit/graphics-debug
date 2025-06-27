@@ -30,5 +30,17 @@ export const getGraphicsBounds = (graphics: GraphicsObject) => {
     bounds.maxX = Math.max(bounds.maxX, point.x)
     bounds.maxY = Math.max(bounds.maxY, point.y)
   }
+  for (const circle of graphics.circles ?? []) {
+    bounds.minX = Math.min(bounds.minX, circle.center.x - circle.radius)
+    bounds.minY = Math.min(bounds.minY, circle.center.y - circle.radius)
+    bounds.maxX = Math.max(bounds.maxX, circle.center.x + circle.radius)
+    bounds.maxY = Math.max(bounds.maxY, circle.center.y + circle.radius)
+  }
+  for (const text of graphics.texts ?? []) {
+    bounds.minX = Math.min(bounds.minX, text.position.x)
+    bounds.minY = Math.min(bounds.minY, text.position.y)
+    bounds.maxX = Math.max(bounds.maxX, text.position.x)
+    bounds.maxY = Math.max(bounds.maxY, text.position.y)
+  }
   return bounds
 }
