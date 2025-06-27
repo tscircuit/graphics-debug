@@ -84,9 +84,24 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
       const fontSize = text.fontSize ?? 12
       const width = text.text.length * fontSize * FONT_SIZE_WIDTH_RATIO
       const height = fontSize * FONT_SIZE_HEIGHT_RATIO
+      const anchor = text.anchorSide ?? "center"
+      const offsetMap: Record<string, { dx: number; dy: number }> = {
+        top_left: { dx: 0, dy: 0 },
+        top_center: { dx: -width / 2, dy: 0 },
+        top_right: { dx: -width, dy: 0 },
+        center_left: { dx: 0, dy: -height / 2 },
+        center: { dx: -width / 2, dy: -height / 2 },
+        center_right: { dx: -width, dy: -height / 2 },
+        bottom_left: { dx: 0, dy: -height },
+        bottom_center: { dx: -width / 2, dy: -height },
+        bottom_right: { dx: -width, dy: -height },
+      }
+      const { dx, dy } = offsetMap[anchor]
+      const x0 = text.x + dx
+      const y0 = text.y + dy
       return [
-        { x: text.x, y: text.y },
-        { x: text.x + width, y: text.y + height },
+        { x: x0, y: y0 },
+        { x: x0 + width, y: y0 + height },
       ]
     }),
   ]

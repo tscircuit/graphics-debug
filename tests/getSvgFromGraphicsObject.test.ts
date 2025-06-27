@@ -119,6 +119,23 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "texts")
   })
 
+  test("respects text anchorSide", () => {
+    const input: GraphicsObject = {
+      texts: [
+        {
+          x: 0,
+          y: 0,
+          text: "A",
+          anchorSide: "top_right",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+    expect(svg).toContain('text-anchor="end"')
+    expect(svg).toContain('dominant-baseline="text-before-edge"')
+  })
+
   test("should handle cartesian coordinates correctly", () => {
     const input: GraphicsObject = {
       coordinateSystem: "cartesian",

@@ -46,9 +46,24 @@ function getBounds(graphics: GraphicsObject): Bounds {
       const fontSize = t.fontSize ?? 12
       const width = t.text.length * fontSize * FONT_SIZE_WIDTH_RATIO
       const height = fontSize * FONT_SIZE_HEIGHT_RATIO
+      const anchor = t.anchorSide ?? "center"
+      const offsetMap: Record<string, { dx: number; dy: number }> = {
+        top_left: { dx: 0, dy: 0 },
+        top_center: { dx: -width / 2, dy: 0 },
+        top_right: { dx: -width, dy: 0 },
+        center_left: { dx: 0, dy: -height / 2 },
+        center: { dx: -width / 2, dy: -height / 2 },
+        center_right: { dx: -width, dy: -height / 2 },
+        bottom_left: { dx: 0, dy: -height },
+        bottom_center: { dx: -width / 2, dy: -height },
+        bottom_right: { dx: -width, dy: -height },
+      }
+      const { dx, dy } = offsetMap[anchor]
+      const x0 = t.x + dx
+      const y0 = t.y + dy
       return [
-        { x: t.x, y: t.y },
-        { x: t.x + width, y: t.y + height },
+        { x: x0, y: y0 },
+        { x: x0 + width, y: y0 + height },
       ]
     }),
   ]
