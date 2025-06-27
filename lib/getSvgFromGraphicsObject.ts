@@ -10,6 +10,7 @@ import {
 import type { GraphicsObject, Point } from "./types"
 import { stringify } from "svgson"
 import pretty from "pretty"
+import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
 
 const DEFAULT_SVG_SIZE = 640
 const PADDING = 40
@@ -41,7 +42,30 @@ function getBounds(graphics: GraphicsObject): Bounds {
       { x: circle.center.x, y: circle.center.y - circle.radius }, // top
       { x: circle.center.x, y: circle.center.y + circle.radius }, // bottom
     ]),
-    ...(graphics.texts || []).map((t) => ({ x: t.x, y: t.y })),
+    ...(graphics.texts || []).flatMap((t) => {
+      const fontSize = t.fontSize ?? 12
+      const width = t.text.length * fontSize * FONT_SIZE_WIDTH_RATIO
+      const height = fontSize * FONT_SIZE_HEIGHT_RATIO
+      const anchor = t.anchorSide ?? "center"
+      const offsetMap: Record<string, { dx: number; dy: number }> = {
+        top_left: { dx: 0, dy: 0 },
+        top_center: { dx: -width / 2, dy: 0 },
+        top_right: { dx: -width, dy: 0 },
+        center_left: { dx: 0, dy: -height / 2 },
+        center: { dx: -width / 2, dy: -height / 2 },
+        center_right: { dx: -width, dy: -height / 2 },
+        bottom_left: { dx: 0, dy: -height },
+        bottom_center: { dx: -width / 2, dy: -height },
+        bottom_right: { dx: -width, dy: -height },
+      }
+      const { dx, dy } = offsetMap[anchor]
+      const x0 = t.x + dx
+      const y0 = t.y + dy
+      return [
+        { x: x0, y: y0 },
+        { x: x0 + width, y: y0 + height },
+      ]
+    }),
   ]
 
   if (points.length === 0) {
@@ -337,7 +361,7 @@ export function getSvgFromGraphicsObject(
             x: projected.x.toString(),
             y: projected.y.toString(),
             fill: txt.color || "black",
-            "font-size": (txt.fontSize ?? 12).toString(),
+            "font-size": ((txt.fontSize ?? 12) * Math.abs(matrix.a)).toString(),
             "font-family": "sans-serif",
             "text-anchor": alignMap[anchor],
             "dominant-baseline": baselineMap[anchor],
