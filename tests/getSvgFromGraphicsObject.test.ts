@@ -101,7 +101,8 @@ describe("getSvgFromGraphicsObject", () => {
     const input: GraphicsObject = {
       texts: [
         {
-          position: { x: 0, y: 0 },
+          x: 0,
+          y: 0,
           text: "Hello",
           color: "green",
           fontSize: 16,

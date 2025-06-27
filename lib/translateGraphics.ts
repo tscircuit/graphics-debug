@@ -26,7 +26,8 @@ export function translateGraphics(
     })),
     texts: graphics.texts?.map((text) => ({
       ...text,
-      position: { x: text.position.x + dx, y: text.position.y + dy },
+      x: text.x + dx,
+      y: text.y + dy,
     })),
   }
 }

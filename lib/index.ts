@@ -14,6 +14,7 @@ export type {
   Rect,
   Circle,
   Text,
+  NinePointAnchor,
   GraphicsObject,
   Viewbox,
   CenterViewbox,

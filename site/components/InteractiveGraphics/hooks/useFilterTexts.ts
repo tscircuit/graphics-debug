@@ -1,7 +1,8 @@
 import { useMemo } from "react"
 
 interface Text {
-  position: { x: number; y: number }
+  x: number
+  y: number
   layer?: string
   step?: number
 }
@@ -13,7 +14,7 @@ export const useFilterTexts = (
   return useMemo(() => {
     return (text: Text) => {
       if (!filterLayerAndStep(text)) return false
-      return isPointOnScreen(text.position)
+      return isPointOnScreen({ x: text.x, y: text.y })
     }
   }, [isPointOnScreen, filterLayerAndStep])
 }

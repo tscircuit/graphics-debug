@@ -7,7 +7,7 @@ describe("mergeGraphics", () => {
     const a: GraphicsObject = {
       points: [{ x: 0, y: 0 }],
       rects: [{ center: { x: 1, y: 1 }, width: 2, height: 2 }],
-      texts: [{ position: { x: 5, y: 5 }, text: "a" }],
+      texts: [{ x: 5, y: 5, text: "a" }],
     }
     const b: GraphicsObject = {
       lines: [
@@ -19,7 +19,7 @@ describe("mergeGraphics", () => {
         },
       ],
       circles: [{ center: { x: 4, y: 4 }, radius: 1 }],
-      texts: [{ position: { x: 6, y: 6 }, text: "b" }],
+      texts: [{ x: 6, y: 6, text: "b" }],
     }
     const merged = mergeGraphics(a, b)
     expect(merged).toEqual({
@@ -35,8 +35,8 @@ describe("mergeGraphics", () => {
       ],
       circles: [{ center: { x: 4, y: 4 }, radius: 1 }],
       texts: [
-        { position: { x: 5, y: 5 }, text: "a" },
-        { position: { x: 6, y: 6 }, text: "b" },
+        { x: 5, y: 5, text: "a" },
+        { x: 6, y: 6, text: "b" },
       ],
     })
     // check immutability

@@ -39,9 +39,22 @@ export interface Circle {
   label?: string
 }
 
+export type NinePointAnchor =
+  | "center"
+  | "top_left"
+  | "top_center"
+  | "top_right"
+  | "center_left"
+  | "center_right"
+  | "bottom_left"
+  | "bottom_center"
+  | "bottom_right"
+
 export interface Text {
-  position: { x: number; y: number }
+  x: number
+  y: number
   text: string
+  anchorSide?: NinePointAnchor
   color?: string
   fontSize?: number
   layer?: string

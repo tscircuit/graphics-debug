@@ -12,8 +12,22 @@ export const Text = ({
   index: number
 }) => {
   const { realToScreen, onObjectClicked } = interactiveState
-  const { position, text, color, fontSize } = textObj
-  const screenPos = applyToPoint(realToScreen, position)
+  const { x, y, text, color, fontSize, anchorSide } = textObj
+  const screenPos = applyToPoint(realToScreen, { x, y })
+
+  const transformMap: Record<Types.NinePointAnchor, string> = {
+    top_left: "translate(0%, 0%)",
+    top_center: "translate(-50%, 0%)",
+    top_right: "translate(-100%, 0%)",
+    center_left: "translate(0%, -50%)",
+    center: "translate(-50%, -50%)",
+    center_right: "translate(-100%, -50%)",
+    bottom_left: "translate(0%, -100%)",
+    bottom_center: "translate(-50%, -100%)",
+    bottom_right: "translate(-100%, -100%)",
+  }
+  const transform =
+    transformMap[(anchorSide ?? "center") as Types.NinePointAnchor]
 
   return (
     <div
@@ -21,7 +35,7 @@ export const Text = ({
         position: "absolute",
         left: screenPos.x,
         top: screenPos.y,
-        transform: "translate(-50%, -50%)",
+        transform,
         color: color || "black",
         fontSize: fontSize ?? 12,
         whiteSpace: "pre",
