@@ -4,10 +4,11 @@ import {
   FONT_SIZE_WIDTH_RATIO,
   FONT_SIZE_HEIGHT_RATIO,
 } from "../lib"
+import type { GraphicsObject } from "../lib/types"
 
 describe("getBounds with text", () => {
   test("calculates text bounds using font size and default anchor", () => {
-    const graphics = {
+    const graphics: GraphicsObject = {
       texts: [{ x: 0, y: 0, text: "hello", fontSize: 10 }],
     }
     const bounds = getBounds(graphics)
@@ -20,7 +21,7 @@ describe("getBounds with text", () => {
   })
 
   test("accounts for anchorSide", () => {
-    const graphics = {
+    const graphics: GraphicsObject = {
       texts: [
         { x: 0, y: 0, text: "hi", fontSize: 8, anchorSide: "bottom_right" },
       ],
