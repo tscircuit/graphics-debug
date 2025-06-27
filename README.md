@@ -207,6 +207,17 @@ import { mergeGraphics } from "graphics-debug"
 const combined = mergeGraphics(graphicsObjectA, graphicsObjectB)
 ```
 
+### Stack GraphicsObjects
+
+Use `stackGraphicsHorizontally` or `stackGraphicsVertically` to place graphics next to or above each other.
+
+```tsx
+import { stackGraphicsHorizontally, stackGraphicsVertically } from "graphics-debug"
+
+const sideBySide = stackGraphicsHorizontally([graphicsObjectA, graphicsObjectB])
+const stacked = stackGraphicsVertically([graphicsObjectA, graphicsObjectB])
+```
+
 ### Testing GraphicsObjects with Bun's Test Framework
 
 If you're using Bun for testing, you can use the `toMatchGraphicsSvg` matcher to compare graphics objects against saved snapshots.
