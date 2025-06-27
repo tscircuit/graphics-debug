@@ -41,8 +41,8 @@ export function computeTransformFromViewbox(
     bounds = viewbox
   }
 
-  const width = bounds.maxX - bounds.minX
-  const height = bounds.maxY - bounds.minY
+  const width = bounds.maxX - bounds.minX || 1
+  const height = bounds.maxY - bounds.minY || 1
 
   const scale_factor = Math.min(
     (canvasWidth - 2 * padding) / width,
@@ -79,6 +79,7 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
       { x: circle.center.x, y: circle.center.y - circle.radius }, // top
       { x: circle.center.x, y: circle.center.y + circle.radius }, // bottom
     ]),
+    ...(graphics.texts || []).map((text) => ({ x: text.x, y: text.y })),
   ]
 
   if (points.length === 0) {
@@ -287,6 +288,43 @@ export function drawGraphicsToCanvas(
         ctx.font = "12px sans-serif"
         ctx.fillText(point.label, projected.x + 5, projected.y - 5)
       }
+    })
+  }
+
+  // Draw texts
+  if (graphics.texts && graphics.texts.length > 0) {
+    graphics.texts.forEach((text) => {
+      const projected = applyToPoint(matrix, { x: text.x, y: text.y })
+      ctx.fillStyle = text.color || "black"
+      ctx.font = `${text.fontSize ?? 12}px sans-serif`
+
+      const anchor = text.anchorSide ?? "center"
+      const alignMap: Record<string, CanvasTextAlign> = {
+        top_left: "left",
+        center_left: "left",
+        bottom_left: "left",
+        top_center: "center",
+        center: "center",
+        bottom_center: "center",
+        top_right: "right",
+        center_right: "right",
+        bottom_right: "right",
+      }
+      const baselineMap: Record<string, CanvasTextBaseline> = {
+        top_left: "top",
+        top_center: "top",
+        top_right: "top",
+        center_left: "middle",
+        center: "middle",
+        center_right: "middle",
+        bottom_left: "bottom",
+        bottom_center: "bottom",
+        bottom_right: "bottom",
+      }
+      ctx.textAlign = alignMap[anchor]
+      ctx.textBaseline = baselineMap[anchor]
+
+      ctx.fillText(text.text, projected.x, projected.y)
     })
   }
 

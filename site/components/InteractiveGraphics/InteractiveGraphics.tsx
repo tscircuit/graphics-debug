@@ -15,6 +15,7 @@ import { Line } from "./Line"
 import { Point } from "./Point"
 import { Rect } from "./Rect"
 import { Circle } from "./Circle"
+import { Text } from "./Text"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
 import {
   useIsPointOnScreen,
@@ -23,6 +24,7 @@ import {
   useFilterPoints,
   useFilterRects,
   useFilterCircles,
+  useFilterTexts,
 } from "./hooks"
 import { DimensionOverlay } from "../DimensionOverlay"
 import { getMaxStep } from "site/utils/getMaxStep"
@@ -30,7 +32,7 @@ import { ContextMenu } from "./ContextMenu"
 import { Marker, MarkerPoint } from "./Marker"
 
 export type GraphicsObjectClickEvent = {
-  type: "point" | "line" | "rect" | "circle"
+  type: "point" | "line" | "rect" | "circle" | "text"
   index: number
   object: any
 }
@@ -60,6 +62,7 @@ export const InteractiveGraphics = ({
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
       ...(graphics.rects?.map((r) => r.layer!).filter(Boolean) ?? []),
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
+      ...(graphics.texts?.map((t) => t.layer!).filter(Boolean) ?? []),
     ]),
   )
   const maxStep = getMaxStep(graphics)
@@ -309,6 +312,7 @@ export const InteractiveGraphics = ({
     realToScreen,
     size,
   )
+  const filterTexts = useFilterTexts(isPointOnScreen, filterLayerAndStep)
 
   const filterAndLimit = <T,>(
     objects: T[] | undefined,
@@ -337,12 +341,17 @@ export const InteractiveGraphics = ({
     () => filterAndLimit(graphics.circles, filterCircles),
     [graphics.circles, filterCircles, objectLimit],
   )
+  const filteredTexts = useMemo(
+    () => filterAndLimit(graphics.texts, filterTexts),
+    [graphics.texts, filterTexts, objectLimit],
+  )
 
   const totalFilteredObjects =
     filteredLines.length +
     filteredRects.length +
     filteredPoints.length +
-    filteredCircles.length
+    filteredCircles.length +
+    filteredTexts.length
   const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
 
   return (
@@ -458,6 +467,14 @@ export const InteractiveGraphics = ({
               key={circle.originalIndex}
               circle={circle}
               index={circle.originalIndex}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {filteredTexts.map((txt) => (
+            <Text
+              key={txt.originalIndex}
+              textObj={txt}
+              index={txt.originalIndex}
               interactiveState={interactiveState}
             />
           ))}

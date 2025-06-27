@@ -32,6 +32,9 @@ export function getGraphicsFilteredByStep(
     circles: graphics.circles?.filter(
       (c) => c.step === undefined || c.step === selectedStep,
     ),
+    texts: graphics.texts?.filter(
+      (t) => t.step === undefined || t.step === selectedStep,
+    ),
   }
 
   return filteredGraphics

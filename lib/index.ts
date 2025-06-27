@@ -13,6 +13,8 @@ export type {
   Line,
   Rect,
   Circle,
+  Text,
+  NinePointAnchor,
   GraphicsObject,
   Viewbox,
   CenterViewbox,

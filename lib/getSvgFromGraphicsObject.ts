@@ -41,6 +41,7 @@ function getBounds(graphics: GraphicsObject): Bounds {
       { x: circle.center.x, y: circle.center.y - circle.radius }, // top
       { x: circle.center.x, y: circle.center.y + circle.radius }, // bottom
     ]),
+    ...(graphics.texts || []).map((t) => ({ x: t.x, y: t.y })),
   ]
 
   if (points.length === 0) {
@@ -62,8 +63,8 @@ function getProjectionMatrix(
   bounds: Bounds,
   coordinateSystem: GraphicsObject["coordinateSystem"],
 ) {
-  const width = bounds.maxX - bounds.minX
-  const height = bounds.maxY - bounds.minY
+  const width = bounds.maxX - bounds.minX || 1
+  const height = bounds.maxY - bounds.minY || 1
 
   const scale_factor = Math.min(
     (DEFAULT_SVG_SIZE - 2 * PADDING) / width,
@@ -87,7 +88,7 @@ function projectPoint(point: Point, matrix: Matrix) {
 export function getSvgFromGraphicsObject(
   graphics: GraphicsObject,
   {
-    includeTextLabels = false,
+    includeTextLabels = true,
     backgroundColor,
   }: {
     includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
@@ -183,18 +184,15 @@ export function getSvgFromGraphicsObject(
               name: "polyline",
               type: "element",
               attributes: {
-                "data-points": line.points.map((p) => `${p.x},${p.y}`).join(" "),
-                "data-type": "line",
-                "data-label": line.label || "",
-                points: projectedPoints
+                "data-points": line.points
                   .map((p) => `${p.x},${p.y}`)
                   .join(" "),
+                "data-type": "line",
+                "data-label": line.label || "",
+                points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
                 fill: "none",
                 stroke: line.strokeColor || "black",
-                "stroke-width": (line.strokeWidth
-                  ? line.strokeWidth * matrix.a
-                  : 1
-                ).toString(),
+                "stroke-width": (line.strokeWidth ?? 1).toString(),
                 ...(line.strokeDash && {
                   "stroke-dasharray": Array.isArray(line.strokeDash)
                     ? line.strokeDash.join(" ")
@@ -202,7 +200,9 @@ export function getSvgFromGraphicsObject(
                 }),
               },
             },
-            ...(shouldRenderLabel("lines") && line.label && projectedPoints.length > 0
+            ...(shouldRenderLabel("lines") &&
+            line.label &&
+            projectedPoints.length > 0
               ? [
                   {
                     name: "text",
@@ -298,6 +298,51 @@ export function getSvgFromGraphicsObject(
             stroke: circle.stroke || "black",
             "stroke-width": Math.abs(1 / matrix.a).toString(),
           },
+        }
+      }),
+      // Texts
+      ...(graphics.texts || []).map((txt) => {
+        const projected = projectPoint({ x: txt.x, y: txt.y }, matrix)
+        const anchor = txt.anchorSide ?? "center"
+        const alignMap: Record<string, string> = {
+          top_left: "start",
+          center_left: "start",
+          bottom_left: "start",
+          top_center: "middle",
+          center: "middle",
+          bottom_center: "middle",
+          top_right: "end",
+          center_right: "end",
+          bottom_right: "end",
+        }
+        const baselineMap: Record<string, string> = {
+          top_left: "text-before-edge",
+          top_center: "text-before-edge",
+          top_right: "text-before-edge",
+          center_left: "central",
+          center: "central",
+          center_right: "central",
+          bottom_left: "text-after-edge",
+          bottom_center: "text-after-edge",
+          bottom_right: "text-after-edge",
+        }
+        return {
+          name: "text",
+          type: "element",
+          attributes: {
+            "data-type": "text",
+            "data-label": txt.text,
+            "data-x": txt.x.toString(),
+            "data-y": txt.y.toString(),
+            x: projected.x.toString(),
+            y: projected.y.toString(),
+            fill: txt.color || "black",
+            "font-size": (txt.fontSize ?? 12).toString(),
+            "font-family": "sans-serif",
+            "text-anchor": alignMap[anchor],
+            "dominant-baseline": baselineMap[anchor],
+          },
+          children: [{ type: "text", value: txt.text }],
         }
       }),
       // Crosshair lines and coordinates (initially hidden)
