@@ -52,4 +52,34 @@ describe("createGraphicsGrid", () => {
     expect(r4.center.x).toBeCloseTo(3)
     expect(r4.center.y).toBeCloseTo(3)
   })
+
+  test("supports a gap between cells", () => {
+    const g = rectGraphic()
+    const grid = createGraphicsGrid(
+      [
+        [g, g],
+        [g, g],
+      ],
+      { gap: 1 },
+    )
+    const [r1, r2, r3, r4] = grid.rects!
+    expect(r1.center.x).toBeCloseTo(1)
+    expect(r2.center.x).toBeCloseTo(4)
+    expect(r3.center.y).toBeCloseTo(4)
+    expect(r4.center.x).toBeCloseTo(4)
+    expect(r4.center.y).toBeCloseTo(4)
+  })
+
+  test("supports a gap as a fraction of the cell width", () => {
+    const g = rectGraphic()
+    const grid = createGraphicsGrid(
+      [
+        [g, g],
+        [g, g],
+      ],
+      { gapAsCellWidthFraction: 0.5 },
+    )
+    const [r1, r2] = grid.rects!
+    expect(r2.center.x).toBeCloseTo(4)
+  })
 })
