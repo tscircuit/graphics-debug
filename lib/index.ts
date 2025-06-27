@@ -7,6 +7,10 @@ import {
 } from "./drawGraphicsToCanvas"
 import { translateGraphics } from "./translateGraphics"
 import { mergeGraphics } from "./mergeGraphics"
+import {
+  stackGraphicsHorizontally,
+  stackGraphicsVertically,
+} from "./stackGraphics"
 
 export type {
   Point,
@@ -29,6 +33,10 @@ export {
 } from "./drawGraphicsToCanvas"
 export { translateGraphics } from "./translateGraphics"
 export { mergeGraphics } from "./mergeGraphics"
+export {
+  stackGraphicsHorizontally,
+  stackGraphicsVertically,
+} from "./stackGraphics"
 export { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
 
 export function getSvgFromLogString(logString: string): string {
