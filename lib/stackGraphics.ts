@@ -54,7 +54,12 @@ function stackGraphicsVertically(
 
 function createGraphicsGrid(
   graphicsRows: GraphicsObject[][],
-  opts: { cellWidth?: number; cellHeight?: number } = {},
+  opts: {
+    cellWidth?: number
+    cellHeight?: number
+    gap?: number
+    gapAsCellWidthFraction?: number
+  } = {},
 ): GraphicsObject {
   if (graphicsRows.length === 0 || graphicsRows[0].length === 0) return {}
 
@@ -70,6 +75,11 @@ function createGraphicsGrid(
 
   const cellWidth = opts.cellWidth ?? maxWidth
   const cellHeight = opts.cellHeight ?? maxHeight
+  const gap =
+    opts.gap ??
+    (opts.gapAsCellWidthFraction !== undefined
+      ? opts.gapAsCellWidthFraction * cellWidth
+      : 0)
 
   let result: GraphicsObject | null = null
 
@@ -78,8 +88,8 @@ function createGraphicsGrid(
     for (let c = 0; c < row.length; c++) {
       const g = row[c]
       const b = getBounds(g)
-      const dx = c * cellWidth - b.minX
-      const dy = r * cellHeight - b.minY
+      const dx = c * (cellWidth + gap) - b.minX
+      const dy = r * (cellHeight + gap) - b.minY
       const shifted = translateGraphics(g, dx, dy)
       result = result ? mergeGraphics(result, shifted) : shifted
     }
