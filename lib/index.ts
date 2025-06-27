@@ -10,6 +10,7 @@ import { mergeGraphics } from "./mergeGraphics"
 import {
   stackGraphicsHorizontally,
   stackGraphicsVertically,
+  createGraphicsGrid,
 } from "./stackGraphics"
 
 export type {
@@ -36,6 +37,7 @@ export { mergeGraphics } from "./mergeGraphics"
 export {
   stackGraphicsHorizontally,
   stackGraphicsVertically,
+  createGraphicsGrid,
 } from "./stackGraphics"
 export { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
 
