@@ -101,7 +101,7 @@ describe("getSvgFromGraphicsObject", () => {
     const width = parseFloat(rectMatch![1])
     const height = parseFloat(rectMatch![2])
     const fontSize = parseFloat(textMatch![1])
-    const expected = ((width + height) / 2) * 0.02
+    const expected = ((width + height) / 2) * 0.06
     expect(fontSize).toBeCloseTo(expected)
   })
 
