@@ -86,19 +86,21 @@ function getBounds(graphics: GraphicsObject): Bounds {
 function getProjectionMatrix(
   bounds: Bounds,
   coordinateSystem: GraphicsObject["coordinateSystem"],
+  svgWidth: number,
+  svgHeight: number,
 ) {
   const width = bounds.maxX - bounds.minX || 1
   const height = bounds.maxY - bounds.minY || 1
 
   const scale_factor = Math.min(
-    (DEFAULT_SVG_SIZE - 2 * PADDING) / width,
-    (DEFAULT_SVG_SIZE - 2 * PADDING) / height,
+    (svgWidth - 2 * PADDING) / width,
+    (svgHeight - 2 * PADDING) / height,
   )
 
   const yFlip = coordinateSystem === "screen" ? 1 : -1
 
   return compose(
-    translate(DEFAULT_SVG_SIZE / 2, DEFAULT_SVG_SIZE / 2),
+    translate(svgWidth / 2, svgHeight / 2),
     scale(scale_factor, yFlip * scale_factor),
     translate(-(bounds.minX + width / 2), -(bounds.minY + height / 2)),
   )
@@ -114,13 +116,22 @@ export function getSvgFromGraphicsObject(
   {
     includeTextLabels = true,
     backgroundColor,
+    svgWidth = DEFAULT_SVG_SIZE,
+    svgHeight = DEFAULT_SVG_SIZE,
   }: {
     includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
     backgroundColor?: string
+    svgWidth?: number
+    svgHeight?: number
   } = {},
 ): string {
   const bounds = getBounds(graphics)
-  const matrix = getProjectionMatrix(bounds, graphics.coordinateSystem)
+  const matrix = getProjectionMatrix(
+    bounds,
+    graphics.coordinateSystem,
+    svgWidth,
+    svgHeight,
+  )
 
   const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
     if (typeof includeTextLabels === "boolean") {
@@ -136,9 +147,9 @@ export function getSvgFromGraphicsObject(
     name: "svg",
     type: "element",
     attributes: {
-      width: DEFAULT_SVG_SIZE.toString(),
-      height: DEFAULT_SVG_SIZE.toString(),
-      viewBox: `0 0 ${DEFAULT_SVG_SIZE} ${DEFAULT_SVG_SIZE}`,
+      width: svgWidth.toString(),
+      height: svgHeight.toString(),
+      viewBox: `0 0 ${svgWidth} ${svgHeight}`,
       xmlns: "http://www.w3.org/2000/svg",
     },
     children: [
@@ -387,7 +398,7 @@ export function getSvgFromGraphicsObject(
             attributes: {
               id: "crosshair-h",
               y1: "0",
-              y2: DEFAULT_SVG_SIZE.toString(),
+              y2: svgHeight.toString(),
               stroke: "#666",
               "stroke-width": "0.5",
             },
@@ -398,7 +409,7 @@ export function getSvgFromGraphicsObject(
             attributes: {
               id: "crosshair-v",
               x1: "0",
-              x2: DEFAULT_SVG_SIZE.toString(),
+              x2: svgWidth.toString(),
               stroke: "#666",
               "stroke-width": "0.5",
             },
@@ -436,13 +447,13 @@ export function getSvgFromGraphicsObject(
                 
                 crosshair.style.display = 'block';
                 h.setAttribute('x1', '0');
-                h.setAttribute('x2', '${DEFAULT_SVG_SIZE}');
+                h.setAttribute('x2', '${svgWidth}');
                 h.setAttribute('y1', y);
                 h.setAttribute('y2', y);
                 v.setAttribute('x1', x);
                 v.setAttribute('x2', x);
                 v.setAttribute('y1', '0');
-                v.setAttribute('y2', '${DEFAULT_SVG_SIZE}');
+                v.setAttribute('y2', '${svgHeight}');
 
                 // Calculate real coordinates using inverse transformation
                 const matrix = ${JSON.stringify(matrix)};
