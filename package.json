@@ -35,7 +35,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@react-hook/resize-observer": "^2.0.2",
-    "@types/bun": "latest",
+    "@types/bun": "^1.2.17",
     "@types/debug": "^4.1.12",
     "@types/jsdom": "^21.1.7",
     "@types/pretty": "^2.0.3",

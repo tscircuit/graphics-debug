@@ -291,11 +291,12 @@ export function getSvgFromGraphicsObject(
                     type: "element",
                     attributes: {
                       x: (rectX + 5).toString(),
-                      y: (rectY - 5).toString(), // Position above the top-left corner
+                      y: rectY.toString(),
                       "font-family": "sans-serif",
+                      "dominant-baseline": "text-before-edge",
                       "font-size": (
                         ((scaledWidth + scaledHeight) / 2) *
-                        0.02
+                        0.06
                       ).toString(),
                       fill: rect.stroke || "black", // Default to stroke color for label
                     },
