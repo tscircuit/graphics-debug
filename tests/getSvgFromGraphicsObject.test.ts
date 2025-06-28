@@ -216,4 +216,17 @@ describe("getSvgFromGraphicsObject", () => {
     // The SVG should maintain the 2:1 aspect ratio of the points
     // while fitting within the 640x640 viewport
   })
+
+  test("allows customizing svg width and height", () => {
+    const svg = getSvgFromGraphicsObject(
+      {},
+      {
+        svgWidth: 300,
+        svgHeight: 200,
+      },
+    )
+
+    expect(svg).toContain('width="300"')
+    expect(svg).toContain('height="200"')
+  })
 })
