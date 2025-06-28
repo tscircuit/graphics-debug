@@ -77,6 +77,34 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "rectangles")
   })
 
+  test("rect label font size scales with dimensions", () => {
+    const input: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 50,
+          height: 50,
+          stroke: "black",
+          fill: "none",
+          label: "R",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input, { includeTextLabels: true })
+    const rectMatch = svg.match(
+      /<rect[^>]*width="([0-9.]+)"[^>]*height="([0-9.]+)"/,
+    )
+    const textMatch = svg.match(/<text[^>]*font-size="([0-9.]+)"/)
+    expect(rectMatch).toBeTruthy()
+    expect(textMatch).toBeTruthy()
+    const width = parseFloat(rectMatch![1])
+    const height = parseFloat(rectMatch![2])
+    const fontSize = parseFloat(textMatch![1])
+    const expected = ((width + height) / 2) * 0.02
+    expect(fontSize).toBeCloseTo(expected)
+  })
+
   test("should generate SVG with circles", () => {
     const input: GraphicsObject = {
       circles: [

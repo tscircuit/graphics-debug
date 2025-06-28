@@ -293,7 +293,10 @@ export function getSvgFromGraphicsObject(
                       x: (rectX + 5).toString(),
                       y: (rectY - 5).toString(), // Position above the top-left corner
                       "font-family": "sans-serif",
-                      "font-size": "12",
+                      "font-size": (
+                        ((scaledWidth + scaledHeight) / 2) *
+                        0.02
+                      ).toString(),
                       fill: rect.stroke || "black", // Default to stroke color for label
                     },
                     children: [{ type: "text", value: rect.label }],
