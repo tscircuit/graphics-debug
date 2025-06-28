@@ -90,7 +90,7 @@ function createGraphicsGrid(
       const g = row[c]
       const b = getBounds(g)
       const dx = c * (cellWidth + gap) - b.minX
-      const dy = r * (cellHeight + gap) - b.minY
+      const dy = -r * (cellHeight + gap) - b.minY
       const shifted = translateGraphics(g, dx, dy)
       result = result ? mergeGraphics(result, shifted) : shifted
     }

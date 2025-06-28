@@ -48,9 +48,9 @@ describe("createGraphicsGrid", () => {
     expect(r2.center.x).toBeCloseTo(3)
     expect(r2.center.y).toBeCloseTo(1)
     expect(r3.center.x).toBeCloseTo(1)
-    expect(r3.center.y).toBeCloseTo(3)
+    expect(r3.center.y).toBeCloseTo(-1)
     expect(r4.center.x).toBeCloseTo(3)
-    expect(r4.center.y).toBeCloseTo(3)
+    expect(r4.center.y).toBeCloseTo(-1)
   })
 
   test("supports a gap between cells", () => {
@@ -65,9 +65,9 @@ describe("createGraphicsGrid", () => {
     const [r1, r2, r3, r4] = grid.rects!
     expect(r1.center.x).toBeCloseTo(1)
     expect(r2.center.x).toBeCloseTo(4)
-    expect(r3.center.y).toBeCloseTo(4)
+    expect(r3.center.y).toBeCloseTo(-2)
     expect(r4.center.x).toBeCloseTo(4)
-    expect(r4.center.y).toBeCloseTo(4)
+    expect(r4.center.y).toBeCloseTo(-2)
   })
 
   test("supports a gap as a fraction of the cell width", () => {
