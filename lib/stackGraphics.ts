@@ -12,22 +12,23 @@ function stackGraphicsHorizontally(
   graphicsList: GraphicsObject[],
 ): GraphicsObject {
   if (graphicsList.length === 0) return {}
-  let result = graphicsList[0]
-  let prevBounds = getBounds(result)
+  let giantG = graphicsList[0]
+  let prevBounds = getBounds(giantG)
   const baseMinY = prevBounds.minY
   for (let i = 1; i < graphicsList.length; i++) {
-    const g = graphicsList[i]
-    const bounds = getBounds(g)
+    const newG = graphicsList[i]
+    const bounds = getBounds(newG)
     const prevWidth = prevBounds.maxX - prevBounds.minX
     const width = bounds.maxX - bounds.minX
     const padding = (prevWidth + width) / 8
-    const dx = prevBounds.minX - padding - bounds.maxX
+    // Place the next graphic to the right of the previous one
+    const dx = prevBounds.maxX + padding - bounds.minX
     const dy = baseMinY - bounds.minY
-    const shifted = translateGraphics(g, dx, dy)
-    result = mergeGraphics(result, shifted)
+    const shifted = translateGraphics(newG, dx, dy)
+    giantG = mergeGraphics(giantG, shifted)
     prevBounds = getBounds(shifted)
   }
-  return result
+  return giantG
 }
 
 function stackGraphicsVertically(

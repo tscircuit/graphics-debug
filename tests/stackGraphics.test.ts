@@ -18,7 +18,7 @@ describe("stackGraphicsHorizontally", () => {
     expect(stacked.rects?.length).toBe(2)
     const [r1, r2] = stacked.rects!
     expect(r1.center.x).toBeCloseTo(0)
-    expect(r2.center.x).toBeCloseTo(-2.5)
+    expect(r2.center.x).toBeCloseTo(2.5)
   })
 })
 

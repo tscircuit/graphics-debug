@@ -2,7 +2,9 @@
   <g>
     <circle data-type="point" data-label="B" data-x="10" data-y="10" cx="600" cy="40" r="3" fill="red"></circle><text x="605" y="35" font-family="sans-serif" font-size="12">B</text>
   </g>
-  <polyline data-points="0,0 5,5" data-type="line" points="40,600 320,320" fill="none" stroke="black" stroke-width="1"></polyline>
+  <g>
+    <polyline data-points="0,0 5,5" data-type="line" data-label="" points="40,600 320,320" fill="none" stroke="black" stroke-width="1"></polyline>
+  </g>
   <circle data-type="circle" data-label="" data-x="2.5" data-y="2.5" cx="180" cy="460" r="140" fill="none" stroke="black" stroke-width="0.017857142857142856"></circle>
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5"></line>
