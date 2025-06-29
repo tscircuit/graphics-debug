@@ -18,9 +18,22 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toContain('height="640"')
     expect(svg).toContain('fill="red"')
     expect(svg).toContain('fill="blue"')
+    expect(svg).not.toContain(">A<")
+    expect(svg).not.toContain(">B<")
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "points")
+  })
+
+  test("includes point labels when includeTextLabels is true", () => {
+    const input: GraphicsObject = {
+      points: [
+        { x: 0, y: 0, label: "A", color: "red" },
+        { x: 1, y: 1, label: "B", color: "blue" },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input, { includeTextLabels: true })
     expect(svg).toContain(">A<")
     expect(svg).toContain(">B<")
-    expect(svg).toMatchSvgSnapshot(import.meta.path, "points")
   })
 
   test("should generate SVG with lines and custom stroke properties", () => {
