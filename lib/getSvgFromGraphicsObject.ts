@@ -114,7 +114,7 @@ function projectPoint(point: Point, matrix: Matrix) {
 export function getSvgFromGraphicsObject(
   graphics: GraphicsObject,
   {
-    includeTextLabels = true,
+    includeTextLabels = false,
     backgroundColor,
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
