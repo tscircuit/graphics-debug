@@ -8,7 +8,15 @@ import {
 import type { GraphicsObject } from "../lib/types"
 
 const rectGraphic = (): GraphicsObject => ({
-  rects: [{ center: { x: 0, y: 0 }, width: 2, height: 2 }],
+  rects: [
+    {
+      center: { x: 0, y: 0 },
+      width: 2,
+      height: 2,
+      fill: "lightblue",
+      stroke: "black",
+    },
+  ],
 })
 
 describe("stackGraphicsHorizontally", () => {
