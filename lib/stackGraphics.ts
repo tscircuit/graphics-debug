@@ -34,7 +34,7 @@ function stackGraphicsHorizontally(
   if (opts.titles && opts.titles.length > 0) {
     const overall = getBounds(giantG)
     const totalWidth = overall.maxX - overall.minX
-    const fontSize = totalWidth * 0.01
+    const fontSize = totalWidth * 0.025
     const texts = opts.titles.slice(0, boundsList.length).map((title, idx) => {
       const b = boundsList[idx]
       const centerX = (b.minX + b.maxX) / 2

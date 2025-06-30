@@ -1,10 +1,10 @@
 <svg width="640" height="640" viewBox="0 0 640 640" xmlns="http://www.w3.org/2000/svg">
   <g>
-    <rect data-type="rect" data-label="" data-x="0" data-y="0" x="40.000000000000014" y="198.35555555555555" width="248.8888888888889" height="248.8888888888889" fill="lightblue" stroke="black" stroke-width="0.008035714285714287" />
+    <rect data-type="rect" data-label="" data-x="0" data-y="0" x="40.000000000000014" y="202.55555555555554" width="248.8888888888889" height="248.8888888888889" fill="lightblue" stroke="black" stroke-width="0.008035714285714287" />
   </g>
   <g>
-    <rect data-type="rect" data-label="" data-x="2.5" data-y="0" x="351.1111111111111" y="198.35555555555555" width="248.8888888888889" height="248.8888888888889" fill="lightblue" stroke="black" stroke-width="0.008035714285714287" />
-  </g><text data-type="text" data-label="One" data-x="0" data-y="1.045" x="164.44444444444446" y="192.7555555555556" fill="black" font-size="5.6" font-family="sans-serif" text-anchor="middle" dominant-baseline="text-after-edge">One</text><text data-type="text" data-label="Two" data-x="2.5" data-y="1.045" x="475.55555555555554" y="192.7555555555556" fill="black" font-size="5.6" font-family="sans-serif" text-anchor="middle" dominant-baseline="text-after-edge">Two</text>
+    <rect data-type="rect" data-label="" data-x="2.5" data-y="0" x="351.1111111111111" y="202.55555555555554" width="248.8888888888889" height="248.8888888888889" fill="lightblue" stroke="black" stroke-width="0.008035714285714287" />
+  </g><text data-type="text" data-label="One" data-x="0" data-y="1.1125" x="164.44444444444446" y="188.55555555555554" fill="black" font-size="14" font-family="sans-serif" text-anchor="middle" dominant-baseline="text-after-edge">One</text><text data-type="text" data-label="Two" data-x="2.5" data-y="1.1125" x="475.55555555555554" y="188.55555555555554" fill="black" font-size="14" font-family="sans-serif" text-anchor="middle" dominant-baseline="text-after-edge">Two</text>
   <g id="crosshair" style="display: none">
     <line id="crosshair-h" y1="0" y2="640" stroke="#666" stroke-width="0.5" />
     <line id="crosshair-v" x1="0" x2="640" stroke="#666" stroke-width="0.5" /><text id="coordinates" font-family="monospace" font-size="12" fill="#666"></text>
@@ -38,7 +38,7 @@
         "e": 164.44444444444446,
         "b": 0,
         "d": -124.44444444444444,
-        "f": 322.8
+        "f": 327
       };
       // Manually invert and apply the affine transform
       // Since we only use translate and scale, we can directly compute:
