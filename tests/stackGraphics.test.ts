@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test"
+import "../lib/matcher"
 import {
   stackGraphicsHorizontally,
   stackGraphicsVertically,
@@ -19,6 +20,18 @@ describe("stackGraphicsHorizontally", () => {
     const [r1, r2] = stacked.rects!
     expect(r1.center.x).toBeCloseTo(0)
     expect(r2.center.x).toBeCloseTo(2.5)
+  })
+
+  test("adds titles above each graphic", async () => {
+    const g1 = rectGraphic()
+    const g2 = rectGraphic()
+    const stacked = stackGraphicsHorizontally([g1, g2], {
+      titles: ["One", "Two"],
+    })
+
+    await expect(stacked).toMatchGraphicsSvg(import.meta.path, {
+      svgName: "stacked-titles",
+    })
   })
 })
 

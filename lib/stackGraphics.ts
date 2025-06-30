@@ -10,11 +10,13 @@ import { mergeGraphics } from "./mergeGraphics"
 
 function stackGraphicsHorizontally(
   graphicsList: GraphicsObject[],
+  opts: { titles?: string[] } = {},
 ): GraphicsObject {
   if (graphicsList.length === 0) return {}
   let giantG = graphicsList[0]
   let prevBounds = getBounds(giantG)
   const baseMinY = prevBounds.minY
+  const boundsList = [prevBounds]
   for (let i = 1; i < graphicsList.length; i++) {
     const newG = graphicsList[i]
     const bounds = getBounds(newG)
@@ -27,6 +29,24 @@ function stackGraphicsHorizontally(
     const shifted = translateGraphics(newG, dx, dy)
     giantG = mergeGraphics(giantG, shifted)
     prevBounds = getBounds(shifted)
+    boundsList.push(prevBounds)
+  }
+  if (opts.titles && opts.titles.length > 0) {
+    const overall = getBounds(giantG)
+    const totalWidth = overall.maxX - overall.minX
+    const fontSize = totalWidth * 0.01
+    const texts = opts.titles.slice(0, boundsList.length).map((title, idx) => {
+      const b = boundsList[idx]
+      const centerX = (b.minX + b.maxX) / 2
+      return {
+        x: centerX,
+        y: b.maxY + fontSize,
+        text: title,
+        fontSize,
+        anchorSide: "bottom_center" as const,
+      }
+    })
+    giantG = mergeGraphics(giantG, { texts })
   }
   return giantG
 }
