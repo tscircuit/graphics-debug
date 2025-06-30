@@ -214,7 +214,10 @@ Use `stackGraphicsHorizontally` or `stackGraphicsVertically` to place graphics n
 ```tsx
 import { stackGraphicsHorizontally, stackGraphicsVertically } from "graphics-debug"
 
-const sideBySide = stackGraphicsHorizontally([graphicsObjectA, graphicsObjectB])
+const sideBySide = stackGraphicsHorizontally([
+  graphicsObjectA,
+  graphicsObjectB,
+], { titles: ["A", "B"] })
 const stacked = stackGraphicsVertically([graphicsObjectA, graphicsObjectB])
 ```
 
