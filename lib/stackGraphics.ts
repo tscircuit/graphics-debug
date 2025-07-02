@@ -53,11 +53,13 @@ function stackGraphicsHorizontally(
 
 function stackGraphicsVertically(
   graphicsList: GraphicsObject[],
+  opts: { titles?: string[] } = {},
 ): GraphicsObject {
   if (graphicsList.length === 0) return {}
   let result = graphicsList[0]
   let prevBounds = getBounds(result)
   const baseMinX = prevBounds.minX
+  const boundsList = [prevBounds]
   for (let i = 1; i < graphicsList.length; i++) {
     const g = graphicsList[i]
     const bounds = getBounds(g)
@@ -69,6 +71,23 @@ function stackGraphicsVertically(
     const shifted = translateGraphics(g, dx, dy)
     result = mergeGraphics(result, shifted)
     prevBounds = getBounds(shifted)
+    boundsList.push(prevBounds)
+  }
+  if (opts.titles && opts.titles.length > 0) {
+    const overall = getBounds(result)
+    const totalHeight = overall.maxY - overall.minY
+    const fontSize = totalHeight * 0.025
+    const texts = opts.titles.slice(0, boundsList.length).map((title, idx) => {
+      const b = boundsList[idx]
+      return {
+        x: b.minX - fontSize,
+        y: b.maxY,
+        text: title,
+        fontSize,
+        anchorSide: "top_right" as const,
+      }
+    })
+    result = mergeGraphics(result, { texts })
   }
   return result
 }
