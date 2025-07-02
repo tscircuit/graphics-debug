@@ -53,6 +53,18 @@ describe("stackGraphicsVertically", () => {
     expect(r1.center.y).toBeCloseTo(0)
     expect(r2.center.y).toBeCloseTo(-2.5)
   })
+
+  test("adds titles to the left of each graphic", async () => {
+    const g1 = rectGraphic()
+    const g2 = rectGraphic()
+    const stacked = stackGraphicsVertically([g1, g2], {
+      titles: ["One", "Two"],
+    })
+
+    await expect(stacked).toMatchGraphicsSvg(import.meta.path, {
+      svgName: "vertical-titles",
+    })
+  })
 })
 
 describe("createGraphicsGrid", () => {

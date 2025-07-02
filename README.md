@@ -218,7 +218,10 @@ const sideBySide = stackGraphicsHorizontally([
   graphicsObjectA,
   graphicsObjectB,
 ], { titles: ["A", "B"] })
-const stacked = stackGraphicsVertically([graphicsObjectA, graphicsObjectB])
+const stacked = stackGraphicsVertically([
+  graphicsObjectA,
+  graphicsObjectB,
+], { titles: ["A", "B"] })
 ```
 
 ### Testing GraphicsObjects with Bun's Test Framework
