@@ -310,3 +310,23 @@ Here is the content of the `exampleGraphics.json` file:
 ```
 
 You can load this example into the application to visualize the graphics objects and understand how the `graphics-debug` module works.
+
+### React Components
+
+The package also includes React helpers under `graphics-debug/react`.
+The `<InteractiveGraphics>` component renders an interactive viewer with
+zoom, pan and layer/step filtering built in.
+
+```tsx
+import { InteractiveGraphics } from "graphics-debug/react"
+import exampleGraphics from "./exampleGraphics.json"
+
+export default function Demo() {
+  return <InteractiveGraphics graphics={exampleGraphics} />
+}
+```
+
+`InteractiveGraphics` accepts a `GraphicsObject` via the `graphics` prop.
+You can optionally handle clicks on objects with `onObjectClicked` or
+limit how many objects are drawn with `objectLimit`.
+
