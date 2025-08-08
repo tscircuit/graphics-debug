@@ -34,7 +34,9 @@ const SvgDisplay: React.FC<{ title: string; svgString: string }> = ({
   title,
   svgString,
 }) => (
-  <div style={{ marginBottom: "20px", border: "1px solid #eee", padding: "10px" }}>
+  <div
+    style={{ marginBottom: "20px", border: "1px solid #eee", padding: "10px" }}
+  >
     <h3>{title}</h3>
     <div dangerouslySetInnerHTML={{ __html: svgString }} />
   </div>
