@@ -136,7 +136,7 @@ export const InteractiveGraphics = ({
     ref,
     setTransform,
   } = useMouseMatrixTransform({
-    initialTransform: getSavedTransform() || getDefaultTransform(),
+    initialTransform: getDefaultTransform(),
   })
 
   useResizeObserver(ref, (entry: ResizeObserverEntry) => {
@@ -215,6 +215,17 @@ export const InteractiveGraphics = ({
     saveToLocalStorage(realToScreen, markers)
   }, [saveToLocalStorage, realToScreen, markers])
 
+  const handleLoadCamera = useCallback(() => {
+    try {
+      const savedTransform = getSavedTransform()
+      if (savedTransform) {
+        setTransform(savedTransform)
+      }
+    } catch (error) {
+      console.error("Error loading camera position:", error)
+    }
+  }, [getSavedTransform, setTransform])
+
   const handleClearCamera = useCallback(() => {
     try {
       const defaultTransform = getDefaultTransform()
@@ -248,7 +259,10 @@ export const InteractiveGraphics = ({
         const newMarkers = [...markers, newMarker]
 
         setMarkers(newMarkers)
-        saveToLocalStorage(realToScreen, newMarkers)
+        const savedData = getSavedData()
+        if (savedData?.transform) {
+          saveToLocalStorage(savedData.transform, newMarkers)
+        }
       }
     } catch (error) {
       console.error("Error adding marker:", error)
@@ -257,8 +271,11 @@ export const InteractiveGraphics = ({
 
   const handleClearMarks = useCallback(() => {
     setMarkers([])
-    saveToLocalStorage(realToScreen, [])
-  }, [realToScreen, saveToLocalStorage])
+    const savedData = getSavedData()
+    if (savedData?.transform) {
+      saveToLocalStorage(savedData.transform, [])
+    }
+  }, [getSavedData, saveToLocalStorage])
 
   const interactiveState: InteractiveState = {
     activeLayers: activeLayers,
@@ -498,6 +515,7 @@ export const InteractiveGraphics = ({
             x={contextMenu.x}
             y={contextMenu.y}
             onSaveCamera={handleSaveCamera}
+            onLoadCamera={handleLoadCamera}
             onClearCamera={handleClearCamera}
             onAddMark={handleAddMark}
             onClearMarks={handleClearMarks}
