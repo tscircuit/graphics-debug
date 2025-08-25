@@ -9,7 +9,6 @@ import {
 } from "transformation-matrix"
 import type { GraphicsObject, Point } from "./types"
 import { stringify } from "svgson"
-import pretty from "pretty"
 import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
 
 const DEFAULT_SVG_SIZE = 640
@@ -486,5 +485,5 @@ export function getSvgFromGraphicsObject(
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: TODO
-  return pretty(stringify(svgObject as any))
+  return stringify(svgObject as any)
 }
