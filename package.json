@@ -2,7 +2,7 @@
   "name": "graphics-debug",
   "main": "dist/lib/index.js",
   "type": "module",
-  "version": "0.0.62",
+  "version": "0.0.63",
   "files": [
     "dist"
   ],
