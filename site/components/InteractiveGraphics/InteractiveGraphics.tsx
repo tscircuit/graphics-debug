@@ -17,6 +17,7 @@ import { Rect } from "./Rect"
 import { Circle } from "./Circle"
 import { Text } from "./Text"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
+import { sortRectsByArea } from "site/utils/sortRectsByArea"
 import {
   useIsPointOnScreen,
   useDoesLineIntersectViewport,
@@ -347,7 +348,7 @@ export const InteractiveGraphics = ({
     [graphics.lines, filterLines, objectLimit],
   )
   const filteredRects = useMemo(
-    () => filterAndLimit(graphics.rects, filterRects),
+    () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
     [graphics.rects, filterRects, objectLimit],
   )
   const filteredPoints = useMemo(
