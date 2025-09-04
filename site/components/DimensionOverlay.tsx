@@ -53,8 +53,14 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
       container.addEventListener("blur", removeKeyListener)
       container.addEventListener("mouseenter", addKeyListener)
       container.addEventListener("mouseleave", removeKeyListener)
+
+      // Ensure the key listener is active immediately so the "d" hotkey
+      // works without requiring a mouse enter/leave cycle
+      addKeyListener()
     }
     return () => {
+      // Always remove the key listener on cleanup to avoid leaks
+      removeKeyListener()
       if (container) {
         container.removeEventListener("focus", addKeyListener)
         container.removeEventListener("blur", removeKeyListener)
