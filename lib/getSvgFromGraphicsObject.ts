@@ -25,6 +25,7 @@ function getBounds(graphics: GraphicsObject): Bounds {
   const points: Point[] = [
     ...(graphics.points || []),
     ...(graphics.lines || []).flatMap((line) => line.points),
+    ...(graphics.arrows || []).flatMap((arrow) => [arrow.start, arrow.end]),
     ...(graphics.rects || []).flatMap((rect) => {
       const halfWidth = rect.width / 2
       const halfHeight = rect.height / 2
@@ -118,7 +119,7 @@ export function getSvgFromGraphicsObject(
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
-    includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
+    includeTextLabels?: boolean | Array<"points" | "lines" | "rects" | "arrows">
     backgroundColor?: string
     svgWidth?: number
     svgHeight?: number
@@ -132,7 +133,9 @@ export function getSvgFromGraphicsObject(
     svgHeight,
   )
 
-  const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
+  const shouldRenderLabel = (
+    type: "points" | "lines" | "rects" | "arrows",
+  ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
     }
@@ -140,6 +143,28 @@ export function getSvgFromGraphicsObject(
       return includeTextLabels.includes(type)
     }
     return false
+  }
+
+  const computeArrowHeadPoints = (
+    tip: { x: number; y: number },
+    tail: { x: number; y: number },
+    headLength: number,
+    headWidth: number,
+  ) => {
+    const angle = Math.atan2(tip.y - tail.y, tip.x - tail.x)
+    const sin = Math.sin(angle)
+    const cos = Math.cos(angle)
+
+    const point1 = {
+      x: tip.x - headLength * cos + headWidth * sin,
+      y: tip.y - headLength * sin - headWidth * cos,
+    }
+    const point2 = {
+      x: tip.x - headLength * cos - headWidth * sin,
+      y: tip.y - headLength * sin + headWidth * cos,
+    }
+
+    return [tip, point1, point2]
   }
 
   const svgObject = {
@@ -253,6 +278,95 @@ export function getSvgFromGraphicsObject(
                 ]
               : []),
           ],
+        }
+      }),
+      // Arrows
+      ...(graphics.arrows || []).map((arrow) => {
+        const projectedStart = projectPoint(arrow.start, matrix)
+        const projectedEnd = projectPoint(arrow.end, matrix)
+        const color = arrow.strokeColor || "black"
+        const strokeWidth = arrow.strokeWidth ?? 1
+        const scale = Math.abs(matrix.a)
+        const headLength = (arrow.headLength ?? 10) * scale
+        const headWidth = arrow.headWidth ?? headLength / 2
+
+        const endHeadPoints = computeArrowHeadPoints(
+          projectedEnd,
+          projectedStart,
+          headLength,
+          headWidth,
+        )
+
+        const children: any[] = [
+          {
+            name: "line",
+            type: "element", // satisfies svgson types
+            attributes: {
+              "data-type": "arrow",
+              "data-label": arrow.label || "",
+              "data-start": `${arrow.start.x},${arrow.start.y}`,
+              "data-end": `${arrow.end.x},${arrow.end.y}`,
+              x1: projectedStart.x.toString(),
+              y1: projectedStart.y.toString(),
+              x2: projectedEnd.x.toString(),
+              y2: projectedEnd.y.toString(),
+              stroke: color,
+              "stroke-width": strokeWidth.toString(),
+              "stroke-linecap": "round",
+            },
+          },
+          {
+            name: "polygon",
+            type: "element",
+            attributes: {
+              points: endHeadPoints
+                .map((point) => `${point.x},${point.y}`)
+                .join(" "),
+              fill: color,
+            },
+          },
+        ]
+
+        if (arrow.doubleSided) {
+          const startHeadPoints = computeArrowHeadPoints(
+            projectedStart,
+            projectedEnd,
+            headLength,
+            headWidth,
+          )
+
+          children.push({
+            name: "polygon",
+            type: "element",
+            attributes: {
+              points: startHeadPoints
+                .map((point) => `${point.x},${point.y}`)
+                .join(" "),
+              fill: color,
+            },
+          })
+        }
+
+        if (shouldRenderLabel("arrows") && arrow.label) {
+          children.push({
+            name: "text",
+            type: "element",
+            attributes: {
+              x: projectedEnd.x.toString(),
+              y: (projectedEnd.y - headLength).toString(),
+              "font-family": "sans-serif",
+              "font-size": "12",
+              fill: color,
+            },
+            children: [{ type: "text", value: arrow.label }],
+          })
+        }
+
+        return {
+          name: "g",
+          type: "element",
+          attributes: {},
+          children,
         }
       }),
       // Rectangles

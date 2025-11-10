@@ -69,6 +69,29 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "lines")
   })
 
+  test("should generate SVG with arrows", () => {
+    const input: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: 0, y: 0 },
+          end: { x: 5, y: 5 },
+          strokeColor: "red",
+          doubleSided: true,
+          label: "Arrow Label",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input, {
+      includeTextLabels: ["arrows"],
+    })
+
+    expect(svg).toContain('data-type="arrow"')
+    expect(svg).toContain("<polygon")
+    expect(svg).toContain("Arrow Label")
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "arrows")
+  })
+
   test("should generate SVG with rectangles", () => {
     const input: GraphicsObject = {
       rects: [

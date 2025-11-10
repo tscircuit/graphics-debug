@@ -14,6 +14,12 @@ describe("translateGraphics", () => {
           ],
         },
       ],
+      arrows: [
+        {
+          start: { x: -1, y: -1 },
+          end: { x: 2, y: 2 },
+        },
+      ],
       rects: [{ center: { x: 2, y: 2 }, width: 2, height: 2 }],
       circles: [{ center: { x: 3, y: 3 }, radius: 1 }],
       texts: [{ x: 4, y: 4, text: "hi" }],
@@ -27,6 +33,12 @@ describe("translateGraphics", () => {
             { x: 5, y: -3 },
             { x: 6, y: -2 },
           ],
+        },
+      ],
+      arrows: [
+        {
+          start: { x: 4, y: -4 },
+          end: { x: 7, y: -1 },
         },
       ],
       rects: [{ center: { x: 7, y: -1 }, width: 2, height: 2 }],

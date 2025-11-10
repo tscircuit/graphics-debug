@@ -12,6 +12,7 @@ import { InteractiveState } from "./InteractiveState"
 import { SuperGrid } from "react-supergrid"
 import useResizeObserver from "@react-hook/resize-observer"
 import { Line } from "./Line"
+import { Arrow } from "./Arrow"
 import { Point } from "./Point"
 import { Rect } from "./Rect"
 import { Circle } from "./Circle"
@@ -22,6 +23,7 @@ import {
   useIsPointOnScreen,
   useDoesLineIntersectViewport,
   useFilterLines,
+  useFilterArrows,
   useFilterPoints,
   useFilterRects,
   useFilterCircles,
@@ -33,7 +35,7 @@ import { ContextMenu } from "./ContextMenu"
 import { Marker, MarkerPoint } from "./Marker"
 
 export type GraphicsObjectClickEvent = {
-  type: "point" | "line" | "rect" | "circle" | "text"
+  type: "point" | "line" | "rect" | "circle" | "text" | "arrow"
   index: number
   object: any
 }
@@ -61,6 +63,7 @@ export const InteractiveGraphics = ({
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
+      ...(graphics.arrows?.map((a) => a.layer!).filter(Boolean) ?? []),
       ...(graphics.rects?.map((r) => r.layer!).filter(Boolean) ?? []),
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.texts?.map((t) => t.layer!).filter(Boolean) ?? []),
@@ -316,6 +319,12 @@ export const InteractiveGraphics = ({
     filterLayerAndStep,
   )
 
+  const filterArrows = useFilterArrows(
+    isPointOnScreen,
+    doesLineIntersectViewport,
+    filterLayerAndStep,
+  )
+
   const filterPoints = useFilterPoints(isPointOnScreen, filterLayerAndStep)
 
   const filterRects = useFilterRects(
@@ -347,6 +356,10 @@ export const InteractiveGraphics = ({
     () => filterAndLimit(graphics.lines, filterLines),
     [graphics.lines, filterLines, objectLimit],
   )
+  const filteredArrows = useMemo(
+    () => filterAndLimit(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows, objectLimit],
+  )
   const filteredRects = useMemo(
     () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
     [graphics.rects, filterRects, objectLimit],
@@ -366,6 +379,7 @@ export const InteractiveGraphics = ({
 
   const totalFilteredObjects =
     filteredLines.length +
+    filteredArrows.length +
     filteredRects.length +
     filteredPoints.length +
     filteredCircles.length +
@@ -461,6 +475,14 @@ export const InteractiveGraphics = ({
               key={line.originalIndex}
               line={line}
               index={line.originalIndex}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {filteredArrows.map((arrow) => (
+            <Arrow
+              key={arrow.originalIndex}
+              arrow={arrow}
+              index={arrow.originalIndex}
               interactiveState={interactiveState}
             />
           ))}

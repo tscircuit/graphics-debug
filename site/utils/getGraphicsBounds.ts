@@ -15,6 +15,15 @@ export const getGraphicsBounds = (graphics: GraphicsObject) => {
       bounds.maxY = Math.max(bounds.maxY, point.y)
     }
   }
+  for (const arrow of graphics.arrows ?? []) {
+    const points = [arrow.start, arrow.end]
+    for (const point of points) {
+      bounds.minX = Math.min(bounds.minX, point.x)
+      bounds.minY = Math.min(bounds.minY, point.y)
+      bounds.maxX = Math.max(bounds.maxX, point.x)
+      bounds.maxY = Math.max(bounds.maxY, point.y)
+    }
+  }
   for (const rect of graphics.rects ?? []) {
     const { center, width, height } = rect
     const halfWidth = width / 2

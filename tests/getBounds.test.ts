@@ -34,4 +34,21 @@ describe("getBounds with text", () => {
     expect(bounds.maxY).toBeCloseTo(0)
     expect(bounds.minY).toBeCloseTo(-height)
   })
+
+  test("includes arrows in bounds", () => {
+    const graphics: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: -5, y: -5 },
+          end: { x: 10, y: 15 },
+        },
+      ],
+    }
+
+    const bounds = getBounds(graphics)
+    expect(bounds.minX).toBeLessThanOrEqual(-5)
+    expect(bounds.minY).toBeLessThanOrEqual(-5)
+    expect(bounds.maxX).toBeGreaterThanOrEqual(10)
+    expect(bounds.maxY).toBeGreaterThanOrEqual(15)
+  })
 })

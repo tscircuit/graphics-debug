@@ -14,6 +14,7 @@ export function getMaxStep(graphics: GraphicsObject) {
 
   const maxPointStep = getMaxStepFromArray(graphics.points)
   const maxLineStep = getMaxStepFromArray(graphics.lines)
+  const maxArrowStep = getMaxStepFromArray(graphics.arrows)
   const maxRectStep = getMaxStepFromArray(graphics.rects)
   const maxCircleStep = getMaxStepFromArray(graphics.circles)
   const maxTextStep = getMaxStepFromArray(graphics.texts)
@@ -21,6 +22,7 @@ export function getMaxStep(graphics: GraphicsObject) {
   return Math.max(
     maxPointStep,
     maxLineStep,
+    maxArrowStep,
     maxRectStep,
     maxCircleStep,
     maxTextStep,

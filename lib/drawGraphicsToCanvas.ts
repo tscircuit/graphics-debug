@@ -64,6 +64,7 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
   const points = [
     ...(graphics.points || []),
     ...(graphics.lines || []).flatMap((line) => line.points),
+    ...(graphics.arrows || []).flatMap((arrow) => [arrow.start, arrow.end]),
     ...(graphics.rects || []).flatMap((rect) => {
       const halfWidth = rect.width / 2
       const halfHeight = rect.height / 2
@@ -291,6 +292,68 @@ export function drawGraphicsToCanvas(
       }
 
       ctx.stroke()
+    })
+  }
+
+  const drawArrowHead = (
+    from: { x: number; y: number },
+    to: { x: number; y: number },
+    color: string,
+    headLength: number,
+    headWidth: number,
+  ) => {
+    const angle = Math.atan2(to.y - from.y, to.x - from.x)
+    const sin = Math.sin(angle)
+    const cos = Math.cos(angle)
+
+    const point1 = {
+      x: to.x - headLength * cos + headWidth * sin,
+      y: to.y - headLength * sin - headWidth * cos,
+    }
+    const point2 = {
+      x: to.x - headLength * cos - headWidth * sin,
+      y: to.y - headLength * sin + headWidth * cos,
+    }
+
+    ctx.beginPath()
+    ctx.moveTo(to.x, to.y)
+    ctx.lineTo(point1.x, point1.y)
+    ctx.lineTo(point2.x, point2.y)
+    ctx.closePath()
+    ctx.fillStyle = color
+    ctx.fill()
+  }
+
+  if (graphics.arrows && graphics.arrows.length > 0) {
+    graphics.arrows.forEach((arrow, arrowIndex) => {
+      const start = applyToPoint(matrix, arrow.start)
+      const end = applyToPoint(matrix, arrow.end)
+
+      const baseColor =
+        arrow.strokeColor || defaultColors[arrowIndex % defaultColors.length]
+
+      const strokeWidth =
+        arrow.strokeWidth !== undefined
+          ? arrow.strokeWidth * Math.abs(matrix.a)
+          : 2
+
+      ctx.beginPath()
+      ctx.moveTo(start.x, start.y)
+      ctx.lineTo(end.x, end.y)
+      ctx.strokeStyle = baseColor
+      ctx.lineWidth = strokeWidth
+      ctx.lineCap = "round"
+      ctx.stroke()
+
+      const scale = Math.abs(matrix.a)
+      const headLength = (arrow.headLength ?? 10) * scale
+      const headWidth = arrow.headWidth ?? headLength / 2
+
+      drawArrowHead(start, end, baseColor, headLength, headWidth)
+
+      if (arrow.doubleSided) {
+        drawArrowHead(end, start, baseColor, headLength, headWidth)
+      }
     })
   }
 

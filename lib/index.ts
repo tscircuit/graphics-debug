@@ -16,6 +16,7 @@ import {
 export type {
   Point,
   Line,
+  Arrow,
   Rect,
   Circle,
   Text,

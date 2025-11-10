@@ -9,6 +9,7 @@ export const mergeGraphics = (
     rects: [...(graphics1.rects ?? []), ...(graphics2.rects ?? [])],
     points: [...(graphics1.points ?? []), ...(graphics2.points ?? [])],
     lines: [...(graphics1.lines ?? []), ...(graphics2.lines ?? [])],
+    arrows: [...(graphics1.arrows ?? []), ...(graphics2.arrows ?? [])],
     circles: [...(graphics1.circles ?? []), ...(graphics2.circles ?? [])],
     texts: [...(graphics1.texts ?? []), ...(graphics2.texts ?? [])],
   }
