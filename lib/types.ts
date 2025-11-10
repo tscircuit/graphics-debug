@@ -17,6 +17,19 @@ export interface Line {
   label?: string
 }
 
+export interface Arrow {
+  start: { x: number; y: number }
+  end: { x: number; y: number }
+  strokeWidth?: number
+  strokeColor?: string
+  headLength?: number
+  headWidth?: number
+  doubleSided?: boolean
+  layer?: string
+  step?: number
+  label?: string
+}
+
 export interface Rect {
   center: { x: number; y: number }
   width: number
@@ -64,6 +77,7 @@ export interface Text {
 export interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
+  arrows?: Arrow[]
   rects?: Rect[]
   circles?: Circle[]
   texts?: Text[]

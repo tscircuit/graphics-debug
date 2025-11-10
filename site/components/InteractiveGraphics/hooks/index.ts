@@ -4,6 +4,7 @@ export {
   OFFSCREEN_MARGIN,
 } from "./useDoesLineIntersectViewport"
 export { useFilterLines } from "./useFilterLines"
+export { useFilterArrows } from "./useFilterArrows"
 export { useFilterPoints } from "./useFilterPoints"
 export { useFilterRects } from "./useFilterRects"
 export { useFilterCircles } from "./useFilterCircles"

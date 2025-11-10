@@ -18,6 +18,12 @@ describe("mergeGraphics", () => {
           ],
         },
       ],
+      arrows: [
+        {
+          start: { x: -1, y: -1 },
+          end: { x: 4, y: 4 },
+        },
+      ],
       circles: [{ center: { x: 4, y: 4 }, radius: 1 }],
       texts: [{ x: 6, y: 6, text: "b" }],
     }
@@ -31,6 +37,12 @@ describe("mergeGraphics", () => {
             { x: 2, y: 2 },
             { x: 3, y: 3 },
           ],
+        },
+      ],
+      arrows: [
+        {
+          start: { x: -1, y: -1 },
+          end: { x: 4, y: 4 },
         },
       ],
       circles: [{ center: { x: 4, y: 4 }, radius: 1 }],
