@@ -5,7 +5,7 @@ import {
   FONT_SIZE_HEIGHT_RATIO,
 } from "../lib"
 import { getArrowBoundingBox } from "../lib/arrowHelpers"
-import type { GraphicsObject } from "../lib/types"
+import type { Arrow, GraphicsObject } from "../lib/types"
 
 describe("getBounds with text", () => {
   test("calculates text bounds using font size and default anchor", () => {
@@ -37,7 +37,11 @@ describe("getBounds with text", () => {
   })
 
   test("includes arrow dimensions", () => {
-    const arrow = { start: { x: 0, y: 0 }, direction: "right-top", length: 12 }
+    const arrow: Arrow = {
+      start: { x: 0, y: 0 },
+      direction: "right-top",
+      length: 12,
+    }
     const graphics: GraphicsObject = {
       arrows: [arrow],
     }

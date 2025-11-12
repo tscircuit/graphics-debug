@@ -388,22 +388,23 @@ export function getSvgFromGraphicsObject(
               fill: color,
             },
           },
+          ...(arrow.label && shouldRenderLabel("arrows")
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    x: (projectedTip.x + 5).toString(),
+                    y: (projectedTip.y - 5).toString(),
+                    "font-family": "sans-serif",
+                    "font-size": "12",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.label }],
+                },
+              ]
+            : []),
         ]
-
-        if (arrow.label && shouldRenderLabel("arrows")) {
-          children.push({
-            name: "text",
-            type: "element",
-            attributes: {
-              x: (projectedTip.x + 5).toString(),
-              y: (projectedTip.y - 5).toString(),
-              "font-family": "sans-serif",
-              "font-size": "12",
-              fill: color,
-            },
-            children: [{ type: "text", value: arrow.label }],
-          })
-        }
 
         return {
           name: "g",
