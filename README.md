@@ -76,11 +76,35 @@ interface Circle {
   label?: string
 }
 
+type ArrowDirection =
+  | "left"
+  | "right"
+  | "top"
+  | "bottom"
+  | "left-top"
+  | "left-bottom"
+  | "right-top"
+  | "right-bottom"
+
+interface Arrow {
+  start: { x: number; y: number }
+  direction: ArrowDirection
+  length?: number
+  shaftWidth?: number
+  headLength?: number
+  headWidth?: number
+  color?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
 interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
   rects?: Rect[]
   circles?: Circle[]
+  arrows?: Arrow[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string
 }

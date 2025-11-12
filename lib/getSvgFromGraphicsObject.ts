@@ -10,6 +10,7 @@ import {
 import type { GraphicsObject, Point } from "./types"
 import { stringify } from "svgson"
 import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
+import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
 
 const DEFAULT_SVG_SIZE = 640
 const PADDING = 40
@@ -41,6 +42,13 @@ function getBounds(graphics: GraphicsObject): Bounds {
       { x: circle.center.x, y: circle.center.y - circle.radius }, // top
       { x: circle.center.x, y: circle.center.y + circle.radius }, // bottom
     ]),
+    ...(graphics.arrows || []).flatMap((arrow) => {
+      const bounds = getArrowBoundingBox(arrow)
+      return [
+        { x: bounds.minX, y: bounds.minY },
+        { x: bounds.maxX, y: bounds.maxY },
+      ]
+    }),
     ...(graphics.texts || []).flatMap((t) => {
       const fontSize = t.fontSize ?? 12
       const width = t.text.length * fontSize * FONT_SIZE_WIDTH_RATIO
@@ -118,7 +126,9 @@ export function getSvgFromGraphicsObject(
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
-    includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
+    includeTextLabels?:
+      | boolean
+      | Array<"points" | "lines" | "rects" | "arrows">
     backgroundColor?: string
     svgWidth?: number
     svgHeight?: number
@@ -132,7 +142,9 @@ export function getSvgFromGraphicsObject(
     svgHeight,
   )
 
-  const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
+  const shouldRenderLabel = (
+    type: "points" | "lines" | "rects" | "arrows",
+  ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
     }
@@ -336,6 +348,74 @@ export function getSvgFromGraphicsObject(
             stroke: circle.stroke || "black",
             "stroke-width": Math.abs(1 / matrix.a).toString(),
           },
+        }
+      }),
+      ...(graphics.arrows || []).map((arrow) => {
+        const geometry = getArrowGeometry(arrow)
+        const projectedTail = projectPoint(geometry.tail, matrix)
+        const projectedHeadBase = projectPoint(geometry.headBase, matrix)
+        const projectedTip = projectPoint(geometry.tip, matrix)
+        const projectedLeftWing = projectPoint(geometry.leftWing, matrix)
+        const projectedRightWing = projectPoint(geometry.rightWing, matrix)
+
+        const color = arrow.color || "black"
+
+        const children = [
+          {
+            name: "line",
+            type: "element",
+            attributes: {
+              "data-type": "arrow-shaft",
+              x1: projectedTail.x.toString(),
+              y1: projectedTail.y.toString(),
+              x2: projectedHeadBase.x.toString(),
+              y2: projectedHeadBase.y.toString(),
+              stroke: color,
+              "stroke-width": (arrow.shaftWidth ?? geometry.shaftWidth).toString(),
+              "stroke-linecap": "round",
+            },
+          },
+          {
+            name: "polygon",
+            type: "element",
+            attributes: {
+              "data-type": "arrow-head",
+              points: [
+                `${projectedTip.x},${projectedTip.y}`,
+                `${projectedLeftWing.x},${projectedLeftWing.y}`,
+                `${projectedRightWing.x},${projectedRightWing.y}`,
+              ].join(" "),
+              fill: color,
+            },
+          },
+          ...(arrow.label && shouldRenderLabel("arrows")
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    x: (projectedTip.x + 5).toString(),
+                    y: (projectedTip.y - 5).toString(),
+                    "font-family": "sans-serif",
+                    "font-size": "12",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.label }],
+                },
+              ]
+            : []),
+        ]
+
+        return {
+          name: "g",
+          type: "element",
+          attributes: {
+            "data-type": "arrow",
+            "data-direction": arrow.direction,
+            "data-label": arrow.label || "",
+            "data-start": `${arrow.start.x},${arrow.start.y}`,
+          },
+          children,
         }
       }),
       // Texts

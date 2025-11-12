@@ -39,6 +39,29 @@ export interface Circle {
   label?: string
 }
 
+export type ArrowDirection =
+  | "left"
+  | "right"
+  | "top"
+  | "bottom"
+  | "left-top"
+  | "left-bottom"
+  | "right-top"
+  | "right-bottom"
+
+export interface Arrow {
+  start: { x: number; y: number }
+  direction: ArrowDirection
+  length?: number
+  shaftWidth?: number
+  headLength?: number
+  headWidth?: number
+  color?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
 export type NinePointAnchor =
   | "center"
   | "top_left"
@@ -66,6 +89,7 @@ export interface GraphicsObject {
   lines?: Line[]
   rects?: Rect[]
   circles?: Circle[]
+  arrows?: Arrow[]
   texts?: Text[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string

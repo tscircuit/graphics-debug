@@ -13,6 +13,7 @@ import type {
 } from "./types"
 import { defaultColors } from "site/components/InteractiveGraphics/defaultColors"
 import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
+import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
 
 /**
  * Computes a transformation matrix based on a provided viewbox
@@ -80,6 +81,13 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
       { x: circle.center.x, y: circle.center.y - circle.radius }, // top
       { x: circle.center.x, y: circle.center.y + circle.radius }, // bottom
     ]),
+    ...(graphics.arrows || []).flatMap((arrow) => {
+      const bounds = getArrowBoundingBox(arrow)
+      return [
+        { x: bounds.minX, y: bounds.minY },
+        { x: bounds.maxX, y: bounds.maxY },
+      ]
+    }),
     ...(graphics.texts || []).flatMap((text) => {
       const fontSize = text.fontSize ?? 12
       const width = text.text.length * fontSize * FONT_SIZE_WIDTH_RATIO
@@ -235,6 +243,44 @@ export function drawGraphicsToCanvas(
       if (circle.stroke) {
         ctx.strokeStyle = circle.stroke ?? "transparent"
         ctx.stroke()
+      }
+    })
+  }
+
+  if (graphics.arrows && graphics.arrows.length > 0) {
+    graphics.arrows.forEach((arrow, arrowIndex) => {
+      const geometry = getArrowGeometry(arrow)
+      const tail = applyToPoint(matrix, geometry.tail)
+      const headBase = applyToPoint(matrix, geometry.headBase)
+      const tip = applyToPoint(matrix, geometry.tip)
+      const leftWing = applyToPoint(matrix, geometry.leftWing)
+      const rightWing = applyToPoint(matrix, geometry.rightWing)
+
+      const color = arrow.color || defaultColors[arrowIndex % defaultColors.length]
+      const scaleFactor = Math.hypot(matrix.a, matrix.b)
+
+      ctx.strokeStyle = color
+      ctx.fillStyle = color
+      ctx.lineWidth = geometry.shaftWidth * (scaleFactor || 1)
+      ctx.lineCap = "round"
+      ctx.setLineDash([])
+
+      ctx.beginPath()
+      ctx.moveTo(tail.x, tail.y)
+      ctx.lineTo(headBase.x, headBase.y)
+      ctx.stroke()
+
+      ctx.beginPath()
+      ctx.moveTo(tip.x, tip.y)
+      ctx.lineTo(leftWing.x, leftWing.y)
+      ctx.lineTo(rightWing.x, rightWing.y)
+      ctx.closePath()
+      ctx.fill()
+
+      if (arrow.label && !options.disableLabels) {
+        ctx.fillStyle = color
+        ctx.font = `${12 * Math.abs(matrix.a)}px sans-serif`
+        ctx.fillText(arrow.label, tip.x + 5, tip.y - 5)
       }
     })
   }

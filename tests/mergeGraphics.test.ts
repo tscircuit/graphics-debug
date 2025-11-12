@@ -3,11 +3,17 @@ import { mergeGraphics } from "../lib/mergeGraphics"
 import type { GraphicsObject } from "../lib/types"
 
 describe("mergeGraphics", () => {
-  test("combines rects, points, lines and circles", () => {
+  test("combines rects, points, lines, circles, texts, and arrows", () => {
     const a: GraphicsObject = {
       points: [{ x: 0, y: 0 }],
       rects: [{ center: { x: 1, y: 1 }, width: 2, height: 2 }],
       texts: [{ x: 5, y: 5, text: "a" }],
+      arrows: [
+        {
+          start: { x: 2, y: 2 },
+          direction: "left",
+        },
+      ],
     }
     const b: GraphicsObject = {
       lines: [
@@ -20,6 +26,12 @@ describe("mergeGraphics", () => {
       ],
       circles: [{ center: { x: 4, y: 4 }, radius: 1 }],
       texts: [{ x: 6, y: 6, text: "b" }],
+      arrows: [
+        {
+          start: { x: -1, y: -1 },
+          direction: "right",
+        },
+      ],
     }
     const merged = mergeGraphics(a, b)
     expect(merged).toEqual({
@@ -37,6 +49,16 @@ describe("mergeGraphics", () => {
       texts: [
         { x: 5, y: 5, text: "a" },
         { x: 6, y: 6, text: "b" },
+      ],
+      arrows: [
+        {
+          start: { x: 2, y: 2 },
+          direction: "left",
+        },
+        {
+          start: { x: -1, y: -1 },
+          direction: "right",
+        },
       ],
     })
     // check immutability

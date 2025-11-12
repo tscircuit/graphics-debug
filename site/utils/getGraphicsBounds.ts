@@ -1,4 +1,5 @@
 import { GraphicsObject } from "lib/types"
+import { getArrowBoundingBox } from "lib/arrowHelpers"
 
 export const getGraphicsBounds = (graphics: GraphicsObject) => {
   const bounds = {
@@ -35,6 +36,13 @@ export const getGraphicsBounds = (graphics: GraphicsObject) => {
     bounds.minY = Math.min(bounds.minY, circle.center.y - circle.radius)
     bounds.maxX = Math.max(bounds.maxX, circle.center.x + circle.radius)
     bounds.maxY = Math.max(bounds.maxY, circle.center.y + circle.radius)
+  }
+  for (const arrow of graphics.arrows ?? []) {
+    const arrowBounds = getArrowBoundingBox(arrow)
+    bounds.minX = Math.min(bounds.minX, arrowBounds.minX)
+    bounds.minY = Math.min(bounds.minY, arrowBounds.minY)
+    bounds.maxX = Math.max(bounds.maxX, arrowBounds.maxX)
+    bounds.maxY = Math.max(bounds.maxY, arrowBounds.maxY)
   }
   for (const text of graphics.texts ?? []) {
     bounds.minX = Math.min(bounds.minX, text.x)
