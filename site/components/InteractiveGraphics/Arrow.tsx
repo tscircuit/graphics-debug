@@ -33,10 +33,10 @@ export const Arrow = ({
     }
   }, [geometry, realToScreen])
 
-  const scaleFactor = useMemo(() => Math.hypot(realToScreen.a, realToScreen.b), [
-    realToScreen.a,
-    realToScreen.b,
-  ])
+  const scaleFactor = useMemo(
+    () => Math.hypot(realToScreen.a, realToScreen.b),
+    [realToScreen.a, realToScreen.b],
+  )
 
   const baseColor =
     arrow.color || defaultColors[index % defaultColors.length] || "black"
@@ -129,7 +129,12 @@ export const Arrow = ({
         fill={displayColor}
       />
       {isHovered && arrow.label && (
-        <foreignObject x={mousePos.x} y={mousePos.y - 40} width={300} height={40}>
+        <foreignObject
+          x={mousePos.x}
+          y={mousePos.y - 40}
+          width={300}
+          height={40}
+        >
           <Tooltip text={arrow.label} />
         </foreignObject>
       )}

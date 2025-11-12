@@ -256,7 +256,8 @@ export function drawGraphicsToCanvas(
       const leftWing = applyToPoint(matrix, geometry.leftWing)
       const rightWing = applyToPoint(matrix, geometry.rightWing)
 
-      const color = arrow.color || defaultColors[arrowIndex % defaultColors.length]
+      const color =
+        arrow.color || defaultColors[arrowIndex % defaultColors.length]
       const scaleFactor = Math.hypot(matrix.a, matrix.b)
 
       ctx.strokeStyle = color

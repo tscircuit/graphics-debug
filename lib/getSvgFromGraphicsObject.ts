@@ -126,9 +126,7 @@ export function getSvgFromGraphicsObject(
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
-    includeTextLabels?:
-      | boolean
-      | Array<"points" | "lines" | "rects" | "arrows">
+    includeTextLabels?: boolean | Array<"points" | "lines" | "rects" | "arrows">
     backgroundColor?: string
     svgWidth?: number
     svgHeight?: number
@@ -371,7 +369,9 @@ export function getSvgFromGraphicsObject(
               x2: projectedHeadBase.x.toString(),
               y2: projectedHeadBase.y.toString(),
               stroke: color,
-              "stroke-width": (arrow.shaftWidth ?? geometry.shaftWidth).toString(),
+              "stroke-width": (
+                arrow.shaftWidth ?? geometry.shaftWidth
+              ).toString(),
               "stroke-linecap": "round",
             },
           },

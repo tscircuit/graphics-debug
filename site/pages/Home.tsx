@@ -58,10 +58,12 @@ export default function Home() {
         </a>
       </div>
       <div className="border rounded-lg bg-white shadow-sm p-6">
-        <h2 className="text-lg font-semibold mb-2">See the arrow directions in action</h2>
+        <h2 className="text-lg font-semibold mb-2">
+          See the arrow directions in action
+        </h2>
         <p className="text-sm text-gray-600 mb-4">
-          We added eight-direction arrows, including diagonal headings. Explore the
-          interactive demo to try them live.
+          We added eight-direction arrows, including diagonal headings. Explore
+          the interactive demo to try them live.
         </p>
         <Link
           to="/examples/arrows"

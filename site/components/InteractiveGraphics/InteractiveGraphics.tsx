@@ -99,10 +99,7 @@ export const InteractiveGraphics = ({
       graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY,
       1,
     )
-    const scaleFactor = Math.min(
-      size.width / width,
-      size.height / height,
-    )
+    const scaleFactor = Math.min(size.width / width, size.height / height)
     const yFlip = graphics.coordinateSystem === "screen" ? 1 : -1
 
     return compose(
@@ -113,11 +110,7 @@ export const InteractiveGraphics = ({
         -(graphicsBoundsWithPadding.maxY + graphicsBoundsWithPadding.minY) / 2,
       ),
     )
-  }, [
-    size,
-    graphicsBoundsWithPadding,
-    graphics.coordinateSystem,
-  ])
+  }, [size, graphicsBoundsWithPadding, graphics.coordinateSystem])
 
   type SavedData = {
     transform: any

@@ -13,7 +13,9 @@ export default function ArrowDirectionsFixture() {
           wheel or drag gestures to inspect the geometry in detail.
         </p>
       </header>
-      <div style={{ height: 520, border: "1px solid #e5e7eb", borderRadius: 12 }}>
+      <div
+        style={{ height: 520, border: "1px solid #e5e7eb", borderRadius: 12 }}
+      >
         <InteractiveGraphics graphics={arrowShowcaseGraphics} />
       </div>
     </div>
