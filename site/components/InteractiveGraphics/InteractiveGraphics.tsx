@@ -91,28 +91,33 @@ export const InteractiveGraphics = ({
   }, [])
 
   const getDefaultTransform = useCallback(() => {
+    const width = Math.max(
+      graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX,
+      1,
+    )
+    const height = Math.max(
+      graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY,
+      1,
+    )
+    const scaleFactor = Math.min(
+      size.width / width,
+      size.height / height,
+    )
+    const yFlip = graphics.coordinateSystem === "screen" ? 1 : -1
+
     return compose(
       translate(size.width / 2, size.height / 2),
-      scale(
-        Math.min(
-          size.width /
-            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
-          size.height /
-            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
-        ),
-        -Math.min(
-          size.width /
-            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
-          size.height /
-            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
-        ),
-      ),
+      scale(scaleFactor, yFlip * scaleFactor),
       translate(
         -(graphicsBoundsWithPadding.maxX + graphicsBoundsWithPadding.minX) / 2,
         -(graphicsBoundsWithPadding.maxY + graphicsBoundsWithPadding.minY) / 2,
       ),
     )
-  }, [size, graphicsBoundsWithPadding])
+  }, [
+    size,
+    graphicsBoundsWithPadding,
+    graphics.coordinateSystem,
+  ])
 
   type SavedData = {
     transform: any
