@@ -138,6 +138,30 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "circles")
   })
 
+  test("should generate SVG with arrows and optional labels", () => {
+    const input: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: 0, y: 0 },
+          direction: "right",
+          color: "red",
+          label: "East",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input, {
+      includeTextLabels: ["arrows"],
+    })
+
+    expect(svg).toBeString()
+    expect(svg).toContain('data-type="arrow"')
+    expect(svg).toContain('data-direction="right"')
+    expect(svg).toContain('data-type="arrow-shaft"')
+    expect(svg).toContain('data-type="arrow-head"')
+    expect(svg).toContain(">East<")
+  })
+
   test("should generate SVG with texts", () => {
     const input: GraphicsObject = {
       texts: [

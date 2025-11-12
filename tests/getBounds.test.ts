@@ -4,6 +4,7 @@ import {
   FONT_SIZE_WIDTH_RATIO,
   FONT_SIZE_HEIGHT_RATIO,
 } from "../lib"
+import { getArrowBoundingBox } from "../lib/arrowHelpers"
 import type { GraphicsObject } from "../lib/types"
 
 describe("getBounds with text", () => {
@@ -33,5 +34,18 @@ describe("getBounds with text", () => {
     expect(bounds.minX).toBeCloseTo(-width)
     expect(bounds.maxY).toBeCloseTo(0)
     expect(bounds.minY).toBeCloseTo(-height)
+  })
+
+  test("includes arrow dimensions", () => {
+    const arrow = { start: { x: 0, y: 0 }, direction: "right-top", length: 12 }
+    const graphics: GraphicsObject = {
+      arrows: [arrow],
+    }
+    const bounds = getBounds(graphics)
+    const arrowBounds = getArrowBoundingBox(arrow)
+    expect(bounds.minX).toBeCloseTo(arrowBounds.minX)
+    expect(bounds.maxX).toBeCloseTo(arrowBounds.maxX)
+    expect(bounds.minY).toBeCloseTo(arrowBounds.minY)
+    expect(bounds.maxY).toBeCloseTo(arrowBounds.maxY)
   })
 })
