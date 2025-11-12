@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Home from "./pages/Home"
 import Token from "./pages/Token"
+import ArrowShowcase from "./pages/ArrowShowcase"
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/t/:token" element={<Token />} />
+            <Route path="/examples/arrows" element={<ArrowShowcase />} />
           </Routes>
         </div>
       </div>

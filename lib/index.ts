@@ -18,6 +18,8 @@ export type {
   Line,
   Rect,
   Circle,
+  Arrow,
+  ArrowDirection,
   Text,
   NinePointAnchor,
   GraphicsObject,
