@@ -17,8 +17,8 @@ export type ArrowGeometry = {
 }
 
 export function getArrowGeometry(arrow: Arrow): ArrowGeometry {
-  const tail = arrow.flipped ? arrow.end : arrow.start
-  const tip = arrow.flipped ? arrow.start : arrow.end
+  const tail = arrow.doubleSided ? arrow.end : arrow.start
+  const tip = arrow.doubleSided ? arrow.start : arrow.end
 
   const vx = tip.x - tail.x
   const vy = tip.y - tail.y

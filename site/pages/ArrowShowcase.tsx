@@ -16,7 +16,7 @@ export default function ArrowShowcase() {
         <h1>Arrow Showcase</h1>
         <p>
           Arrows are now defined entirely by a start point, an end point, an
-          optional flipped orientation, and a color. This page shows the simplified
+          optional double-sided orientation, and a color. This page shows the simplified
           data rendered both statically and inside the interactive viewer.
         </p>
         <Link to="/" className="text-blue-600 hover:text-blue-700">
@@ -56,7 +56,7 @@ export default function ArrowShowcase() {
           <h2 className="text-lg font-semibold">Arrow JSON</h2>
           <p className="text-sm text-gray-600">
             Each entry below only includes <code>start</code>, <code>end</code>,
-            <code>flipped</code>, and <code>color</code> properties.
+            <code>doubleSided</code>, and <code>color</code> properties.
           </p>
         </div>
         <pre className="overflow-auto px-6 py-4 text-sm text-gray-800 bg-gray-50">

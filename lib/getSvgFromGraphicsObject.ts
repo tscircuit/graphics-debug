@@ -395,7 +395,7 @@ export function getSvgFromGraphicsObject(
             "data-type": "arrow",
             "data-start": `${arrow.start.x},${arrow.start.y}`,
             "data-end": `${arrow.end.x},${arrow.end.y}`,
-            "data-flipped": arrow.flipped ? "true" : "false",
+            "data-double-sided": arrow.doubleSided ? "true" : "false",
           },
           children,
         }

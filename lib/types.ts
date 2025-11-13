@@ -42,7 +42,7 @@ export interface Circle {
 export interface Arrow {
   start: { x: number; y: number }
   end: { x: number; y: number }
-  flipped?: boolean
+  doubleSided?: boolean
   color?: string
 }
 

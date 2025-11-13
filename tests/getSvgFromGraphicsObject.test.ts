@@ -145,7 +145,7 @@ describe("getSvgFromGraphicsObject", () => {
           start: { x: 0, y: 0 },
           end: { x: 20, y: 0 },
           color: "red",
-          flipped: true,
+          doubleSided: true,
         },
       ],
     }
@@ -156,7 +156,8 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toContain('data-type="arrow"')
     expect(svg).toContain('data-start="0,0"')
     expect(svg).toContain('data-end="20,0"')
-    expect(svg).toContain('data-flipped="true"')
+    expect(svg).toContain('data-double-sided="true"')
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "arrows")
     expect(svg).toContain('data-type="arrow-shaft"')
     expect(svg).toContain('data-type="arrow-head"')
     expect(svg).toContain('stroke="red"')

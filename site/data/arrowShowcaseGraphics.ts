@@ -17,7 +17,7 @@ export const arrowShowcaseGraphics: GraphicsObject = {
     {
       start: { x: -60, y: -60 },
       end: { x: 60, y: 60 },
-      flipped: true,
+      doubleSided: true,
       color: "#10b981",
     },
   ],
