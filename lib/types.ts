@@ -39,6 +39,13 @@ export interface Circle {
   label?: string
 }
 
+export interface Arrow {
+  start: { x: number; y: number }
+  end: { x: number; y: number }
+  doubleSided?: boolean
+  color?: string
+}
+
 export type NinePointAnchor =
   | "center"
   | "top_left"
@@ -66,6 +73,7 @@ export interface GraphicsObject {
   lines?: Line[]
   rects?: Rect[]
   circles?: Circle[]
+  arrows?: Arrow[]
   texts?: Text[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string

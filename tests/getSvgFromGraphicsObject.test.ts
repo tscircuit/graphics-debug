@@ -138,6 +138,52 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "circles")
   })
 
+  test("should generate SVG with arrows", () => {
+    const input: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: 0, y: 0 },
+          end: { x: 20, y: 0 },
+          color: "red",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+
+    expect(svg).toBeString()
+    expect(svg).toContain('data-type="arrow"')
+    expect(svg).toContain('data-start="0,0"')
+    expect(svg).toContain('data-end="20,0"')
+    expect(svg).toContain('data-double-sided="false"')
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "arrows")
+    expect(svg).toContain('data-type="arrow-shaft"')
+    expect(svg).toContain('data-type="arrow-head"')
+    expect(svg).toContain('stroke="red"')
+    const headCount = (svg.match(/data-type="arrow-head"/g) ?? []).length
+    expect(headCount).toBe(1)
+  })
+
+  test("should generate SVG with double sided arrows", () => {
+    const input: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: -20, y: 0 },
+          end: { x: 20, y: 0 },
+          color: "blue",
+          doubleSided: true,
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+
+    expect(svg).toContain('data-double-sided="true"')
+    const headCount = (svg.match(/data-type="arrow-head"/g) ?? []).length
+    expect(headCount).toBe(2)
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "double-sided-arrows")
+  })
+
   test("should generate SVG with texts", () => {
     const input: GraphicsObject = {
       texts: [

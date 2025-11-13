@@ -10,6 +10,7 @@ import {
 import type { GraphicsObject, Point } from "./types"
 import { stringify } from "svgson"
 import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
+import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
 
 const DEFAULT_SVG_SIZE = 640
 const PADDING = 40
@@ -41,6 +42,13 @@ function getBounds(graphics: GraphicsObject): Bounds {
       { x: circle.center.x, y: circle.center.y - circle.radius }, // top
       { x: circle.center.x, y: circle.center.y + circle.radius }, // bottom
     ]),
+    ...(graphics.arrows || []).flatMap((arrow) => {
+      const bounds = getArrowBoundingBox(arrow)
+      return [
+        { x: bounds.minX, y: bounds.minY },
+        { x: bounds.maxX, y: bounds.maxY },
+      ]
+    }),
     ...(graphics.texts || []).flatMap((t) => {
       const fontSize = t.fontSize ?? 12
       const width = t.text.length * fontSize * FONT_SIZE_WIDTH_RATIO
@@ -132,7 +140,9 @@ export function getSvgFromGraphicsObject(
     svgHeight,
   )
 
-  const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
+  const shouldRenderLabel = (
+    type: "points" | "lines" | "rects",
+  ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
     }
@@ -336,6 +346,63 @@ export function getSvgFromGraphicsObject(
             stroke: circle.stroke || "black",
             "stroke-width": Math.abs(1 / matrix.a).toString(),
           },
+        }
+      }),
+      ...(graphics.arrows || []).map((arrow) => {
+        const geometry = getArrowGeometry(arrow)
+        const projectedShaftStart = projectPoint(geometry.shaftStart, matrix)
+        const projectedShaftEnd = projectPoint(geometry.shaftEnd, matrix)
+
+        const color = arrow.color || "black"
+
+        const headChildren = geometry.heads.map((head) => {
+          const projectedTip = projectPoint(head.tip, matrix)
+          const projectedLeftWing = projectPoint(head.leftWing, matrix)
+          const projectedRightWing = projectPoint(head.rightWing, matrix)
+
+          return {
+            name: "polygon",
+            type: "element",
+            attributes: {
+              "data-type": "arrow-head",
+              points: [
+                `${projectedTip.x},${projectedTip.y}`,
+                `${projectedLeftWing.x},${projectedLeftWing.y}`,
+                `${projectedRightWing.x},${projectedRightWing.y}`,
+              ].join(" "),
+              fill: color,
+            },
+          }
+        })
+
+        const children = [
+          {
+            name: "line",
+            type: "element",
+            attributes: {
+              "data-type": "arrow-shaft",
+              x1: projectedShaftStart.x.toString(),
+              y1: projectedShaftStart.y.toString(),
+              x2: projectedShaftEnd.x.toString(),
+              y2: projectedShaftEnd.y.toString(),
+              stroke: color,
+              "stroke-width": geometry.shaftWidth.toString(),
+              "stroke-linecap": "round",
+            },
+          },
+          ...headChildren,
+        ]
+
+        return {
+          name: "g",
+          type: "element",
+          attributes: {
+            "data-type": "arrow",
+            "data-start": `${arrow.start.x},${arrow.start.y}`,
+            "data-end": `${arrow.end.x},${arrow.end.y}`,
+            "data-double-sided": arrow.doubleSided ? "true" : "false",
+          },
+          children,
         }
       }),
       // Texts

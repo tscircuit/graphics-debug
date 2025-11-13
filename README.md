@@ -76,15 +76,29 @@ interface Circle {
   label?: string
 }
 
+interface Arrow {
+  start: { x: number; y: number }
+  end: { x: number; y: number }
+  doubleSided?: boolean
+  color?: string
+}
+
 interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
   rects?: Rect[]
   circles?: Circle[]
+  arrows?: Arrow[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string
 }
 ```
+
+> **Note**
+> The `coordinateSystem` field is optional. If you omit it (as in the simple
+> arrow examples below), the renderer uses a standard Cartesian orientation,
+> so you only need to provide `x` and `y` coordinates for your start and end
+> points.
 
 ## Library Usage
 

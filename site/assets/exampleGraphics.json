@@ -21,5 +21,12 @@
       "strokeDash": [10, 5],
       "label": "hello"
     }
+  ],
+  "arrows": [
+    {
+      "start": { "x": -60, "y": -40 },
+      "end": { "x": 60, "y": 40 },
+      "color": "#2563eb"
+    }
   ]
 }
