@@ -168,8 +168,8 @@ describe("getSvgFromGraphicsObject", () => {
     const input: GraphicsObject = {
       arrows: [
         {
-          start: { x: -10, y: 0 },
-          end: { x: 10, y: 0 },
+          start: { x: -20, y: 0 },
+          end: { x: 20, y: 0 },
           color: "blue",
           doubleSided: true,
         },
