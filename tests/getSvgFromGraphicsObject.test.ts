@@ -138,6 +138,30 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "circles")
   })
 
+  test("should generate SVG with arrows", () => {
+    const input: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: 0, y: 0 },
+          end: { x: 20, y: 0 },
+          color: "red",
+          flipped: true,
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+
+    expect(svg).toBeString()
+    expect(svg).toContain('data-type="arrow"')
+    expect(svg).toContain('data-start="0,0"')
+    expect(svg).toContain('data-end="20,0"')
+    expect(svg).toContain('data-flipped="true"')
+    expect(svg).toContain('data-type="arrow-shaft"')
+    expect(svg).toContain('data-type="arrow-head"')
+    expect(svg).toContain('stroke="red"')
+  })
+
   test("should generate SVG with texts", () => {
     const input: GraphicsObject = {
       texts: [

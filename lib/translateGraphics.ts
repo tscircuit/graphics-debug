@@ -24,6 +24,11 @@ export function translateGraphics(
       ...circle,
       center: { x: circle.center.x + dx, y: circle.center.y + dy },
     })),
+    arrows: graphics.arrows?.map((arrow) => ({
+      ...arrow,
+      start: { x: arrow.start.x + dx, y: arrow.start.y + dy },
+      end: { x: arrow.end.x + dx, y: arrow.end.y + dy },
+    })),
     texts: graphics.texts?.map((text) => ({
       ...text,
       x: text.x + dx,

@@ -16,6 +16,7 @@ import { Point } from "./Point"
 import { Rect } from "./Rect"
 import { Circle } from "./Circle"
 import { Text } from "./Text"
+import { Arrow } from "./Arrow"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
 import { sortRectsByArea } from "site/utils/sortRectsByArea"
 import {
@@ -26,6 +27,7 @@ import {
   useFilterRects,
   useFilterCircles,
   useFilterTexts,
+  useFilterArrows,
 } from "./hooks"
 import { DimensionOverlay } from "../DimensionOverlay"
 import { getMaxStep } from "site/utils/getMaxStep"
@@ -33,7 +35,7 @@ import { ContextMenu } from "./ContextMenu"
 import { Marker, MarkerPoint } from "./Marker"
 
 export type GraphicsObjectClickEvent = {
-  type: "point" | "line" | "rect" | "circle" | "text"
+  type: "point" | "line" | "rect" | "circle" | "text" | "arrow"
   index: number
   object: any
 }
@@ -64,6 +66,7 @@ export const InteractiveGraphics = ({
       ...(graphics.rects?.map((r) => r.layer!).filter(Boolean) ?? []),
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.texts?.map((t) => t.layer!).filter(Boolean) ?? []),
+      ...(graphics.circles?.map((c) => c.layer!).filter(Boolean) ?? []),
     ]),
   )
   const maxStep = getMaxStep(graphics)
@@ -87,22 +90,22 @@ export const InteractiveGraphics = ({
   }, [])
 
   const getDefaultTransform = useCallback(() => {
+    const width = Math.max(
+      graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX,
+      1,
+    )
+    const height = Math.max(
+      graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY,
+      1,
+    )
+    const scaleFactor = Math.min(
+      size.width / width,
+      size.height / height,
+    )
+
     return compose(
       translate(size.width / 2, size.height / 2),
-      scale(
-        Math.min(
-          size.width /
-            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
-          size.height /
-            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
-        ),
-        -Math.min(
-          size.width /
-            (graphicsBoundsWithPadding.maxX - graphicsBoundsWithPadding.minX),
-          size.height /
-            (graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY),
-        ),
-      ),
+      scale(scaleFactor, -scaleFactor),
       translate(
         -(graphicsBoundsWithPadding.maxX + graphicsBoundsWithPadding.minX) / 2,
         -(graphicsBoundsWithPadding.maxY + graphicsBoundsWithPadding.minY) / 2,
@@ -331,6 +334,10 @@ export const InteractiveGraphics = ({
     size,
   )
   const filterTexts = useFilterTexts(isPointOnScreen, filterLayerAndStep)
+  const filterArrows = useFilterArrows(
+    isPointOnScreen,
+    doesLineIntersectViewport,
+  )
 
   const filterAndLimit = <T,>(
     objects: T[] | undefined,
@@ -363,13 +370,18 @@ export const InteractiveGraphics = ({
     () => filterAndLimit(graphics.texts, filterTexts),
     [graphics.texts, filterTexts, objectLimit],
   )
+  const filteredArrows = useMemo(
+    () => filterAndLimit(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows, objectLimit],
+  )
 
   const totalFilteredObjects =
     filteredLines.length +
     filteredRects.length +
     filteredPoints.length +
     filteredCircles.length +
-    filteredTexts.length
+    filteredTexts.length +
+    filteredArrows.length
   const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
 
   return (
@@ -456,6 +468,14 @@ export const InteractiveGraphics = ({
         onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
+          {filteredArrows.map((arrow) => (
+            <Arrow
+              key={arrow.originalIndex}
+              arrow={arrow}
+              index={arrow.originalIndex}
+              interactiveState={interactiveState}
+            />
+          ))}
           {filteredLines.map((line) => (
             <Line
               key={line.originalIndex}

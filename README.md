@@ -76,11 +76,19 @@ interface Circle {
   label?: string
 }
 
+interface Arrow {
+  start: { x: number; y: number }
+  end: { x: number; y: number }
+  flipped?: boolean
+  color?: string
+}
+
 interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
   rects?: Rect[]
   circles?: Circle[]
+  arrows?: Arrow[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string
 }
