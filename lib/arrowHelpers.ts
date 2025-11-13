@@ -4,36 +4,77 @@ const DEFAULT_ARROW_SHAFT_WIDTH = 2
 const DEFAULT_ARROW_HEAD_WIDTH = 12
 const DEFAULT_ARROW_HEAD_LENGTH = 12
 
-export type ArrowGeometry = {
-  tail: { x: number; y: number }
+export type ArrowHeadGeometry = {
   tip: { x: number; y: number }
-  headBase: { x: number; y: number }
+  base: { x: number; y: number }
   leftWing: { x: number; y: number }
   rightWing: { x: number; y: number }
+}
+
+export type ArrowGeometry = {
+  shaftStart: { x: number; y: number }
+  shaftEnd: { x: number; y: number }
+  heads: ArrowHeadGeometry[]
   shaftWidth: number
   headLength: number
   headWidth: number
   length: number
 }
 
-export function getArrowGeometry(arrow: Arrow): ArrowGeometry {
-  const tail = arrow.doubleSided ? arrow.end : arrow.start
-  const tip = arrow.doubleSided ? arrow.start : arrow.end
+const createDegenerateHead = (point: { x: number; y: number }): ArrowHeadGeometry => ({
+  tip: { ...point },
+  base: { ...point },
+  leftWing: { ...point },
+  rightWing: { ...point },
+})
 
-  const vx = tip.x - tail.x
-  const vy = tip.y - tail.y
-  const length = Math.hypot(vx, vy)
+const createHead = (
+  tip: { x: number; y: number },
+  base: { x: number; y: number },
+  headWidth: number,
+): ArrowHeadGeometry => {
+  const dirX = tip.x - base.x
+  const dirY = tip.y - base.y
+  const length = Math.hypot(dirX, dirY)
 
   if (length === 0) {
+    return createDegenerateHead(tip)
+  }
+
+  const dirUnitX = dirX / length
+  const dirUnitY = dirY / length
+  const perpX = -dirUnitY * (headWidth / 2)
+  const perpY = dirUnitX * (headWidth / 2)
+
+  return {
+    tip: { ...tip },
+    base: { ...base },
+    leftWing: { x: base.x + perpX, y: base.y + perpY },
+    rightWing: { x: base.x - perpX, y: base.y - perpY },
+  }
+}
+
+export function getArrowGeometry(arrow: Arrow): ArrowGeometry {
+  const { start, end } = arrow
+
+  const vx = end.x - start.x
+  const vy = end.y - start.y
+  const length = Math.hypot(vx, vy)
+
+  const shaftWidth = DEFAULT_ARROW_SHAFT_WIDTH
+  const headWidth = DEFAULT_ARROW_HEAD_WIDTH
+
+  if (length === 0) {
+    const heads = arrow.doubleSided
+      ? [createDegenerateHead(start), createDegenerateHead(start)]
+      : [createDegenerateHead(start)]
     return {
-      tail: { ...tail },
-      tip: { ...tip },
-      headBase: { ...tip },
-      leftWing: { ...tip },
-      rightWing: { ...tip },
-      shaftWidth: DEFAULT_ARROW_SHAFT_WIDTH,
+      shaftStart: { ...start },
+      shaftEnd: { ...start },
+      heads,
+      shaftWidth,
       headLength: 0,
-      headWidth: DEFAULT_ARROW_HEAD_WIDTH,
+      headWidth,
       length,
     }
   }
@@ -41,37 +82,37 @@ export function getArrowGeometry(arrow: Arrow): ArrowGeometry {
   const ux = vx / length
   const uy = vy / length
 
-  const shaftWidth = DEFAULT_ARROW_SHAFT_WIDTH
   const baseHeadLength = Math.min(DEFAULT_ARROW_HEAD_LENGTH, length * 0.5)
-  const headLength = Math.min(length, Math.max(baseHeadLength, shaftWidth * 2))
-  const headWidth = DEFAULT_ARROW_HEAD_WIDTH
+  const desiredHeadLength = Math.max(baseHeadLength, shaftWidth * 2)
+  const maxHeadLength = arrow.doubleSided ? length / 2 : length
+  const headLength = Math.min(desiredHeadLength, maxHeadLength)
 
-  const headBase = {
-    x: tip.x - ux * headLength,
-    y: tip.y - uy * headLength,
+  const endHeadBase = {
+    x: end.x - ux * headLength,
+    y: end.y - uy * headLength,
   }
 
-  const perpX = -uy
-  const perpY = ux
-  const wingOffsetX = (perpX * headWidth) / 2
-  const wingOffsetY = (perpY * headWidth) / 2
+  const heads: ArrowHeadGeometry[] = [
+    createHead(end, endHeadBase, headWidth),
+  ]
 
-  const leftWing = {
-    x: headBase.x + wingOffsetX,
-    y: headBase.y + wingOffsetY,
-  }
+  let shaftStart = { ...start }
+  const shaftEnd = { ...endHeadBase }
 
-  const rightWing = {
-    x: headBase.x - wingOffsetX,
-    y: headBase.y - wingOffsetY,
+  if (arrow.doubleSided) {
+    const startHeadBase = {
+      x: start.x + ux * headLength,
+      y: start.y + uy * headLength,
+    }
+
+    heads.unshift(createHead(start, startHeadBase, headWidth))
+    shaftStart = startHeadBase
   }
 
   return {
-    tail: { ...tail },
-    tip: { ...tip },
-    headBase,
-    leftWing,
-    rightWing,
+    shaftStart,
+    shaftEnd,
+    heads,
     shaftWidth,
     headLength,
     headWidth,
@@ -82,10 +123,14 @@ export function getArrowGeometry(arrow: Arrow): ArrowGeometry {
 export function getArrowBoundingBox(arrow: Arrow) {
   const geometry = getArrowGeometry(arrow)
   const points = [
-    geometry.tail,
-    geometry.tip,
-    geometry.leftWing,
-    geometry.rightWing,
+    geometry.shaftStart,
+    geometry.shaftEnd,
+    ...geometry.heads.flatMap((head) => [
+      head.tip,
+      head.base,
+      head.leftWing,
+      head.rightWing,
+    ]),
   ]
 
   return points.reduce(

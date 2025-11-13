@@ -250,11 +250,8 @@ export function drawGraphicsToCanvas(
   if (graphics.arrows && graphics.arrows.length > 0) {
     graphics.arrows.forEach((arrow, arrowIndex) => {
       const geometry = getArrowGeometry(arrow)
-      const tail = applyToPoint(matrix, geometry.tail)
-      const headBase = applyToPoint(matrix, geometry.headBase)
-      const tip = applyToPoint(matrix, geometry.tip)
-      const leftWing = applyToPoint(matrix, geometry.leftWing)
-      const rightWing = applyToPoint(matrix, geometry.rightWing)
+      const shaftStart = applyToPoint(matrix, geometry.shaftStart)
+      const shaftEnd = applyToPoint(matrix, geometry.shaftEnd)
 
       const color = arrow.color || defaultColors[arrowIndex % defaultColors.length]
       const scaleFactor = Math.hypot(matrix.a, matrix.b)
@@ -266,17 +263,22 @@ export function drawGraphicsToCanvas(
       ctx.setLineDash([])
 
       ctx.beginPath()
-      ctx.moveTo(tail.x, tail.y)
-      ctx.lineTo(headBase.x, headBase.y)
+      ctx.moveTo(shaftStart.x, shaftStart.y)
+      ctx.lineTo(shaftEnd.x, shaftEnd.y)
       ctx.stroke()
 
-      ctx.beginPath()
-      ctx.moveTo(tip.x, tip.y)
-      ctx.lineTo(leftWing.x, leftWing.y)
-      ctx.lineTo(rightWing.x, rightWing.y)
-      ctx.closePath()
-      ctx.fill()
+      geometry.heads.forEach((head) => {
+        const tip = applyToPoint(matrix, head.tip)
+        const leftWing = applyToPoint(matrix, head.leftWing)
+        const rightWing = applyToPoint(matrix, head.rightWing)
 
+        ctx.beginPath()
+        ctx.moveTo(tip.x, tip.y)
+        ctx.lineTo(leftWing.x, leftWing.y)
+        ctx.lineTo(rightWing.x, rightWing.y)
+        ctx.closePath()
+        ctx.fill()
+      })
     })
   }
 

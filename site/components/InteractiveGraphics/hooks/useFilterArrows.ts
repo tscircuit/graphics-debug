@@ -15,24 +15,30 @@ export const useFilterArrows = (
   return useMemo(() => {
     return (arrow: Arrow) => {
       const geometry = getArrowGeometry(arrow)
-      const { tail, headBase, tip, leftWing, rightWing } = geometry
+      const { shaftStart, shaftEnd, heads } = geometry
 
       if (
-        isPointOnScreen(tail) ||
-        isPointOnScreen(headBase) ||
-        isPointOnScreen(tip) ||
-        isPointOnScreen(leftWing) ||
-        isPointOnScreen(rightWing)
+        isPointOnScreen(shaftStart) ||
+        isPointOnScreen(shaftEnd) ||
+        heads.some(
+          (head) =>
+            isPointOnScreen(head.tip) ||
+            isPointOnScreen(head.leftWing) ||
+            isPointOnScreen(head.rightWing) ||
+            isPointOnScreen(head.base),
+        )
       ) {
         return true
       }
 
       const segments: Array<[Point, Point]> = [
-        [tail, headBase],
-        [headBase, leftWing],
-        [leftWing, tip],
-        [tip, rightWing],
-        [rightWing, headBase],
+        [shaftStart, shaftEnd],
+        ...heads.flatMap((head) => [
+          [head.base, head.leftWing] as [Point, Point],
+          [head.leftWing, head.tip] as [Point, Point],
+          [head.tip, head.rightWing] as [Point, Point],
+          [head.rightWing, head.base] as [Point, Point],
+        ]),
       ]
 
       return segments.some(([p1, p2]) => doesLineIntersectViewport(p1, p2))

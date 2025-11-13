@@ -94,6 +94,12 @@ interface GraphicsObject {
 }
 ```
 
+> **Note**
+> The `coordinateSystem` field is optional. If you omit it (as in the simple
+> arrow examples below), the renderer uses a standard Cartesian orientation,
+> so you only need to provide `x` and `y` coordinates for your start and end
+> points.
+
 ## Library Usage
 
 ### Writing `graphics-debug` compatible logs

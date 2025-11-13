@@ -9,7 +9,7 @@ export default function ArrowDirectionsFixture() {
         <h1>Arrow Showcase</h1>
         <p>
           This demo renders arrows using only a start point, an end point, and
-          an optional double-sided orientation. Colors are still supported, but all
+          an optional double-sided head. Colors are still supported, but all
           other arrow configuration has been removed.
         </p>
       </header>

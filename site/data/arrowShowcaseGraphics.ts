@@ -2,7 +2,6 @@ import type { GraphicsObject } from "lib/types"
 
 export const arrowShowcaseGraphics: GraphicsObject = {
   title: "Simple Arrow Showcase",
-  coordinateSystem: "cartesian",
   arrows: [
     {
       start: { x: -90, y: 0 },
@@ -37,7 +36,7 @@ export const arrowShowcaseGraphics: GraphicsObject = {
     {
       x: -100,
       y: 100,
-      text: "Flipped diagonal arrow",
+      text: "Double sided diagonal arrow",
       anchorSide: "top_right",
     },
   ],

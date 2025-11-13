@@ -350,30 +350,17 @@ export function getSvgFromGraphicsObject(
       }),
       ...(graphics.arrows || []).map((arrow) => {
         const geometry = getArrowGeometry(arrow)
-        const projectedTail = projectPoint(geometry.tail, matrix)
-        const projectedHeadBase = projectPoint(geometry.headBase, matrix)
-        const projectedTip = projectPoint(geometry.tip, matrix)
-        const projectedLeftWing = projectPoint(geometry.leftWing, matrix)
-        const projectedRightWing = projectPoint(geometry.rightWing, matrix)
+        const projectedShaftStart = projectPoint(geometry.shaftStart, matrix)
+        const projectedShaftEnd = projectPoint(geometry.shaftEnd, matrix)
 
         const color = arrow.color || "black"
 
-        const children = [
-          {
-            name: "line",
-            type: "element",
-            attributes: {
-              "data-type": "arrow-shaft",
-              x1: projectedTail.x.toString(),
-              y1: projectedTail.y.toString(),
-              x2: projectedHeadBase.x.toString(),
-              y2: projectedHeadBase.y.toString(),
-              stroke: color,
-              "stroke-width": geometry.shaftWidth.toString(),
-              "stroke-linecap": "round",
-            },
-          },
-          {
+        const headChildren = geometry.heads.map((head) => {
+          const projectedTip = projectPoint(head.tip, matrix)
+          const projectedLeftWing = projectPoint(head.leftWing, matrix)
+          const projectedRightWing = projectPoint(head.rightWing, matrix)
+
+          return {
             name: "polygon",
             type: "element",
             attributes: {
@@ -385,7 +372,25 @@ export function getSvgFromGraphicsObject(
               ].join(" "),
               fill: color,
             },
+          }
+        })
+
+        const children = [
+          {
+            name: "line",
+            type: "element",
+            attributes: {
+              "data-type": "arrow-shaft",
+              x1: projectedShaftStart.x.toString(),
+              y1: projectedShaftStart.y.toString(),
+              x2: projectedShaftEnd.x.toString(),
+              y2: projectedShaftEnd.y.toString(),
+              stroke: color,
+              "stroke-width": geometry.shaftWidth.toString(),
+              "stroke-linecap": "round",
+            },
           },
+          ...headChildren,
         ]
 
         return {

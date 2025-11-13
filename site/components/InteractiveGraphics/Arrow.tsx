@@ -23,11 +23,14 @@ export const Arrow = ({
 
   const screenPoints = useMemo(() => {
     return {
-      tail: applyToPoint(realToScreen, geometry.tail),
-      headBase: applyToPoint(realToScreen, geometry.headBase),
-      tip: applyToPoint(realToScreen, geometry.tip),
-      leftWing: applyToPoint(realToScreen, geometry.leftWing),
-      rightWing: applyToPoint(realToScreen, geometry.rightWing),
+      shaftStart: applyToPoint(realToScreen, geometry.shaftStart),
+      shaftEnd: applyToPoint(realToScreen, geometry.shaftEnd),
+      heads: geometry.heads.map((head) => ({
+        tip: applyToPoint(realToScreen, head.tip),
+        base: applyToPoint(realToScreen, head.base),
+        leftWing: applyToPoint(realToScreen, head.leftWing),
+        rightWing: applyToPoint(realToScreen, head.rightWing),
+      })),
     }
   }, [geometry, realToScreen])
 
@@ -45,47 +48,23 @@ export const Arrow = ({
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
     const hoverThreshold = 10
-    const distToShaft = distToLineSegment(
-      mouseX,
-      mouseY,
-      screenPoints.tail.x,
-      screenPoints.tail.y,
-      screenPoints.headBase.x,
-      screenPoints.headBase.y,
-    )
+    const segments: Array<{
+      from: { x: number; y: number }
+      to: { x: number; y: number }
+    }> = [
+      { from: screenPoints.shaftStart, to: screenPoints.shaftEnd },
+      ...screenPoints.heads.flatMap((head) => [
+        { from: head.base, to: head.leftWing },
+        { from: head.leftWing, to: head.tip },
+        { from: head.tip, to: head.rightWing },
+        { from: head.rightWing, to: head.base },
+      ]),
+    ]
 
-    const distToTipLeft = distToLineSegment(
-      mouseX,
-      mouseY,
-      screenPoints.tip.x,
-      screenPoints.tip.y,
-      screenPoints.leftWing.x,
-      screenPoints.leftWing.y,
-    )
-
-    const distToTipRight = distToLineSegment(
-      mouseX,
-      mouseY,
-      screenPoints.tip.x,
-      screenPoints.tip.y,
-      screenPoints.rightWing.x,
-      screenPoints.rightWing.y,
-    )
-
-    const distAcrossBase = distToLineSegment(
-      mouseX,
-      mouseY,
-      screenPoints.leftWing.x,
-      screenPoints.leftWing.y,
-      screenPoints.rightWing.x,
-      screenPoints.rightWing.y,
-    )
-
-    const isNear =
-      distToShaft < hoverThreshold ||
-      distToTipLeft < hoverThreshold ||
-      distToTipRight < hoverThreshold ||
-      distAcrossBase < hoverThreshold
+    const isNear = segments.some(({ from, to }) => {
+      const distance = distToLineSegment(mouseX, mouseY, from.x, from.y, to.x, to.y)
+      return distance < hoverThreshold
+    })
 
     setIsHovered(isNear)
   }
@@ -111,19 +90,22 @@ export const Arrow = ({
       }
     >
       <line
-        x1={screenPoints.tail.x}
-        y1={screenPoints.tail.y}
-        x2={screenPoints.headBase.x}
-        y2={screenPoints.headBase.y}
+        x1={screenPoints.shaftStart.x}
+        y1={screenPoints.shaftStart.y}
+        x2={screenPoints.shaftEnd.x}
+        y2={screenPoints.shaftEnd.y}
         stroke={displayColor}
         strokeWidth={geometry.shaftWidth * (scaleFactor || 1)}
         strokeLinecap="round"
         pointerEvents="stroke"
       />
-      <polygon
-        points={`${screenPoints.tip.x},${screenPoints.tip.y} ${screenPoints.leftWing.x},${screenPoints.leftWing.y} ${screenPoints.rightWing.x},${screenPoints.rightWing.y}`}
-        fill={displayColor}
-      />
+      {screenPoints.heads.map((head, headIndex) => (
+        <polygon
+          key={headIndex}
+          points={`${head.tip.x},${head.tip.y} ${head.leftWing.x},${head.leftWing.y} ${head.rightWing.x},${head.rightWing.y}`}
+          fill={displayColor}
+        />
+      ))}
     </svg>
   )
 }
