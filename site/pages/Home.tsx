@@ -1,5 +1,4 @@
 import React, { useState } from "react"
-import { Link } from "react-router-dom"
 import exampleGraphicsJson from "../assets/exampleGraphics.json"
 import {
   getSvgsFromLogString,
@@ -56,21 +55,6 @@ export default function Home() {
             alt="GitHub stars"
           />
         </a>
-      </div>
-      <div className="border rounded-lg bg-white shadow-sm p-6">
-        <h2 className="text-lg font-semibold mb-2">Preview the simplified arrows</h2>
-        <p className="text-sm text-gray-600 mb-4">
-          We stripped arrows down to just start/end points, an optional flipped
-          direction, and color. Open the example page to see the minimal data in
-          action.
-        </p>
-        <Link
-          to="/examples/arrows"
-          className="inline-flex items-center gap-2 text-blue-600 font-medium hover:text-blue-700"
-        >
-          Open arrow showcase
-          <span aria-hidden="true">→</span>
-        </Link>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <textarea
