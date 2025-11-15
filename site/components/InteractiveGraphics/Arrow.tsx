@@ -34,10 +34,7 @@ export const Arrow = ({
     }
   }, [geometry, realToScreen])
 
-  const scaleFactor = useMemo(() => Math.hypot(realToScreen.a, realToScreen.b), [
-    realToScreen.a,
-    realToScreen.b,
-  ])
+  const scaleFactor = Math.abs(realToScreen.a)
 
   const baseColor =
     arrow.color || defaultColors[index % defaultColors.length] || "black"
@@ -62,7 +59,14 @@ export const Arrow = ({
     ]
 
     const isNear = segments.some(({ from, to }) => {
-      const distance = distToLineSegment(mouseX, mouseY, from.x, from.y, to.x, to.y)
+      const distance = distToLineSegment(
+        mouseX,
+        mouseY,
+        from.x,
+        from.y,
+        to.x,
+        to.y,
+      )
       return distance < hoverThreshold
     })
 

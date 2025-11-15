@@ -42,29 +42,37 @@ describe("getSvgFromGraphicsObject", () => {
         {
           points: [
             { x: 0, y: 0 },
-            { x: 1, y: 1 },
+            { x: 10, y: 10 },
           ],
           strokeWidth: 2,
           strokeColor: "blue",
         },
         {
           points: [
-            { x: 1, y: 0 },
-            { x: 0, y: 1 },
+            { x: 10, y: 0 },
+            { x: 0, y: 10 },
           ],
           // Test default values when properties are not specified
         },
       ],
     }
 
-    const svg = getSvgFromGraphicsObject(input)
+    const svg = getSvgFromGraphicsObject(input, {
+      svgWidth: 200,
+      svgHeight: 200,
+    })
     expect(svg).toBeString()
     expect(svg).toContain("<polyline")
     // Test custom stroke properties
-    expect(svg).toContain('stroke-width="2"')
     expect(svg).toContain('stroke="blue"')
-    // Test default values
-    expect(svg).toContain('stroke-width="1"')
+    // Test stroke width scaling
+    const strokeWidths = Array.from(
+      svg.matchAll(/<polyline[^>]*stroke-width="([0-9.]+)"/g),
+    ).map(([, value]) => parseFloat(value))
+    expect(strokeWidths).toHaveLength(2)
+    expect(strokeWidths[0]).toBeCloseTo(24)
+    expect(strokeWidths[1]).toBeCloseTo(12)
+    // Test default color
     expect(svg).toContain('stroke="black"')
     expect(svg).toMatchSvgSnapshot(import.meta.path, "lines")
   })

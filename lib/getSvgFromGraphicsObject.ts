@@ -139,10 +139,9 @@ export function getSvgFromGraphicsObject(
     svgWidth,
     svgHeight,
   )
+  const strokeScale = Math.abs(matrix.a)
 
-  const shouldRenderLabel = (
-    type: "points" | "lines" | "rects",
-  ): boolean => {
+  const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
     }
@@ -236,7 +235,10 @@ export function getSvgFromGraphicsObject(
                 points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
                 fill: "none",
                 stroke: line.strokeColor || "black",
-                "stroke-width": (line.strokeWidth ?? 1).toString(),
+                "stroke-width":
+                  typeof line.strokeWidth === "string"
+                    ? line.strokeWidth
+                    : (strokeScale * (line.strokeWidth ?? 1)).toString(),
                 ...(line.strokeDash && {
                   "stroke-dasharray": Array.isArray(line.strokeDash)
                     ? line.strokeDash.join(" ")
