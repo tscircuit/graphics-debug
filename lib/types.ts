@@ -29,6 +29,19 @@ export interface Rect {
   label?: string
 }
 
+export interface Rect3d {
+  center: { x: number; y: number; z: number }
+  width: number
+  height: number
+  depth: number
+  fill?: string
+  stroke?: string
+  color?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
 export interface Circle {
   center: { x: number; y: number }
   radius: number
@@ -72,6 +85,7 @@ export interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
   rects?: Rect[]
+  rects3d?: Rect3d[]
   circles?: Circle[]
   arrows?: Arrow[]
   texts?: Text[]
