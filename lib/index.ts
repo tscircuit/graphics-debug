@@ -17,6 +17,7 @@ export type {
   Point,
   Line,
   Rect,
+  Rect3d,
   Circle,
   Arrow,
   Text,
