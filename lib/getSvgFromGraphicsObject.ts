@@ -122,12 +122,12 @@ export function getSvgFromGraphicsObject(
   graphics: GraphicsObject,
   {
     includeTextLabels = false,
-    backgroundColor,
+    backgroundColor = "white",
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
     includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
-    backgroundColor?: string
+    backgroundColor?: string | null
     svgWidth?: number
     svgHeight?: number
   } = {},
