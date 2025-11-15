@@ -68,10 +68,15 @@ describe("getSvgFromGraphicsObject", () => {
     // Test stroke width scaling
     const strokeWidths = Array.from(
       svg.matchAll(/<polyline[^>]*stroke-width="([0-9.]+)"/g),
-    ).map(([, value]) => parseFloat(value))
-    expect(strokeWidths).toHaveLength(2)
-    expect(strokeWidths[0]).toBeCloseTo(24)
-    expect(strokeWidths[1]).toBeCloseTo(12)
+    )
+    expect(strokeWidths).toMatchInlineSnapshot(`
+      [
+        [
+          "<polyline data-points="0,0 10,10" data-type="line" data-label="" points="40,160 160,40" fill="none" stroke="blue" stroke-width="24"",
+          "24",
+        ],
+      ]
+    `)
     // Test default color
     expect(svg).toContain('stroke="black"')
     expect(svg).toMatchSvgSnapshot(import.meta.path, "lines")
