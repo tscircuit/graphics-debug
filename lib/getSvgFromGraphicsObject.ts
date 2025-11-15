@@ -235,10 +235,11 @@ export function getSvgFromGraphicsObject(
                 points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
                 fill: "none",
                 stroke: line.strokeColor || "black",
-                "stroke-width":
-                  typeof line.strokeWidth === "string"
+                "stroke-width": !line.strokeWidth
+                  ? "1px"
+                  : typeof line.strokeWidth === "string"
                     ? line.strokeWidth
-                    : (strokeScale * (line.strokeWidth ?? 1)).toString(),
+                    : (strokeScale * line.strokeWidth).toString(),
                 ...(line.strokeDash && {
                   "stroke-dasharray": Array.isArray(line.strokeDash)
                     ? line.strokeDash.join(" ")
