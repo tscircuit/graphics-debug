@@ -1,7 +1,6 @@
 import type * as Types from "lib/types"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { lighten } from "polished"
 import { useState } from "react"
 import { Tooltip } from "./Tooltip"
 import { distToLineSegment } from "site/utils/distToLineSegment"
@@ -28,13 +27,34 @@ export const Line = ({
 
   const screenPoints = points.map((p) => applyToPoint(realToScreen, p))
 
+  const xs = screenPoints.map((p) => p.x)
+  const ys = screenPoints.map((p) => p.y)
+  const minX = Math.min(...xs)
+  const maxX = Math.max(...xs)
+  const minY = Math.min(...ys)
+  const maxY = Math.max(...ys)
+
+  const hoverThreshold = 10 // pixels
+  const padding = hoverThreshold + 4
+
+  const svgLeft = minX - padding
+  const svgTop = minY - padding
+  const svgWidth = Math.max(maxX - minX, 0) + padding * 2
+  const svgHeight = Math.max(maxY - minY, 0) + padding * 2
+
+  const localPoints = screenPoints.map((p) => ({
+    x: p.x - svgLeft,
+    y: p.y - svgTop,
+  }))
+
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect()
-    const mouseX = e.clientX - rect.left
-    const mouseY = e.clientY - rect.top
-    const hoverThreshold = 10 // pixels
+    const localX = e.clientX - rect.left
+    const localY = e.clientY - rect.top
+    const mouseX = localX + svgLeft
+    const mouseY = localY + svgTop
 
-    setMousePos({ x: mouseX, y: mouseY })
+    setMousePos({ x: localX, y: localY })
 
     // Check distance to each line segment
     let isNearLine = false
@@ -62,10 +82,10 @@ export const Line = ({
     <svg
       style={{
         position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
+        top: svgTop,
+        left: svgLeft,
+        width: svgWidth,
+        height: svgHeight,
       }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setIsHovered(false)}
@@ -81,7 +101,7 @@ export const Line = ({
       }
     >
       <polyline
-        points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+        points={localPoints.map((p) => `${p.x},${p.y}`).join(" ")}
         stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
         fill="none"
         strokeWidth={strokeWidth * realToScreen.a}
