@@ -1,7 +1,7 @@
 import type * as Types from "lib/types"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Tooltip } from "./Tooltip"
 import { distToLineSegment } from "site/utils/distToLineSegment"
 import { defaultColors } from "./defaultColors"
@@ -25,6 +25,8 @@ export const Line = ({
   const [isHovered, setIsHovered] = useState(false)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
 
+  const svgRef = useRef<SVGSVGElement | null>(null)
+
   const screenPoints = points.map((p) => applyToPoint(realToScreen, p))
 
   const xs = screenPoints.map((p) => p.x)
@@ -47,8 +49,11 @@ export const Line = ({
     y: p.y - svgTop,
   }))
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect()
+  const handleMouseMove = (e: React.MouseEvent<SVGPolylineElement>) => {
+    const rect =
+      svgRef.current?.getBoundingClientRect() ??
+      e.currentTarget.ownerSVGElement?.getBoundingClientRect()
+    if (!rect) return
     const localX = e.clientX - rect.left
     const localY = e.clientY - rect.top
     const mouseX = localX + svgLeft
@@ -80,26 +85,36 @@ export const Line = ({
 
   return (
     <svg
+      ref={svgRef}
       style={{
         position: "absolute",
         top: svgTop,
         left: svgLeft,
         width: svgWidth,
         height: svgHeight,
+        pointerEvents: "none",
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={
-        isHovered
-          ? () =>
-              onObjectClicked?.({
-                type: "line",
-                index,
-                object: line,
-              })
-          : undefined
-      }
     >
+      <polyline
+        points={localPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+        stroke="transparent"
+        fill="none"
+        strokeWidth={strokeWidth * realToScreen.a + hoverThreshold * 2}
+        strokeLinecap="round"
+        pointerEvents="stroke"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={
+          isHovered
+            ? () =>
+                onObjectClicked?.({
+                  type: "line",
+                  index,
+                  object: line,
+                })
+            : undefined
+        }
+      />
       <polyline
         points={localPoints.map((p) => `${p.x},${p.y}`).join(" ")}
         stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
@@ -113,6 +128,7 @@ export const Line = ({
               : `${strokeDash[0] * realToScreen.a}, ${strokeDash[1] * realToScreen.a}`
         }
         strokeLinecap="round"
+        pointerEvents="none"
       />
       {isHovered && line.label && (
         <foreignObject
