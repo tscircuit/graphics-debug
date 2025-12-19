@@ -16,8 +16,9 @@ export default function ArrowShowcase() {
         <h1>Arrow Showcase</h1>
         <p>
           Arrows are now defined entirely by a start point, an end point, an
-          optional double-sided head, and a color. This page shows the simplified
-          data rendered both statically and inside the interactive viewer.
+          optional double-sided head, and a color. This page shows the
+          simplified data rendered both statically and inside the interactive
+          viewer.
         </p>
         <Link to="/" className="text-blue-600 hover:text-blue-700">
           ← Back to the viewer
@@ -32,10 +33,7 @@ export default function ArrowShowcase() {
               Generated with <code>getSvgFromGraphicsObject</code>.
             </p>
           </div>
-          <div
-            className="p-6"
-            dangerouslySetInnerHTML={{ __html: arrowSvg }}
-          />
+          <div className="p-6" dangerouslySetInnerHTML={{ __html: arrowSvg }} />
         </div>
 
         <div className="border rounded-lg bg-white shadow-sm">
@@ -56,8 +54,8 @@ export default function ArrowShowcase() {
           <h2 className="text-lg font-semibold">Arrow JSON</h2>
           <p className="text-sm text-gray-600">
             Each entry below only includes <code>start</code>, <code>end</code>,
-            <code>doubleSided</code>, and <code>color</code> properties.
-            When <code>doubleSided</code> is true the arrow renders heads on both
+            <code>doubleSided</code>, and <code>color</code> properties. When{" "}
+            <code>doubleSided</code> is true the arrow renders heads on both
             ends.
           </p>
         </div>

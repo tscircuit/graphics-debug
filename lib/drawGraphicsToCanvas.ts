@@ -253,7 +253,8 @@ export function drawGraphicsToCanvas(
       const shaftStart = applyToPoint(matrix, geometry.shaftStart)
       const shaftEnd = applyToPoint(matrix, geometry.shaftEnd)
 
-      const color = arrow.color || defaultColors[arrowIndex % defaultColors.length]
+      const color =
+        arrow.color || defaultColors[arrowIndex % defaultColors.length]
       const scaleFactor = Math.hypot(matrix.a, matrix.b)
 
       ctx.strokeStyle = color
