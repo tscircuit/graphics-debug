@@ -98,10 +98,7 @@ export const InteractiveGraphics = ({
       graphicsBoundsWithPadding.maxY - graphicsBoundsWithPadding.minY,
       1,
     )
-    const scaleFactor = Math.min(
-      size.width / width,
-      size.height / height,
-    )
+    const scaleFactor = Math.min(size.width / width, size.height / height)
 
     return compose(
       translate(size.width / 2, size.height / 2),

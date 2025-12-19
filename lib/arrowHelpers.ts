@@ -21,7 +21,10 @@ export type ArrowGeometry = {
   length: number
 }
 
-const createDegenerateHead = (point: { x: number; y: number }): ArrowHeadGeometry => ({
+const createDegenerateHead = (point: {
+  x: number
+  y: number
+}): ArrowHeadGeometry => ({
   tip: { ...point },
   base: { ...point },
   leftWing: { ...point },
@@ -92,9 +95,7 @@ export function getArrowGeometry(arrow: Arrow): ArrowGeometry {
     y: end.y - uy * headLength,
   }
 
-  const heads: ArrowHeadGeometry[] = [
-    createHead(end, endHeadBase, headWidth),
-  ]
+  const heads: ArrowHeadGeometry[] = [createHead(end, endHeadBase, headWidth)]
 
   let shaftStart = { ...start }
   const shaftEnd = { ...endHeadBase }

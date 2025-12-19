@@ -34,7 +34,6 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@react-hook/resize-observer": "^2.0.2",
     "@types/bun": "^1.2.17",
     "@types/debug": "^4.1.12",
     "@types/jsdom": "^21.1.7",
@@ -58,6 +57,7 @@
     "looks-same": "^9.0.1"
   },
   "dependencies": {
+    "@react-hook/resize-observer": "^2.0.2",
     "@types/react-router-dom": "^5.3.3",
     "polished": "^4.3.1",
     "react-router-dom": "^6.28.0",
