@@ -341,6 +341,6 @@ export default function Demo() {
 ```
 
 `InteractiveGraphics` accepts a `GraphicsObject` via the `graphics` prop.
-You can optionally handle clicks on objects with `onObjectClicked` or
-limit how many objects are drawn with `objectLimit`.
-
+You can optionally handle clicks on objects with `onObjectClicked`, set the
+viewer height with `height`, or limit how many objects are drawn with
+`objectLimit`.
