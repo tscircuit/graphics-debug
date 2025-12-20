@@ -4,27 +4,30 @@ export function setStepOfAllObjects(
   graphics: GraphicsObject,
   step: number,
 ): GraphicsObject {
-  return {
-    ...graphics,
-    points: graphics.points?.map((p) => ({
-      ...p,
-      step,
-    })),
-    lines: graphics.lines?.map((line) => ({
-      ...line,
-      step,
-    })),
-    rects: graphics.rects?.map((rect) => ({
-      ...rect,
-      step,
-    })),
-    circles: graphics.circles?.map((circle) => ({
-      ...circle,
-      step,
-    })),
-    texts: graphics.texts?.map((text) => ({
-      ...text,
-      step,
-    })),
+  if (graphics.points) {
+    for (const p of graphics.points) {
+      p.step = step
+    }
   }
+  if (graphics.lines) {
+    for (const line of graphics.lines) {
+      line.step = step
+    }
+  }
+  if (graphics.rects) {
+    for (const rect of graphics.rects) {
+      rect.step = step
+    }
+  }
+  if (graphics.circles) {
+    for (const circle of graphics.circles) {
+      circle.step = step
+    }
+  }
+  if (graphics.texts) {
+    for (const text of graphics.texts) {
+      text.step = step
+    }
+  }
+  return graphics
 }
