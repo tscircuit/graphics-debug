@@ -44,15 +44,17 @@ export const InteractiveGraphics = ({
   graphics,
   onObjectClicked,
   objectLimit,
+  height = 600,
 }: {
   graphics: GraphicsObject
   onObjectClicked?: (event: GraphicsObjectClickEvent) => void
   objectLimit?: number
+  height?: number
 }) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [showLastStep, setShowLastStep] = useState(true)
-  const [size, setSize] = useState({ width: 600, height: 600 })
+  const [size, setSize] = useState({ width: 600, height })
   const [contextMenu, setContextMenu] = useState<{
     x: number
     y: number
@@ -459,7 +461,7 @@ export const InteractiveGraphics = ({
         ref={ref}
         style={{
           position: "relative",
-          height: 600,
+          height,
           overflow: "hidden",
         }}
         onContextMenu={handleContextMenu}
