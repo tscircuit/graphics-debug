@@ -7,6 +7,7 @@ import {
 } from "./drawGraphicsToCanvas"
 import { translateGraphics } from "./translateGraphics"
 import { mergeGraphics } from "./mergeGraphics"
+import { setStepOfAllObjects } from "./setStepOfAllObjects"
 import {
   stackGraphicsHorizontally,
   stackGraphicsVertically,
@@ -35,6 +36,7 @@ export {
 } from "./drawGraphicsToCanvas"
 export { translateGraphics } from "./translateGraphics"
 export { mergeGraphics } from "./mergeGraphics"
+export { setStepOfAllObjects } from "./setStepOfAllObjects"
 export {
   stackGraphicsHorizontally,
   stackGraphicsVertically,
