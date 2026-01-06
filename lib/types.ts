@@ -77,6 +77,7 @@ export interface GraphicsObject {
   texts?: Text[]
   coordinateSystem?: "cartesian" | "screen"
   title?: string
+  stepMetadata?: Array<{ title: string }>
 }
 
 export interface Viewbox {
