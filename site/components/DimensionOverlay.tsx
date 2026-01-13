@@ -23,6 +23,7 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
 
   const handleMouseEnter = useCallback(() => {
     isMouseOverRef.current = true
+    containerRef.current?.focus()
   }, [])
 
   const handleMouseLeave = useCallback(() => {
