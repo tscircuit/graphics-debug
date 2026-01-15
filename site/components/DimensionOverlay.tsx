@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { applyToPoint, identity, inverse } from "transformation-matrix"
 import type { Matrix } from "transformation-matrix"
+import { useDiagonalLabel } from "../hooks/useDiagonalLabel"
 
 interface Props {
   transform?: Matrix
@@ -72,6 +73,15 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
   arrowScreenBounds.width = arrowScreenBounds.right - arrowScreenBounds.left
   arrowScreenBounds.height = arrowScreenBounds.bottom - arrowScreenBounds.top
 
+  const diagonalLabel = useDiagonalLabel({
+    dimensionStart: dStart,
+    dimensionEnd: dEnd,
+    screenDimensionStart: screenDStart,
+    screenDimensionEnd: screenDEnd,
+    flipX: arrowScreenBounds.flipX,
+    flipY: arrowScreenBounds.flipY,
+  })
+
   return (
     <div
       ref={containerRef}
@@ -102,6 +112,24 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
       {children}
       {dimensionToolVisible && (
         <>
+          {diagonalLabel.show && (
+            <div
+              style={{
+                position: "absolute",
+                left: diagonalLabel.x,
+                top: diagonalLabel.y,
+                color: "red",
+                mixBlendMode: "difference",
+                pointerEvents: "none",
+                fontSize: 12,
+                fontFamily: "sans-serif",
+                whiteSpace: "nowrap",
+                zIndex: 30,
+              }}
+            >
+              {diagonalLabel.distance.toFixed(2)}
+            </div>
+          )}
           <div
             style={{
               position: "absolute",
