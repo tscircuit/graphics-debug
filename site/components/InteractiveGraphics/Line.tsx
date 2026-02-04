@@ -37,7 +37,11 @@ export const Line = ({
   const maxY = Math.max(...ys)
 
   const hoverThreshold = 10 // pixels
-  const padding = hoverThreshold + 4
+  // Calculate the actual stroke width in screen pixels
+  const screenStrokeWidth = strokeWidth * realToScreen.a
+  // Padding must account for half the stroke width (stroke extends both sides of the line)
+  // plus the hover threshold for interaction
+  const padding = Math.max(hoverThreshold + 4, screenStrokeWidth / 2 + 2)
 
   const svgLeft = minX - padding
   const svgTop = minY - padding
