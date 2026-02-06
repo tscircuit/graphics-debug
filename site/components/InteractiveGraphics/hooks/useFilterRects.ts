@@ -8,14 +8,20 @@ type Rect = {
   step?: number
 }
 
-export const useFilterRects = (
-  isPointOnScreen: (point: { x: number; y: number }) => boolean,
+type UseFilterRectsParams = {
+  isPointOnScreen: (point: { x: number; y: number }) => boolean
   doesLineIntersectViewport: (
     p1: { x: number; y: number },
     p2: { x: number; y: number },
-  ) => boolean,
-  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean,
-) => {
+  ) => boolean
+  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean
+}
+
+export const useFilterRects = ({
+  isPointOnScreen,
+  doesLineIntersectViewport,
+  filterLayerAndStep,
+}: UseFilterRectsParams) => {
   return useMemo(() => {
     return (rect: Rect) => {
       // First apply layer and step filters

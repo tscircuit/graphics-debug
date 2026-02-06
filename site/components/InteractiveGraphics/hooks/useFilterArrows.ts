@@ -1,6 +1,6 @@
-import { useMemo } from "react"
-import type { Arrow } from "lib/types"
 import { getArrowGeometry } from "lib/arrowHelpers"
+import type { Arrow } from "lib/types"
+import { useMemo } from "react"
 
 type Point = { x: number; y: number }
 
@@ -8,10 +8,15 @@ type LineCheck = (p1: Point, p2: Point) => boolean
 
 type PointCheck = (point: Point) => boolean
 
-export const useFilterArrows = (
-  isPointOnScreen: PointCheck,
-  doesLineIntersectViewport: LineCheck,
-) => {
+type UseFilterArrowsParams = {
+  isPointOnScreen: PointCheck
+  doesLineIntersectViewport: LineCheck
+}
+
+export const useFilterArrows = ({
+  isPointOnScreen,
+  doesLineIntersectViewport,
+}: UseFilterArrowsParams) => {
   return useMemo(() => {
     return (arrow: Arrow) => {
       const geometry = getArrowGeometry(arrow)

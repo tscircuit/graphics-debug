@@ -7,14 +7,20 @@ type Line = {
   closed?: boolean
 }
 
-export const useFilterLines = (
-  isPointOnScreen: (point: { x: number; y: number }) => boolean,
+type UseFilterLinesParams = {
+  isPointOnScreen: (point: { x: number; y: number }) => boolean
   doesLineIntersectViewport: (
     p1: { x: number; y: number },
     p2: { x: number; y: number },
-  ) => boolean,
-  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean,
-) => {
+  ) => boolean
+  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean
+}
+
+export const useFilterLines = ({
+  isPointOnScreen,
+  doesLineIntersectViewport,
+  filterLayerAndStep,
+}: UseFilterLinesParams) => {
   return useMemo(() => {
     return (line: Line) => {
       // First apply layer and step filters
