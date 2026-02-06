@@ -1,5 +1,5 @@
-import { applyToPoint, type Matrix } from "transformation-matrix"
 import { useMemo } from "react"
+import { type Matrix, applyToPoint } from "transformation-matrix"
 import { OFFSCREEN_MARGIN } from "./useDoesLineIntersectViewport"
 
 type Circle = {
@@ -9,12 +9,19 @@ type Circle = {
   step?: number
 }
 
-export const useFilterCircles = (
-  isPointOnScreen: (point: { x: number; y: number }) => boolean,
-  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean,
-  realToScreen: Matrix,
-  size: { width: number; height: number },
-) => {
+type UseFilterCirclesParams = {
+  isPointOnScreen: (point: { x: number; y: number }) => boolean
+  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean
+  realToScreen: Matrix
+  size: { width: number; height: number }
+}
+
+export const useFilterCircles = ({
+  isPointOnScreen,
+  filterLayerAndStep,
+  realToScreen,
+  size,
+}: UseFilterCirclesParams) => {
   return useMemo(() => {
     return (circle: Circle) => {
       // First apply layer and step filters

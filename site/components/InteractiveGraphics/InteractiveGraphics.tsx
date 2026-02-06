@@ -1,40 +1,40 @@
-import {
-  compose,
-  scale,
-  translate,
-  inverse,
-  applyToPoint,
-} from "transformation-matrix"
-import { GraphicsObject } from "../../../lib"
-import { useMemo, useState, useEffect, useCallback } from "react"
-import useMouseMatrixTransform from "use-mouse-matrix-transform"
-import { InteractiveState } from "./InteractiveState"
-import { SuperGrid } from "react-supergrid"
 import useResizeObserver from "@react-hook/resize-observer"
-import { Line } from "./Line"
-import { Point } from "./Point"
-import { Rect } from "./Rect"
-import { Circle } from "./Circle"
-import { Text } from "./Text"
-import { Arrow } from "./Arrow"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { SuperGrid } from "react-supergrid"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
+import { getMaxStep } from "site/utils/getMaxStep"
 import { sortRectsByArea } from "site/utils/sortRectsByArea"
 import {
-  useIsPointOnScreen,
+  applyToPoint,
+  compose,
+  inverse,
+  scale,
+  translate,
+} from "transformation-matrix"
+import useMouseMatrixTransform from "use-mouse-matrix-transform"
+import { GraphicsObject } from "../../../lib"
+import { DimensionOverlay } from "../DimensionOverlay"
+import { Arrow } from "./Arrow"
+import { Circle } from "./Circle"
+import { ContextMenu } from "./ContextMenu"
+import { InteractiveState } from "./InteractiveState"
+import { Line } from "./Line"
+import { Marker, MarkerPoint } from "./Marker"
+import { Point } from "./Point"
+import { Polygon } from "./Polygon"
+import { Rect } from "./Rect"
+import { Text } from "./Text"
+import {
   useDoesLineIntersectViewport,
+  useFilterArrows,
+  useFilterCircles,
   useFilterLines,
   useFilterPoints,
-  useFilterRects,
-  useFilterCircles,
-  useFilterTexts,
-  useFilterArrows,
   useFilterPolygons,
+  useFilterRects,
+  useFilterTexts,
+  useIsPointOnScreen,
 } from "./hooks"
-import { DimensionOverlay } from "../DimensionOverlay"
-import { getMaxStep } from "site/utils/getMaxStep"
-import { ContextMenu } from "./ContextMenu"
-import { Marker, MarkerPoint } from "./Marker"
-import { Polygon } from "./Polygon"
 
 export type GraphicsObjectClickEvent = {
   type: "point" | "line" | "rect" | "circle" | "text" | "arrow" | "polygon"
@@ -315,31 +315,37 @@ export const InteractiveGraphics = ({
     return true
   }
 
-  const filterLines = useFilterLines(
+  const filterLines = useFilterLines({
     isPointOnScreen,
     doesLineIntersectViewport,
     filterLayerAndStep,
-  )
+  })
 
-  const filterPoints = useFilterPoints(isPointOnScreen, filterLayerAndStep)
+  const filterPoints = useFilterPoints({
+    isPointOnScreen,
+    filterLayerAndStep,
+  })
 
-  const filterRects = useFilterRects(
+  const filterRects = useFilterRects({
     isPointOnScreen,
     doesLineIntersectViewport,
     filterLayerAndStep,
-  )
+  })
 
-  const filterCircles = useFilterCircles(
+  const filterCircles = useFilterCircles({
     isPointOnScreen,
     filterLayerAndStep,
     realToScreen,
     size,
-  )
-  const filterTexts = useFilterTexts(isPointOnScreen, filterLayerAndStep)
-  const filterArrows = useFilterArrows(
+  })
+  const filterTexts = useFilterTexts({
+    isPointOnScreen,
+    filterLayerAndStep,
+  })
+  const filterArrows = useFilterArrows({
     isPointOnScreen,
     doesLineIntersectViewport,
-  )
+  })
   const filterPolygons = useFilterPolygons({
     isPointOnScreen,
     doesLineIntersectViewport,
