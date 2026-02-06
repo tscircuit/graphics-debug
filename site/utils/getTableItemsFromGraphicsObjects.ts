@@ -49,6 +49,19 @@ export const getTableItemsFromGraphicsObjects = (
     })
   }
 
+  if (graphicsObject.polygons) {
+    graphicsObject.polygons.forEach((polygon, idx) => {
+      objects.push({
+        type: "polygon",
+        id: `polygon-${idx}`,
+        properties: {
+          ...flattenObject(polygon),
+          points: `[${polygon.points.map((p) => `(${p.x},${p.y})`).join(", ")}]`,
+        },
+      })
+    })
+  }
+
   if (graphicsObject.circles) {
     graphicsObject.circles.forEach((circle, idx) => {
       objects.push({

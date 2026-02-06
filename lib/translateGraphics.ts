@@ -16,6 +16,10 @@ export function translateGraphics(
       ...line,
       points: line.points.map((pt) => ({ x: pt.x + dx, y: pt.y + dy })),
     })),
+    polygons: graphics.polygons?.map((polygon) => ({
+      ...polygon,
+      points: polygon.points.map((pt) => ({ x: pt.x + dx, y: pt.y + dy })),
+    })),
     rects: graphics.rects?.map((rect) => ({
       ...rect,
       center: { x: rect.center.x + dx, y: rect.center.y + dy },

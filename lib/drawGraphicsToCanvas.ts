@@ -65,6 +65,7 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
   const points = [
     ...(graphics.points || []),
     ...(graphics.lines || []).flatMap((line) => line.points),
+    ...(graphics.polygons || []).flatMap((polygon) => polygon.points),
     ...(graphics.rects || []).flatMap((rect) => {
       const halfWidth = rect.width / 2
       const halfHeight = rect.height / 2
@@ -242,6 +243,34 @@ export function drawGraphicsToCanvas(
 
       if (circle.stroke) {
         ctx.strokeStyle = circle.stroke ?? "transparent"
+        ctx.stroke()
+      }
+    })
+  }
+
+  // Draw polygons
+  if (graphics.polygons && graphics.polygons.length > 0) {
+    graphics.polygons.forEach((polygon) => {
+      if (polygon.points.length === 0) return
+
+      const projectedPoints = polygon.points.map((point) =>
+        applyToPoint(matrix, point),
+      )
+
+      ctx.beginPath()
+      ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y)
+      for (let i = 1; i < projectedPoints.length; i++) {
+        ctx.lineTo(projectedPoints[i].x, projectedPoints[i].y)
+      }
+      ctx.closePath()
+
+      if (polygon.fill) {
+        ctx.fillStyle = polygon.fill
+        ctx.fill()
+      }
+
+      if (polygon.stroke) {
+        ctx.strokeStyle = polygon.stroke
         ctx.stroke()
       }
     })

@@ -50,6 +50,7 @@ describe("mergeGraphics", () => {
         { x: 5, y: 5, text: "a" },
         { x: 6, y: 6, text: "b" },
       ],
+      polygons: [],
       arrows: [
         {
           start: { x: 2, y: 2 },

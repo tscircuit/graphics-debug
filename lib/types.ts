@@ -39,6 +39,16 @@ export interface Circle {
   label?: string
 }
 
+export interface Polygon {
+  points: { x: number; y: number }[]
+  fill?: string
+  stroke?: string
+  color?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
 export interface Arrow {
   start: { x: number; y: number }
   end: { x: number; y: number }
@@ -73,6 +83,7 @@ export interface GraphicsObject {
   lines?: Line[]
   rects?: Rect[]
   circles?: Circle[]
+  polygons?: Polygon[]
   arrows?: Arrow[]
   texts?: Text[]
   coordinateSystem?: "cartesian" | "screen"
