@@ -6,14 +6,20 @@ type Polygon = {
   step?: number
 }
 
-export const useFilterPolygons = (
-  isPointOnScreen: (point: { x: number; y: number }) => boolean,
+type UseFilterPolygonsParams = {
+  isPointOnScreen: (point: { x: number; y: number }) => boolean
   doesLineIntersectViewport: (
     p1: { x: number; y: number },
     p2: { x: number; y: number },
-  ) => boolean,
-  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean,
-) => {
+  ) => boolean
+  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean
+}
+
+export const useFilterPolygons = ({
+  isPointOnScreen,
+  doesLineIntersectViewport,
+  filterLayerAndStep,
+}: UseFilterPolygonsParams) => {
   return useMemo(() => {
     return (polygon: Polygon) => {
       if (!filterLayerAndStep(polygon)) return false

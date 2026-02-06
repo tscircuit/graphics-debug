@@ -340,11 +340,11 @@ export const InteractiveGraphics = ({
     isPointOnScreen,
     doesLineIntersectViewport,
   )
-  const filterPolygons = useFilterPolygons(
+  const filterPolygons = useFilterPolygons({
     isPointOnScreen,
     doesLineIntersectViewport,
     filterLayerAndStep,
-  )
+  })
 
   const filterAndLimit = <T,>(
     objects: T[] | undefined,
