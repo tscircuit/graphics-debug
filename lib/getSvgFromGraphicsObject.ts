@@ -26,6 +26,7 @@ function getBounds(graphics: GraphicsObject): Bounds {
   const points: Point[] = [
     ...(graphics.points || []),
     ...(graphics.lines || []).flatMap((line) => line.points),
+    ...(graphics.polygons || []).flatMap((polygon) => polygon.points),
     ...(graphics.rects || []).flatMap((rect) => {
       const halfWidth = rect.width / 2
       const halfHeight = rect.height / 2
@@ -126,7 +127,9 @@ export function getSvgFromGraphicsObject(
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
-    includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
+    includeTextLabels?:
+      | boolean
+      | Array<"points" | "lines" | "rects" | "polygons">
     backgroundColor?: string | null
     svgWidth?: number
     svgHeight?: number
@@ -141,7 +144,9 @@ export function getSvgFromGraphicsObject(
   )
   const strokeScale = Math.abs(matrix.a)
 
-  const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
+  const shouldRenderLabel = (
+    type: "points" | "lines" | "rects" | "polygons",
+  ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
     }
@@ -324,6 +329,56 @@ export function getSvgFromGraphicsObject(
                       fill: rect.stroke || "black", // Default to stroke color for label
                     },
                     children: [{ type: "text", value: rect.label }],
+                  },
+                ]
+              : []),
+          ],
+        }
+      }),
+      // Polygons
+      ...(graphics.polygons || []).map((polygon) => {
+        const projectedPoints = polygon.points.map((point) =>
+          projectPoint(point, matrix),
+        )
+        const xs = projectedPoints.map((p) => p.x)
+        const ys = projectedPoints.map((p) => p.y)
+        const minX = xs.length > 0 ? Math.min(...xs) : 0
+        const minY = ys.length > 0 ? Math.min(...ys) : 0
+
+        return {
+          name: "g",
+          type: "element",
+          attributes: {},
+          children: [
+            {
+              name: "polygon",
+              type: "element",
+              attributes: {
+                "data-type": "polygon",
+                "data-label": polygon.label || "",
+                "data-points": polygon.points
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" "),
+                points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
+                fill: polygon.fill || "none",
+                stroke: polygon.stroke || "black",
+                "stroke-width": Math.abs(1 / matrix.a).toString(),
+              },
+            },
+            ...(shouldRenderLabel("polygons") && polygon.label
+              ? [
+                  {
+                    name: "text",
+                    type: "element",
+                    attributes: {
+                      x: (minX + 5).toString(),
+                      y: minY.toString(),
+                      "font-family": "sans-serif",
+                      "dominant-baseline": "text-before-edge",
+                      "font-size": "12",
+                      fill: polygon.stroke || "black",
+                    },
+                    children: [{ type: "text", value: polygon.label }],
                   },
                 ]
               : []),

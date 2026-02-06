@@ -103,6 +103,33 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "rectangles")
   })
 
+  test("should generate SVG with polygons", () => {
+    const input: GraphicsObject = {
+      polygons: [
+        {
+          points: [
+            { x: 0, y: 0 },
+            { x: 10, y: 0 },
+            { x: 5, y: 10 },
+          ],
+          fill: "gold",
+          stroke: "black",
+          label: "Tri",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input, {
+      includeTextLabels: ["polygons"],
+    })
+    expect(svg).toBeString()
+    expect(svg).toContain("<polygon")
+    expect(svg).toContain('fill="gold"')
+    expect(svg).toContain('stroke="black"')
+    expect(svg).toContain(">Tri<")
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "polygons")
+  })
+
   test("rect label font size scales with dimensions", () => {
     const input: GraphicsObject = {
       rects: [

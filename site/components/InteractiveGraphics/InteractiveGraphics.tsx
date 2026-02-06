@@ -28,14 +28,16 @@ import {
   useFilterCircles,
   useFilterTexts,
   useFilterArrows,
+  useFilterPolygons,
 } from "./hooks"
 import { DimensionOverlay } from "../DimensionOverlay"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { ContextMenu } from "./ContextMenu"
 import { Marker, MarkerPoint } from "./Marker"
+import { Polygon } from "./Polygon"
 
 export type GraphicsObjectClickEvent = {
-  type: "point" | "line" | "rect" | "circle" | "text" | "arrow"
+  type: "point" | "line" | "rect" | "circle" | "text" | "arrow" | "polygon"
   index: number
   object: any
 }
@@ -66,6 +68,7 @@ export const InteractiveGraphics = ({
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
       ...(graphics.rects?.map((r) => r.layer!).filter(Boolean) ?? []),
+      ...(graphics.polygons?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.texts?.map((t) => t.layer!).filter(Boolean) ?? []),
       ...(graphics.circles?.map((c) => c.layer!).filter(Boolean) ?? []),
@@ -337,6 +340,11 @@ export const InteractiveGraphics = ({
     isPointOnScreen,
     doesLineIntersectViewport,
   )
+  const filterPolygons = useFilterPolygons(
+    isPointOnScreen,
+    doesLineIntersectViewport,
+    filterLayerAndStep,
+  )
 
   const filterAndLimit = <T,>(
     objects: T[] | undefined,
@@ -356,6 +364,10 @@ export const InteractiveGraphics = ({
   const filteredRects = useMemo(
     () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
     [graphics.rects, filterRects, objectLimit],
+  )
+  const filteredPolygons = useMemo(
+    () => filterAndLimit(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons, objectLimit],
   )
   const filteredPoints = useMemo(
     () => filterAndLimit(graphics.points, filterPoints),
@@ -377,6 +389,7 @@ export const InteractiveGraphics = ({
   const totalFilteredObjects =
     filteredLines.length +
     filteredRects.length +
+    filteredPolygons.length +
     filteredPoints.length +
     filteredCircles.length +
     filteredTexts.length +
@@ -488,6 +501,14 @@ export const InteractiveGraphics = ({
               key={rect.originalIndex}
               rect={rect}
               index={rect.originalIndex}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {filteredPolygons.map((polygon) => (
+            <Polygon
+              key={polygon.originalIndex}
+              polygon={polygon}
+              index={polygon.originalIndex}
               interactiveState={interactiveState}
             />
           ))}

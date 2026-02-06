@@ -25,6 +25,14 @@ export const getGraphicsBounds = (graphics: GraphicsObject) => {
     bounds.maxX = Math.max(bounds.maxX, center.x + halfWidth)
     bounds.maxY = Math.max(bounds.maxY, center.y + halfHeight)
   }
+  for (const polygon of graphics.polygons ?? []) {
+    for (const point of polygon.points ?? []) {
+      bounds.minX = Math.min(bounds.minX, point.x)
+      bounds.minY = Math.min(bounds.minY, point.y)
+      bounds.maxX = Math.max(bounds.maxX, point.x)
+      bounds.maxY = Math.max(bounds.maxY, point.y)
+    }
+  }
   for (const point of graphics.points ?? []) {
     bounds.minX = Math.min(bounds.minX, point.x)
     bounds.minY = Math.min(bounds.minY, point.y)

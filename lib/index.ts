@@ -5,7 +5,6 @@ import {
   computeTransformFromViewbox,
   getBounds,
 } from "./drawGraphicsToCanvas"
-import { translateGraphics } from "./translateGraphics"
 import { mergeGraphics } from "./mergeGraphics"
 import { setStepOfAllObjects } from "./setStepOfAllObjects"
 import {
@@ -19,6 +18,7 @@ export type {
   Line,
   Rect,
   Circle,
+  Polygon,
   Arrow,
   Text,
   NinePointAnchor,
