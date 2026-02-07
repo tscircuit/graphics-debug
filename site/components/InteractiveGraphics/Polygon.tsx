@@ -15,7 +15,7 @@ export const Polygon = ({
   interactiveState: InteractiveState
   index: number
 }) => {
-  const { points, fill, stroke } = polygon
+  const { points, fill, stroke, strokeWidth } = polygon
   const { realToScreen, onObjectClicked } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
@@ -51,6 +51,8 @@ export const Polygon = ({
       ? safeLighten(0.2, baseStroke)
       : baseStroke
     : undefined
+  const screenStrokeWidth =
+    strokeWidth === undefined ? undefined : strokeWidth * realToScreen.a
 
   return (
     <div
@@ -68,6 +70,7 @@ export const Polygon = ({
           points={localPoints.map((p) => `${p.x},${p.y}`).join(" ")}
           fill={displayFill}
           stroke={displayStroke ?? "none"}
+          strokeWidth={screenStrokeWidth}
           pointerEvents="all"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}

@@ -114,6 +114,7 @@ describe("getSvgFromGraphicsObject", () => {
           ],
           fill: "gold",
           stroke: "black",
+          strokeWidth: 0.2,
           label: "Tri",
         },
       ],
