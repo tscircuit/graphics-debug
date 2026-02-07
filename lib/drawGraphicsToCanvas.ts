@@ -271,6 +271,9 @@ export function drawGraphicsToCanvas(
 
       if (polygon.stroke) {
         ctx.strokeStyle = polygon.stroke
+        if (polygon.strokeWidth !== undefined) {
+          ctx.lineWidth = polygon.strokeWidth * Math.abs(matrix.a)
+        }
         ctx.stroke()
       }
     })

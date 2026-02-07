@@ -344,6 +344,10 @@ export function getSvgFromGraphicsObject(
         const ys = projectedPoints.map((p) => p.y)
         const minX = xs.length > 0 ? Math.min(...xs) : 0
         const minY = ys.length > 0 ? Math.min(...ys) : 0
+        const polygonStrokeWidth =
+          polygon.strokeWidth === undefined
+            ? Math.abs(1 / matrix.a)
+            : strokeScale * polygon.strokeWidth
 
         return {
           name: "g",
@@ -362,7 +366,7 @@ export function getSvgFromGraphicsObject(
                 points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
                 fill: polygon.fill || "none",
                 stroke: polygon.stroke || "black",
-                "stroke-width": Math.abs(1 / matrix.a).toString(),
+                "stroke-width": polygonStrokeWidth.toString(),
               },
             },
             ...(shouldRenderLabel("polygons") && polygon.label

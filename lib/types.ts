@@ -43,6 +43,7 @@ export interface Polygon {
   points: { x: number; y: number }[]
   fill?: string
   stroke?: string
+  strokeWidth?: number
   color?: string
   layer?: string
   step?: number
