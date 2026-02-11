@@ -13,6 +13,8 @@ interface InteractiveGraphicsCanvasProps {
   showGrid?: boolean
   height?: number | string
   width?: number | string
+  alwaysShowToolbar?: boolean
+  fullPage?: boolean
 }
 
 export function InteractiveGraphicsCanvas({
@@ -21,6 +23,8 @@ export function InteractiveGraphicsCanvas({
   showGrid = true,
   height = 500,
   width = "100%",
+  alwaysShowToolbar = false,
+  fullPage = false,
 }: InteractiveGraphicsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -28,9 +32,19 @@ export function InteractiveGraphicsCanvas({
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [showLabels, setShowLabels] = useState(showLabelsByDefault)
   const [showLastStep, setShowLastStep] = useState(true)
+  const [viewportSize, setViewportSize] = useState(() => ({
+    width: typeof window === "undefined" ? 0 : window.innerWidth,
+    height: typeof window === "undefined" ? 0 : window.innerHeight,
+  }))
 
   // Calculate the maximum step value from all graphics objects
   const maxStep = getMaxStep(graphics)
+  const selectedStep = showLastStep ? maxStep : activeStep
+  const stepTitle =
+    maxStep > 0 && selectedStep !== null
+      ? graphics.stepMetadata?.[selectedStep]?.title
+      : undefined
+  const showToolbar = alwaysShowToolbar || maxStep > 0
 
   // Filter graphics objects based on step
   const filteredGraphics = getGraphicsFilteredByStep(graphics, {
@@ -74,6 +88,21 @@ export function InteractiveGraphicsCanvas({
       height: entry.contentRect.height,
     })
   })
+
+  useEffect(() => {
+    if (!fullPage) return
+
+    const handleResize = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [fullPage])
 
   // Draw function that uses our canvas renderer
   const drawCanvas = () => {
@@ -176,62 +205,81 @@ export function InteractiveGraphicsCanvas({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label>
-            <input
-              type="checkbox"
-              style={{ marginRight: 4 }}
-              checked={activeStep !== null}
-              onChange={(e) => {
-                setActiveStep(e.target.checked ? 0 : null)
-              }}
-            />
-            Filter by step
-          </label>
+      {showToolbar && (
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {maxStep > 0 && (
+              <>
+                <label>
+                  <input
+                    type="checkbox"
+                    style={{ marginRight: 4 }}
+                    checked={activeStep !== null}
+                    onChange={(e) => {
+                      setActiveStep(e.target.checked ? 0 : null)
+                    }}
+                  />
+                  Filter by step
+                </label>
 
-          <input
-            type="number"
-            min={0}
-            max={maxStep}
-            value={activeStep ?? 0}
-            onChange={(e) => {
-              const value = parseInt(e.target.value)
-              setShowLastStep(false)
-              setActiveStep(Number.isNaN(value) ? 0 : Math.min(value, maxStep))
-            }}
-            disabled={activeStep === null}
-            style={{ width: "60px" }}
-          />
+                <input
+                  type="number"
+                  min={0}
+                  max={maxStep}
+                  value={activeStep ?? 0}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value)
+                    setShowLastStep(false)
+                    setActiveStep(
+                      Number.isNaN(value) ? 0 : Math.min(value, maxStep),
+                    )
+                  }}
+                  disabled={activeStep === null}
+                  style={{ width: "60px" }}
+                />
 
-          <label>
-            <input
-              type="checkbox"
-              style={{ marginRight: 4 }}
-              checked={showLastStep}
-              onChange={(e) => {
-                setShowLastStep(e.target.checked)
-                setActiveStep(null)
+                <label>
+                  <input
+                    type="checkbox"
+                    style={{ marginRight: 4 }}
+                    checked={showLastStep}
+                    onChange={(e) => {
+                      setShowLastStep(e.target.checked)
+                      setActiveStep(null)
+                    }}
+                  />
+                  Show last step
+                </label>
+              </>
+            )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label>
+              <input
+                type="checkbox"
+                style={{ marginRight: 4 }}
+                checked={showLabels}
+                onChange={(e) => {
+                  setShowLabels(e.target.checked)
+                }}
+              />
+              Show labels
+            </label>
+          </div>
+          {maxStep > 0 && stepTitle && (
+            <div
+              style={{
+                marginLeft: "auto",
+                textAlign: "right",
+                fontWeight: 500,
               }}
-            />
-            Show last step
-          </label>
+            >
+              {stepTitle}
+            </div>
+          )}
         </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label>
-            <input
-              type="checkbox"
-              style={{ marginRight: 4 }}
-              checked={showLabels}
-              onChange={(e) => {
-                setShowLabels(e.target.checked)
-              }}
-            />
-            Show labels
-          </label>
-        </div>
-      </div>
+      )}
 
       <div
         ref={(node) => {
@@ -244,8 +292,8 @@ export function InteractiveGraphicsCanvas({
         }}
         style={{
           position: "relative",
-          width: width,
-          height: height,
+          width: fullPage ? viewportSize.width : width,
+          height: fullPage ? viewportSize.height : height,
           border: "1px solid #ccc",
           overflow: "hidden",
         }}
@@ -256,8 +304,8 @@ export function InteractiveGraphicsCanvas({
             position: "absolute",
             top: 0,
             left: 0,
-            width,
-            height,
+            width: fullPage ? viewportSize.width : width,
+            height: fullPage ? viewportSize.height : height,
           }}
         />
       </div>

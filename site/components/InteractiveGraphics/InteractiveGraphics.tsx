@@ -47,16 +47,24 @@ export const InteractiveGraphics = ({
   onObjectClicked,
   objectLimit,
   height = 600,
+  alwaysShowToolbar = false,
+  fullPage = false,
 }: {
   graphics: GraphicsObject
   onObjectClicked?: (event: GraphicsObjectClickEvent) => void
   objectLimit?: number
   height?: number
+  alwaysShowToolbar?: boolean
+  fullPage?: boolean
 }) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [showLastStep, setShowLastStep] = useState(true)
   const [size, setSize] = useState({ width: 600, height })
+  const [viewportSize, setViewportSize] = useState(() => ({
+    width: typeof window === "undefined" ? 0 : window.innerWidth,
+    height: typeof window === "undefined" ? height : window.innerHeight,
+  }))
   const [contextMenu, setContextMenu] = useState<{
     x: number
     y: number
@@ -75,6 +83,11 @@ export const InteractiveGraphics = ({
     ]),
   )
   const maxStep = getMaxStep(graphics)
+  const selectedStep = showLastStep ? maxStep : activeStep
+  const stepTitle =
+    maxStep > 0 && selectedStep !== null
+      ? graphics.stepMetadata?.[selectedStep]?.title
+      : undefined
 
   const graphicsBoundsWithPadding = useMemo(() => {
     const actualBounds = getGraphicsBounds(graphics)
@@ -151,6 +164,21 @@ export const InteractiveGraphics = ({
       height: entry.contentRect.height,
     })
   })
+
+  useEffect(() => {
+    if (!fullPage) return
+
+    const handleResize = () => {
+      setViewportSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+
+    handleResize()
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize)
+  }, [fullPage])
 
   // Load saved markers on mount
   useEffect(() => {
@@ -290,7 +318,8 @@ export const InteractiveGraphics = ({
     onObjectClicked: onObjectClicked,
   }
 
-  const showToolbar = availableLayers.length > 1 || maxStep > 0
+  const showToolbar =
+    alwaysShowToolbar || availableLayers.length > 1 || maxStep > 0
 
   // Use custom hooks for visibility checks and filtering
   const isPointOnScreen = useIsPointOnScreen(realToScreen, size)
@@ -305,7 +334,6 @@ export const InteractiveGraphics = ({
     if (activeLayers && obj.layer && !activeLayers.includes(obj.layer))
       return false
 
-    const selectedStep = showLastStep ? maxStep : activeStep
     if (
       selectedStep !== null &&
       obj.step !== undefined &&
@@ -405,72 +433,103 @@ export const InteractiveGraphics = ({
   return (
     <div>
       {showToolbar && (
-        <div style={{ margin: 8 }}>
-          {availableLayers.length > 1 && (
-            <select
-              value={activeLayers ? activeLayers[0] : ""}
-              onChange={(e) => {
-                const value = e.target.value
-                setActiveLayers(value === "" ? null : [value])
-              }}
-              style={{ marginRight: 8 }}
-            >
-              <option value="">All Layers</option>
-              {availableLayers.map((layer) => (
-                <option key={layer} value={layer}>
-                  {layer}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {maxStep > 0 && (
-            <div
-              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-            >
-              Step:
-              <input
-                type="number"
-                min={0}
-                max={maxStep}
-                value={activeStep ?? 0}
+        <div
+          style={{
+            margin: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
+            {availableLayers.length > 1 && (
+              <select
+                value={activeLayers ? activeLayers[0] : ""}
                 onChange={(e) => {
-                  const value = parseInt(e.target.value)
-                  setShowLastStep(false)
-                  setActiveStep(Number.isNaN(value) ? null : value)
+                  const value = e.target.value
+                  setActiveLayers(value === "" ? null : [value])
                 }}
-                disabled={activeStep === null}
-              />
-              <label>
+                style={{ marginRight: 8 }}
+              >
+                <option value="">All Layers</option>
+                {availableLayers.map((layer) => (
+                  <option key={layer} value={layer}>
+                    {layer}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {maxStep > 0 && (
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                Step:
                 <input
-                  type="checkbox"
-                  style={{ marginRight: 4 }}
-                  checked={activeStep !== null}
+                  type="number"
+                  min={0}
+                  max={maxStep}
+                  value={activeStep ?? 0}
                   onChange={(e) => {
+                    const value = parseInt(e.target.value)
                     setShowLastStep(false)
-                    setActiveStep(e.target.checked ? 0 : null)
+                    setActiveStep(Number.isNaN(value) ? null : value)
                   }}
+                  disabled={activeStep === null}
                 />
-                Filter by step
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  style={{ marginRight: 4 }}
-                  checked={showLastStep}
-                  onChange={(e) => {
-                    setShowLastStep(e.target.checked)
-                    setActiveStep(null)
-                  }}
-                />
-                Show last step
-              </label>
-              {isLimitReached && (
-                <span style={{ color: "red", fontSize: "12px" }}>
-                  Display limited to {objectLimit} objects. Received:{" "}
-                  {totalFilteredObjects}.
-                </span>
-              )}
+                <label>
+                  <input
+                    type="checkbox"
+                    style={{ marginRight: 4 }}
+                    checked={activeStep !== null}
+                    onChange={(e) => {
+                      setShowLastStep(false)
+                      setActiveStep(e.target.checked ? 0 : null)
+                    }}
+                  />
+                  Filter by step
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    style={{ marginRight: 4 }}
+                    checked={showLastStep}
+                    onChange={(e) => {
+                      setShowLastStep(e.target.checked)
+                      setActiveStep(null)
+                    }}
+                  />
+                  Show last step
+                </label>
+                {isLimitReached && (
+                  <span style={{ color: "red", fontSize: "12px" }}>
+                    Display limited to {objectLimit} objects. Received:{" "}
+                    {totalFilteredObjects}.
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          {maxStep > 0 && stepTitle && (
+            <div
+              style={{
+                marginLeft: "auto",
+                textAlign: "right",
+                fontWeight: 500,
+              }}
+            >
+              {stepTitle}
             </div>
           )}
         </div>
@@ -480,7 +539,8 @@ export const InteractiveGraphics = ({
         ref={ref}
         style={{
           position: "relative",
-          height,
+          height: fullPage ? viewportSize.height : height,
+          ...(fullPage ? { width: viewportSize.width } : {}),
           overflow: "hidden",
         }}
         onContextMenu={handleContextMenu}
