@@ -82,6 +82,46 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "lines")
   })
 
+  test("should generate SVG with infinite lines without affecting bounds", () => {
+    const withOnlyRect: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 10,
+          height: 10,
+        },
+      ],
+    }
+
+    const withRectAndInfiniteLine: GraphicsObject = {
+      ...withOnlyRect,
+      infiniteLines: [
+        {
+          origin: { x: 0, y: 0 },
+          directionVector: { x: 1, y: 0 },
+          strokeColor: "#555",
+          strokeWidth: 0.5,
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(withRectAndInfiniteLine)
+    const svgWithoutInfiniteLine = getSvgFromGraphicsObject(withOnlyRect)
+
+    expect(svg).toContain('data-type="infinite-line"')
+    expect(svg).toContain('data-origin="0,0"')
+    expect(svg).toContain('data-direction="1,0"')
+
+    const rectWidthWithInfiniteLine = svg.match(
+      /<rect[^>]*data-type="rect"[^>]*width="([0-9.]+)"/,
+    )?.[1]
+    const rectWidthWithoutInfiniteLine = svgWithoutInfiniteLine.match(
+      /<rect[^>]*data-type="rect"[^>]*width="([0-9.]+)"/,
+    )?.[1]
+    expect(rectWidthWithInfiniteLine).toBe(rectWidthWithoutInfiniteLine)
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "infinite-lines")
+  })
+
   test("should generate SVG with rectangles", () => {
     const input: GraphicsObject = {
       rects: [

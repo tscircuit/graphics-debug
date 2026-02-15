@@ -3,7 +3,7 @@ import { translateGraphics } from "../lib/translateGraphics"
 import type { GraphicsObject } from "../lib/types"
 
 describe("translateGraphics", () => {
-  test("translates points, lines, rects, circles, arrows, and texts", () => {
+  test("translates points, lines, infinite lines, rects, circles, arrows, and texts", () => {
     const original: GraphicsObject = {
       points: [{ x: 1, y: 1 }],
       lines: [
@@ -12,6 +12,12 @@ describe("translateGraphics", () => {
             { x: 0, y: 0 },
             { x: 1, y: 1 },
           ],
+        },
+      ],
+      infiniteLines: [
+        {
+          origin: { x: 2, y: 3 },
+          directionVector: { x: 0, y: 1 },
         },
       ],
       rects: [{ center: { x: 2, y: 2 }, width: 2, height: 2 }],
@@ -33,6 +39,12 @@ describe("translateGraphics", () => {
             { x: 5, y: -3 },
             { x: 6, y: -2 },
           ],
+        },
+      ],
+      infiniteLines: [
+        {
+          origin: { x: 7, y: 0 },
+          directionVector: { x: 0, y: 1 },
         },
       ],
       rects: [{ center: { x: 7, y: -1 }, width: 2, height: 2 }],

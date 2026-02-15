@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test"
 import {
-  getBounds,
-  FONT_SIZE_WIDTH_RATIO,
   FONT_SIZE_HEIGHT_RATIO,
+  FONT_SIZE_WIDTH_RATIO,
+  getBounds,
 } from "../lib"
 import { getArrowBoundingBox } from "../lib/arrowHelpers"
 import type { Arrow, GraphicsObject } from "../lib/types"
@@ -50,5 +50,24 @@ describe("getBounds with text", () => {
     expect(bounds.maxX).toBeCloseTo(arrowBounds.maxX)
     expect(bounds.minY).toBeCloseTo(arrowBounds.minY)
     expect(bounds.maxY).toBeCloseTo(arrowBounds.maxY)
+  })
+
+  test("ignores infinite lines when computing bounds", () => {
+    const graphicsWithRect: GraphicsObject = {
+      rects: [{ center: { x: 0, y: 0 }, width: 10, height: 10 }],
+    }
+    const graphicsWithRectAndInfiniteLine: GraphicsObject = {
+      ...graphicsWithRect,
+      infiniteLines: [
+        {
+          origin: { x: 1000, y: 1000 },
+          directionVector: { x: 1, y: 1 },
+        },
+      ],
+    }
+
+    expect(getBounds(graphicsWithRectAndInfiniteLine)).toEqual(
+      getBounds(graphicsWithRect),
+    )
   })
 })

@@ -1,16 +1,17 @@
-import {
-  transform,
-  compose,
-  translate,
-  scale,
-  applyToPoint,
-  identity,
-  type Matrix,
-} from "transformation-matrix"
-import type { GraphicsObject, Point } from "./types"
 import { stringify } from "svgson"
-import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
+import {
+  type Matrix,
+  applyToPoint,
+  compose,
+  identity,
+  scale,
+  transform,
+  translate,
+} from "transformation-matrix"
 import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
+import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
+import { clipInfiniteLineToBounds } from "./infiniteLineHelpers"
+import type { GraphicsObject, Point } from "./types"
 
 const DEFAULT_SVG_SIZE = 640
 const PADDING = 40
@@ -129,7 +130,7 @@ export function getSvgFromGraphicsObject(
   }: {
     includeTextLabels?:
       | boolean
-      | Array<"points" | "lines" | "rects" | "polygons">
+      | Array<"points" | "lines" | "infiniteLines" | "rects" | "polygons">
     backgroundColor?: string | null
     svgWidth?: number
     svgHeight?: number
@@ -145,7 +146,7 @@ export function getSvgFromGraphicsObject(
   const strokeScale = Math.abs(matrix.a)
 
   const shouldRenderLabel = (
-    type: "points" | "lines" | "rects" | "polygons",
+    type: "points" | "lines" | "infiniteLines" | "rects" | "polygons",
   ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
@@ -272,6 +273,71 @@ export function getSvgFromGraphicsObject(
               : []),
           ],
         }
+      }),
+      ...(graphics.infiniteLines || []).flatMap((line) => {
+        const segment = clipInfiniteLineToBounds(line, bounds)
+        if (!segment) return []
+
+        const [start, end] = segment
+        const projectedStart = projectPoint(start, matrix)
+        const projectedEnd = projectPoint(end, matrix)
+
+        return [
+          {
+            name: "g",
+            type: "element",
+            attributes: {},
+            children: [
+              {
+                name: "line",
+                type: "element",
+                attributes: {
+                  "data-type": "infinite-line",
+                  "data-label": line.label || "",
+                  "data-origin": `${line.origin.x},${line.origin.y}`,
+                  "data-direction": `${line.directionVector.x},${line.directionVector.y}`,
+                  x1: projectedStart.x.toString(),
+                  y1: projectedStart.y.toString(),
+                  x2: projectedEnd.x.toString(),
+                  y2: projectedEnd.y.toString(),
+                  stroke: line.strokeColor || "black",
+                  "stroke-width": !line.strokeWidth
+                    ? "1px"
+                    : typeof line.strokeWidth === "string"
+                      ? line.strokeWidth
+                      : (strokeScale * line.strokeWidth).toString(),
+                  ...(line.strokeDash && {
+                    "stroke-dasharray": Array.isArray(line.strokeDash)
+                      ? line.strokeDash.join(" ")
+                      : line.strokeDash,
+                  }),
+                },
+              },
+              ...(shouldRenderLabel("infiniteLines") && line.label
+                ? [
+                    {
+                      name: "text",
+                      type: "element",
+                      attributes: {
+                        x: (
+                          (projectedStart.x + projectedEnd.x) / 2 +
+                          5
+                        ).toString(),
+                        y: (
+                          (projectedStart.y + projectedEnd.y) / 2 -
+                          5
+                        ).toString(),
+                        "font-family": "sans-serif",
+                        "font-size": "12",
+                        fill: line.strokeColor || "black",
+                      },
+                      children: [{ type: "text", value: line.label }],
+                    },
+                  ]
+                : []),
+            ],
+          },
+        ]
       }),
       // Rectangles
       ...(graphics.rects || []).map((rect) => {

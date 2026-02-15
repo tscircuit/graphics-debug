@@ -17,6 +17,17 @@ export interface Line {
   label?: string
 }
 
+export interface InfiniteLine {
+  directionVector: { x: number; y: number }
+  origin: { x: number; y: number }
+  strokeWidth?: number
+  strokeColor?: string
+  strokeDash?: string | number[]
+  layer?: string
+  step?: number
+  label?: string
+}
+
 export interface Rect {
   center: { x: number; y: number }
   width: number
@@ -82,6 +93,7 @@ export interface Text {
 export interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
+  infiniteLines?: InfiniteLine[]
   rects?: Rect[]
   circles?: Circle[]
   polygons?: Polygon[]

@@ -26,6 +26,9 @@ export function getGraphicsFilteredByStep(
     lines: graphics.lines?.filter(
       (l) => l.step === undefined || l.step === selectedStep,
     ),
+    infiniteLines: graphics.infiniteLines?.filter(
+      (l) => l.step === undefined || l.step === selectedStep,
+    ),
     rects: graphics.rects?.filter(
       (r) => r.step === undefined || r.step === selectedStep,
     ),

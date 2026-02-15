@@ -1,19 +1,23 @@
+import { defaultColors } from "site/components/InteractiveGraphics/defaultColors"
 import {
+  type Matrix,
+  applyToPoint,
   compose,
   scale,
   translate,
-  applyToPoint,
-  type Matrix,
 } from "transformation-matrix"
-import type {
-  GraphicsObject,
-  Viewbox,
-  CenterViewbox,
-  TransformOptions,
-} from "./types"
-import { defaultColors } from "site/components/InteractiveGraphics/defaultColors"
-import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
 import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
+import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
+import {
+  clipInfiniteLineToBounds,
+  getViewportBoundsFromMatrix,
+} from "./infiniteLineHelpers"
+import type {
+  CenterViewbox,
+  GraphicsObject,
+  TransformOptions,
+  Viewbox,
+} from "./types"
 
 /**
  * Computes a transformation matrix based on a provided viewbox
@@ -360,6 +364,56 @@ export function drawGraphicsToCanvas(
           ctx.setLineDash(dashArray)
         } else {
           // Handle array format
+          ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
+        }
+      } else {
+        ctx.setLineDash([])
+      }
+
+      ctx.stroke()
+    })
+  }
+
+  if (graphics.infiniteLines && graphics.infiniteLines.length > 0) {
+    const viewportBounds = getViewportBoundsFromMatrix(
+      matrix,
+      canvasWidth,
+      canvasHeight,
+    )
+
+    graphics.infiniteLines.forEach((line, lineIndex) => {
+      const segment = clipInfiniteLineToBounds(line, viewportBounds)
+      if (!segment) return
+
+      const [start, end] = segment
+      const projectedStart = applyToPoint(matrix, start)
+      const projectedEnd = applyToPoint(matrix, end)
+
+      ctx.beginPath()
+      ctx.moveTo(projectedStart.x, projectedStart.y)
+      ctx.lineTo(projectedEnd.x, projectedEnd.y)
+
+      ctx.strokeStyle =
+        line.strokeColor || defaultColors[lineIndex % defaultColors.length]
+      ctx.lineWidth = line.strokeWidth
+        ? line.strokeWidth * Math.abs(matrix.a)
+        : 2
+      ctx.lineCap = "round"
+
+      if (line.strokeDash) {
+        if (typeof line.strokeDash === "string") {
+          let dashArray: number[]
+          if (line.strokeDash.includes(",")) {
+            dashArray = line.strokeDash
+              .split(",")
+              .map((s) => parseFloat(s.trim()))
+              .filter((n) => !Number.isNaN(n))
+          } else {
+            const value = parseFloat(line.strokeDash.trim())
+            dashArray = !Number.isNaN(value) ? [value] : []
+          }
+          ctx.setLineDash(dashArray)
+        } else {
           ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
         }
       } else {
