@@ -66,6 +66,8 @@ export interface Arrow {
   end: { x: number; y: number }
   doubleSided?: boolean
   color?: string
+  label?: string
+  inlineLabel?: string
 }
 
 export type NinePointAnchor =
@@ -122,4 +124,5 @@ export type TransformOptions = {
   padding?: number
   yFlip?: boolean
   disableLabels?: boolean
+  hideInlineLabels?: boolean
 }

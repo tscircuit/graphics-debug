@@ -7,17 +7,23 @@ export const arrowShowcaseGraphics: GraphicsObject = {
       start: { x: -90, y: 0 },
       end: { x: 90, y: 0 },
       color: "#2563eb",
+      inlineLabel: "east",
+      label: "Horizontal",
     },
     {
       start: { x: 0, y: -70 },
       end: { x: 0, y: 70 },
       color: "#f97316",
+      inlineLabel: "north",
+      label: "Vertical",
     },
     {
       start: { x: -60, y: -60 },
       end: { x: 60, y: 60 },
       doubleSided: true,
       color: "#10b981",
+      inlineLabel: "diag",
+      label: "Double sided",
     },
   ],
   texts: [

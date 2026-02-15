@@ -9,8 +9,8 @@ export default function ArrowDirectionsFixture() {
         <h1>Arrow Showcase</h1>
         <p>
           This demo renders arrows using only a start point, an end point, and
-          an optional double-sided head. Colors are still supported, but all
-          other arrow configuration has been removed.
+          an optional double-sided head. It also showcases both standard labels
+          and inline labels that follow the direction of each arrow.
         </p>
       </header>
       <div

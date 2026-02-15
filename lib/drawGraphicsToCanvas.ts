@@ -316,6 +316,44 @@ export function drawGraphicsToCanvas(
         ctx.closePath()
         ctx.fill()
       })
+
+      const shaftMidpoint = {
+        x: (shaftStart.x + shaftEnd.x) / 2,
+        y: (shaftStart.y + shaftEnd.y) / 2,
+      }
+      const shaftDx = shaftEnd.x - shaftStart.x
+      const shaftDy = shaftEnd.y - shaftStart.y
+      const shaftLength = Math.hypot(shaftDx, shaftDy)
+
+      ctx.fillStyle = color
+      ctx.font = "12px sans-serif"
+
+      if (!options.disableLabels && arrow.label) {
+        const labelX =
+          shaftMidpoint.x +
+          (shaftLength === 0 ? 0 : (-shaftDy / shaftLength) * 8)
+        const labelY =
+          shaftMidpoint.y +
+          (shaftLength === 0 ? -8 : (shaftDx / shaftLength) * 8)
+
+        ctx.save()
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(arrow.label, labelX, labelY)
+        ctx.restore()
+      }
+
+      if (!options.hideInlineLabels && arrow.inlineLabel) {
+        ctx.save()
+        ctx.translate(shaftMidpoint.x, shaftMidpoint.y)
+        if (shaftLength > 0) {
+          ctx.rotate(Math.atan2(shaftDy, shaftDx))
+        }
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(arrow.inlineLabel, 0, 0)
+        ctx.restore()
+      }
     })
   }
 

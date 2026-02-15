@@ -265,6 +265,45 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "double-sided-arrows")
   })
 
+  test("renders inline arrow labels by default and optional labels on request", () => {
+    const input: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: 0, y: 0 },
+          end: { x: 20, y: 10 },
+          color: "teal",
+          label: "Vector",
+          inlineLabel: "v",
+        },
+      ],
+    }
+
+    const svgWithoutLabels = getSvgFromGraphicsObject(input)
+    expect(svgWithoutLabels).not.toContain(">Vector<")
+    expect(svgWithoutLabels).toContain(">v<")
+    expect(svgWithoutLabels).toContain('data-type="arrow-inline-label"')
+
+    const svgWithInlineLabelsHidden = getSvgFromGraphicsObject(input, {
+      hideInlineLabels: true,
+    })
+    expect(svgWithInlineLabelsHidden).not.toContain(">v<")
+    expect(svgWithInlineLabelsHidden).not.toContain(
+      'data-type="arrow-inline-label"',
+    )
+
+    const svgWithLabels = getSvgFromGraphicsObject(input, {
+      includeTextLabels: ["arrows"],
+    })
+
+    expect(svgWithLabels).toContain('data-label="Vector"')
+    expect(svgWithLabels).toContain('data-inline-label="v"')
+    expect(svgWithLabels).toContain('data-type="arrow-label"')
+    expect(svgWithLabels).toContain('data-type="arrow-inline-label"')
+    expect(svgWithLabels).toContain(">Vector<")
+    expect(svgWithLabels).toContain(">v<")
+    expect(svgWithLabels).toContain('transform="rotate(')
+  })
+
   test("should generate SVG with texts", () => {
     const input: GraphicsObject = {
       texts: [

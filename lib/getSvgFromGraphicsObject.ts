@@ -124,14 +124,18 @@ export function getSvgFromGraphicsObject(
   graphics: GraphicsObject,
   {
     includeTextLabels = false,
+    hideInlineLabels = false,
     backgroundColor = "white",
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
     includeTextLabels?:
       | boolean
-      | Array<"points" | "lines" | "infiniteLines" | "rects" | "polygons">
+      | Array<
+          "points" | "lines" | "infiniteLines" | "rects" | "polygons" | "arrows"
+        >
     backgroundColor?: string | null
+    hideInlineLabels?: boolean
     svgWidth?: number
     svgHeight?: number
   } = {},
@@ -146,7 +150,13 @@ export function getSvgFromGraphicsObject(
   const strokeScale = Math.abs(matrix.a)
 
   const shouldRenderLabel = (
-    type: "points" | "lines" | "infiniteLines" | "rects" | "polygons",
+    type:
+      | "points"
+      | "lines"
+      | "infiniteLines"
+      | "rects"
+      | "polygons"
+      | "arrows",
   ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
@@ -480,6 +490,15 @@ export function getSvgFromGraphicsObject(
         const geometry = getArrowGeometry(arrow)
         const projectedShaftStart = projectPoint(geometry.shaftStart, matrix)
         const projectedShaftEnd = projectPoint(geometry.shaftEnd, matrix)
+        const shaftMidpoint = {
+          x: (projectedShaftStart.x + projectedShaftEnd.x) / 2,
+          y: (projectedShaftStart.y + projectedShaftEnd.y) / 2,
+        }
+        const shaftDx = projectedShaftEnd.x - projectedShaftStart.x
+        const shaftDy = projectedShaftEnd.y - projectedShaftStart.y
+        const shaftLength = Math.hypot(shaftDx, shaftDy)
+        const inlineLabelAngle =
+          shaftLength === 0 ? 0 : (Math.atan2(shaftDy, shaftDx) * 180) / Math.PI
 
         const color = arrow.color || "black"
 
@@ -519,6 +538,51 @@ export function getSvgFromGraphicsObject(
             },
           },
           ...headChildren,
+          ...(shouldRenderLabel("arrows") && arrow.label
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    "data-type": "arrow-label",
+                    x: (
+                      shaftMidpoint.x +
+                      (shaftLength === 0 ? 0 : (-shaftDy / shaftLength) * 8)
+                    ).toString(),
+                    y: (
+                      shaftMidpoint.y +
+                      (shaftLength === 0 ? -8 : (shaftDx / shaftLength) * 8)
+                    ).toString(),
+                    "font-family": "sans-serif",
+                    "font-size": "12",
+                    "text-anchor": "middle",
+                    "dominant-baseline": "central",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.label }],
+                },
+              ]
+            : []),
+          ...(!hideInlineLabels && arrow.inlineLabel
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    "data-type": "arrow-inline-label",
+                    x: shaftMidpoint.x.toString(),
+                    y: shaftMidpoint.y.toString(),
+                    transform: `rotate(${inlineLabelAngle} ${shaftMidpoint.x} ${shaftMidpoint.y})`,
+                    "font-family": "sans-serif",
+                    "font-size": "12",
+                    "text-anchor": "middle",
+                    "dominant-baseline": "central",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.inlineLabel }],
+                },
+              ]
+            : []),
         ]
 
         return {
@@ -529,6 +593,10 @@ export function getSvgFromGraphicsObject(
             "data-start": `${arrow.start.x},${arrow.start.y}`,
             "data-end": `${arrow.end.x},${arrow.end.y}`,
             "data-double-sided": arrow.doubleSided ? "true" : "false",
+            ...(arrow.label ? { "data-label": arrow.label } : {}),
+            ...(arrow.inlineLabel
+              ? { "data-inline-label": arrow.inlineLabel }
+              : {}),
           },
           children,
         }
