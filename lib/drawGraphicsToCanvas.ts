@@ -6,7 +6,11 @@ import {
   scale,
   translate,
 } from "transformation-matrix"
-import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
+import {
+  getArrowBoundingBox,
+  getArrowGeometry,
+  getInlineLabelLayout,
+} from "./arrowHelpers"
 import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
 import {
   clipInfiniteLineToBounds,
@@ -317,24 +321,28 @@ export function drawGraphicsToCanvas(
         ctx.fill()
       })
 
-      const shaftMidpoint = {
-        x: (shaftStart.x + shaftEnd.x) / 2,
-        y: (shaftStart.y + shaftEnd.y) / 2,
-      }
-      const shaftDx = shaftEnd.x - shaftStart.x
-      const shaftDy = shaftEnd.y - shaftStart.y
-      const shaftLength = Math.hypot(shaftDx, shaftDy)
+      const fontSize = 12
+      const screenStrokeWidth = geometry.shaftWidth * (scaleFactor || 1)
+      const alongSeparation = fontSize * 0.6
+      const inlineLabelLayout = getInlineLabelLayout(shaftStart, shaftEnd, {
+        fontSize,
+        strokeWidth: screenStrokeWidth,
+        normalPadding: 6,
+        alongOffset: arrow.label ? alongSeparation : 0,
+      })
+      const arrowLabelLayout = getInlineLabelLayout(shaftStart, shaftEnd, {
+        fontSize,
+        strokeWidth: screenStrokeWidth,
+        normalPadding: 12,
+        alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+      })
 
       ctx.fillStyle = color
-      ctx.font = "12px sans-serif"
+      ctx.font = `${fontSize}px sans-serif`
 
       if (!options.disableLabels && arrow.label) {
-        const labelX =
-          shaftMidpoint.x +
-          (shaftLength === 0 ? 0 : (-shaftDy / shaftLength) * 8)
-        const labelY =
-          shaftMidpoint.y +
-          (shaftLength === 0 ? -8 : (shaftDx / shaftLength) * 8)
+        const labelX = arrowLabelLayout.x
+        const labelY = arrowLabelLayout.y
 
         ctx.save()
         ctx.textAlign = "center"
@@ -345,10 +353,8 @@ export function drawGraphicsToCanvas(
 
       if (!options.hideInlineLabels && arrow.inlineLabel) {
         ctx.save()
-        ctx.translate(shaftMidpoint.x, shaftMidpoint.y)
-        if (shaftLength > 0) {
-          ctx.rotate(Math.atan2(shaftDy, shaftDx))
-        }
+        ctx.translate(inlineLabelLayout.x, inlineLabelLayout.y)
+        ctx.rotate(inlineLabelLayout.angleRadians)
         ctx.textAlign = "center"
         ctx.textBaseline = "middle"
         ctx.fillText(arrow.inlineLabel, 0, 0)

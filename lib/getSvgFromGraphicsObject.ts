@@ -8,7 +8,11 @@ import {
   transform,
   translate,
 } from "transformation-matrix"
-import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
+import {
+  getArrowBoundingBox,
+  getArrowGeometry,
+  getInlineLabelLayout,
+} from "./arrowHelpers"
 import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
 import { clipInfiniteLineToBounds } from "./infiniteLineHelpers"
 import type { GraphicsObject, Point } from "./types"
@@ -490,15 +494,29 @@ export function getSvgFromGraphicsObject(
         const geometry = getArrowGeometry(arrow)
         const projectedShaftStart = projectPoint(geometry.shaftStart, matrix)
         const projectedShaftEnd = projectPoint(geometry.shaftEnd, matrix)
-        const shaftMidpoint = {
-          x: (projectedShaftStart.x + projectedShaftEnd.x) / 2,
-          y: (projectedShaftStart.y + projectedShaftEnd.y) / 2,
-        }
-        const shaftDx = projectedShaftEnd.x - projectedShaftStart.x
-        const shaftDy = projectedShaftEnd.y - projectedShaftStart.y
-        const shaftLength = Math.hypot(shaftDx, shaftDy)
-        const inlineLabelAngle =
-          shaftLength === 0 ? 0 : (Math.atan2(shaftDy, shaftDx) * 180) / Math.PI
+        const fontSize = 12
+        const strokeWidth = geometry.shaftWidth
+        const alongSeparation = fontSize * 0.6
+        const inlineLabelLayout = getInlineLabelLayout(
+          projectedShaftStart,
+          projectedShaftEnd,
+          {
+            fontSize,
+            strokeWidth,
+            normalPadding: 6,
+            alongOffset: arrow.label ? alongSeparation : 0,
+          },
+        )
+        const arrowLabelLayout = getInlineLabelLayout(
+          projectedShaftStart,
+          projectedShaftEnd,
+          {
+            fontSize,
+            strokeWidth,
+            normalPadding: 12,
+            alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+          },
+        )
 
         const color = arrow.color || "black"
 
@@ -545,16 +563,10 @@ export function getSvgFromGraphicsObject(
                   type: "element",
                   attributes: {
                     "data-type": "arrow-label",
-                    x: (
-                      shaftMidpoint.x +
-                      (shaftLength === 0 ? 0 : (-shaftDy / shaftLength) * 8)
-                    ).toString(),
-                    y: (
-                      shaftMidpoint.y +
-                      (shaftLength === 0 ? -8 : (shaftDx / shaftLength) * 8)
-                    ).toString(),
+                    x: arrowLabelLayout.x.toString(),
+                    y: arrowLabelLayout.y.toString(),
                     "font-family": "sans-serif",
-                    "font-size": "12",
+                    "font-size": fontSize.toString(),
                     "text-anchor": "middle",
                     "dominant-baseline": "central",
                     fill: color,
@@ -570,11 +582,11 @@ export function getSvgFromGraphicsObject(
                   type: "element",
                   attributes: {
                     "data-type": "arrow-inline-label",
-                    x: shaftMidpoint.x.toString(),
-                    y: shaftMidpoint.y.toString(),
-                    transform: `rotate(${inlineLabelAngle} ${shaftMidpoint.x} ${shaftMidpoint.y})`,
+                    x: inlineLabelLayout.x.toString(),
+                    y: inlineLabelLayout.y.toString(),
+                    transform: `rotate(${inlineLabelLayout.angleDegrees} ${inlineLabelLayout.x} ${inlineLabelLayout.y})`,
                     "font-family": "sans-serif",
-                    "font-size": "12",
+                    "font-size": fontSize.toString(),
                     "text-anchor": "middle",
                     "dominant-baseline": "central",
                     fill: color,
