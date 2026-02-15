@@ -1,11 +1,11 @@
+import { getArrowGeometry, getInlineLabelLayout } from "lib/arrowHelpers"
 import type * as Types from "lib/types"
+import { useMemo, useState } from "react"
+import { distToLineSegment } from "site/utils/distToLineSegment"
+import { safeLighten } from "site/utils/safeLighten"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { useMemo, useState } from "react"
 import { defaultColors } from "./defaultColors"
-import { safeLighten } from "site/utils/safeLighten"
-import { distToLineSegment } from "site/utils/distToLineSegment"
-import { getArrowGeometry } from "lib/arrowHelpers"
 
 export const Arrow = ({
   arrow,
@@ -35,6 +35,29 @@ export const Arrow = ({
   }, [geometry, realToScreen])
 
   const scaleFactor = Math.abs(realToScreen.a)
+  const fontSize = 12
+  const strokeWidth = geometry.shaftWidth * (scaleFactor || 1)
+  const alongSeparation = fontSize * 0.6
+  const inlineLabelLayout = useMemo(
+    () =>
+      getInlineLabelLayout(screenPoints.shaftStart, screenPoints.shaftEnd, {
+        fontSize,
+        strokeWidth,
+        normalPadding: 6,
+        alongOffset: arrow.label ? alongSeparation : 0,
+      }),
+    [screenPoints, fontSize, strokeWidth, arrow.label, alongSeparation],
+  )
+  const labelLayout = useMemo(
+    () =>
+      getInlineLabelLayout(screenPoints.shaftStart, screenPoints.shaftEnd, {
+        fontSize,
+        strokeWidth,
+        normalPadding: 12,
+        alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+      }),
+    [screenPoints, fontSize, strokeWidth, arrow.inlineLabel, alongSeparation],
+  )
 
   const baseColor =
     arrow.color || defaultColors[index % defaultColors.length] || "black"
@@ -99,7 +122,7 @@ export const Arrow = ({
         x2={screenPoints.shaftEnd.x}
         y2={screenPoints.shaftEnd.y}
         stroke={displayColor}
-        strokeWidth={geometry.shaftWidth * (scaleFactor || 1)}
+        strokeWidth={strokeWidth}
         strokeLinecap="round"
         pointerEvents="stroke"
       />
@@ -110,6 +133,35 @@ export const Arrow = ({
           fill={displayColor}
         />
       ))}
+      {arrow.label && (
+        <text
+          x={labelLayout.x}
+          y={labelLayout.y}
+          fill={displayColor}
+          fontSize={fontSize}
+          fontFamily="sans-serif"
+          textAnchor="middle"
+          dominantBaseline="central"
+          pointerEvents="none"
+        >
+          {arrow.label}
+        </text>
+      )}
+      {arrow.inlineLabel && (
+        <text
+          x={inlineLabelLayout.x}
+          y={inlineLabelLayout.y}
+          fill={displayColor}
+          fontSize={fontSize}
+          fontFamily="sans-serif"
+          textAnchor="middle"
+          dominantBaseline="central"
+          transform={`rotate(${inlineLabelLayout.angleDegrees} ${inlineLabelLayout.x} ${inlineLabelLayout.y})`}
+          pointerEvents="none"
+        >
+          {arrow.inlineLabel}
+        </text>
+      )}
     </svg>
   )
 }

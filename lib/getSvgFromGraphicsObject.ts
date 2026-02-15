@@ -8,7 +8,11 @@ import {
   transform,
   translate,
 } from "transformation-matrix"
-import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
+import {
+  getArrowBoundingBox,
+  getArrowGeometry,
+  getInlineLabelLayout,
+} from "./arrowHelpers"
 import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
 import { clipInfiniteLineToBounds } from "./infiniteLineHelpers"
 import type { GraphicsObject, Point } from "./types"
@@ -124,14 +128,18 @@ export function getSvgFromGraphicsObject(
   graphics: GraphicsObject,
   {
     includeTextLabels = false,
+    hideInlineLabels = false,
     backgroundColor = "white",
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
     includeTextLabels?:
       | boolean
-      | Array<"points" | "lines" | "infiniteLines" | "rects" | "polygons">
+      | Array<
+          "points" | "lines" | "infiniteLines" | "rects" | "polygons" | "arrows"
+        >
     backgroundColor?: string | null
+    hideInlineLabels?: boolean
     svgWidth?: number
     svgHeight?: number
   } = {},
@@ -146,7 +154,13 @@ export function getSvgFromGraphicsObject(
   const strokeScale = Math.abs(matrix.a)
 
   const shouldRenderLabel = (
-    type: "points" | "lines" | "infiniteLines" | "rects" | "polygons",
+    type:
+      | "points"
+      | "lines"
+      | "infiniteLines"
+      | "rects"
+      | "polygons"
+      | "arrows",
   ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
@@ -480,6 +494,29 @@ export function getSvgFromGraphicsObject(
         const geometry = getArrowGeometry(arrow)
         const projectedShaftStart = projectPoint(geometry.shaftStart, matrix)
         const projectedShaftEnd = projectPoint(geometry.shaftEnd, matrix)
+        const fontSize = 12
+        const strokeWidth = geometry.shaftWidth
+        const alongSeparation = fontSize * 0.6
+        const inlineLabelLayout = getInlineLabelLayout(
+          projectedShaftStart,
+          projectedShaftEnd,
+          {
+            fontSize,
+            strokeWidth,
+            normalPadding: 6,
+            alongOffset: arrow.label ? alongSeparation : 0,
+          },
+        )
+        const arrowLabelLayout = getInlineLabelLayout(
+          projectedShaftStart,
+          projectedShaftEnd,
+          {
+            fontSize,
+            strokeWidth,
+            normalPadding: 12,
+            alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+          },
+        )
 
         const color = arrow.color || "black"
 
@@ -519,6 +556,45 @@ export function getSvgFromGraphicsObject(
             },
           },
           ...headChildren,
+          ...(shouldRenderLabel("arrows") && arrow.label
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    "data-type": "arrow-label",
+                    x: arrowLabelLayout.x.toString(),
+                    y: arrowLabelLayout.y.toString(),
+                    "font-family": "sans-serif",
+                    "font-size": fontSize.toString(),
+                    "text-anchor": "middle",
+                    "dominant-baseline": "central",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.label }],
+                },
+              ]
+            : []),
+          ...(!hideInlineLabels && arrow.inlineLabel
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    "data-type": "arrow-inline-label",
+                    x: inlineLabelLayout.x.toString(),
+                    y: inlineLabelLayout.y.toString(),
+                    transform: `rotate(${inlineLabelLayout.angleDegrees} ${inlineLabelLayout.x} ${inlineLabelLayout.y})`,
+                    "font-family": "sans-serif",
+                    "font-size": fontSize.toString(),
+                    "text-anchor": "middle",
+                    "dominant-baseline": "central",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.inlineLabel }],
+                },
+              ]
+            : []),
         ]
 
         return {
@@ -529,6 +605,10 @@ export function getSvgFromGraphicsObject(
             "data-start": `${arrow.start.x},${arrow.start.y}`,
             "data-end": `${arrow.end.x},${arrow.end.y}`,
             "data-double-sided": arrow.doubleSided ? "true" : "false",
+            ...(arrow.label ? { "data-label": arrow.label } : {}),
+            ...(arrow.inlineLabel
+              ? { "data-inline-label": arrow.inlineLabel }
+              : {}),
           },
           children,
         }

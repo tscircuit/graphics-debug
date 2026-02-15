@@ -6,7 +6,11 @@ import {
   scale,
   translate,
 } from "transformation-matrix"
-import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
+import {
+  getArrowBoundingBox,
+  getArrowGeometry,
+  getInlineLabelLayout,
+} from "./arrowHelpers"
 import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
 import {
   clipInfiniteLineToBounds,
@@ -316,6 +320,46 @@ export function drawGraphicsToCanvas(
         ctx.closePath()
         ctx.fill()
       })
+
+      const fontSize = 12
+      const screenStrokeWidth = geometry.shaftWidth * (scaleFactor || 1)
+      const alongSeparation = fontSize * 0.6
+      const inlineLabelLayout = getInlineLabelLayout(shaftStart, shaftEnd, {
+        fontSize,
+        strokeWidth: screenStrokeWidth,
+        normalPadding: 6,
+        alongOffset: arrow.label ? alongSeparation : 0,
+      })
+      const arrowLabelLayout = getInlineLabelLayout(shaftStart, shaftEnd, {
+        fontSize,
+        strokeWidth: screenStrokeWidth,
+        normalPadding: 12,
+        alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+      })
+
+      ctx.fillStyle = color
+      ctx.font = `${fontSize}px sans-serif`
+
+      if (!options.disableLabels && arrow.label) {
+        const labelX = arrowLabelLayout.x
+        const labelY = arrowLabelLayout.y
+
+        ctx.save()
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(arrow.label, labelX, labelY)
+        ctx.restore()
+      }
+
+      if (!options.hideInlineLabels && arrow.inlineLabel) {
+        ctx.save()
+        ctx.translate(inlineLabelLayout.x, inlineLabelLayout.y)
+        ctx.rotate(inlineLabelLayout.angleRadians)
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(arrow.inlineLabel, 0, 0)
+        ctx.restore()
+      }
     })
   }
 
