@@ -1,21 +1,22 @@
-import { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
-import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
 import {
-  drawGraphicsToCanvas,
   computeTransformFromViewbox,
+  drawGraphicsToCanvas,
   getBounds,
 } from "./drawGraphicsToCanvas"
+import { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
+import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
 import { mergeGraphics } from "./mergeGraphics"
 import { setStepOfAllObjects } from "./setStepOfAllObjects"
 import {
+  createGraphicsGrid,
   stackGraphicsHorizontally,
   stackGraphicsVertically,
-  createGraphicsGrid,
 } from "./stackGraphics"
 
 export type {
   Point,
   Line,
+  InfiniteLine,
   Rect,
   Circle,
   Polygon,

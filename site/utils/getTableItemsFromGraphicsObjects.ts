@@ -39,6 +39,16 @@ export const getTableItemsFromGraphicsObjects = (
     })
   }
 
+  if (graphicsObject.infiniteLines) {
+    graphicsObject.infiniteLines.forEach((line, idx) => {
+      objects.push({
+        type: "infinite-line",
+        id: `infinite-line-${idx}`,
+        properties: flattenObject(line),
+      })
+    })
+  }
+
   if (graphicsObject.rects) {
     graphicsObject.rects.forEach((rect, idx) => {
       objects.push({

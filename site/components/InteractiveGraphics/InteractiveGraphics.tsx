@@ -17,6 +17,7 @@ import { DimensionOverlay } from "../DimensionOverlay"
 import { Arrow } from "./Arrow"
 import { Circle } from "./Circle"
 import { ContextMenu } from "./ContextMenu"
+import { InfiniteLine } from "./InfiniteLine"
 import { InteractiveState } from "./InteractiveState"
 import { Line } from "./Line"
 import { Marker, MarkerPoint } from "./Marker"
@@ -37,7 +38,15 @@ import {
 } from "./hooks"
 
 export type GraphicsObjectClickEvent = {
-  type: "point" | "line" | "rect" | "circle" | "text" | "arrow" | "polygon"
+  type:
+    | "point"
+    | "line"
+    | "infinite-line"
+    | "rect"
+    | "circle"
+    | "text"
+    | "arrow"
+    | "polygon"
   index: number
   object: any
 }
@@ -67,6 +76,7 @@ export const InteractiveGraphics = ({
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
+      ...(graphics.infiniteLines?.map((l) => l.layer!).filter(Boolean) ?? []),
       ...(graphics.rects?.map((r) => r.layer!).filter(Boolean) ?? []),
       ...(graphics.polygons?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
@@ -367,6 +377,10 @@ export const InteractiveGraphics = ({
     () => filterAndLimit(graphics.lines, filterLines),
     [graphics.lines, filterLines, objectLimit],
   )
+  const filteredInfiniteLines = useMemo(
+    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+  )
   const filteredRects = useMemo(
     () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
     [graphics.rects, filterRects, objectLimit],
@@ -393,6 +407,7 @@ export const InteractiveGraphics = ({
   )
 
   const totalFilteredObjects =
+    filteredInfiniteLines.length +
     filteredLines.length +
     filteredRects.length +
     filteredPolygons.length +
@@ -492,6 +507,15 @@ export const InteractiveGraphics = ({
               arrow={arrow}
               index={arrow.originalIndex}
               interactiveState={interactiveState}
+            />
+          ))}
+          {filteredInfiniteLines.map((infiniteLine) => (
+            <InfiniteLine
+              key={infiniteLine.originalIndex}
+              infiniteLine={infiniteLine}
+              index={infiniteLine.originalIndex}
+              interactiveState={interactiveState}
+              size={size}
             />
           ))}
           {filteredLines.map((line) => (

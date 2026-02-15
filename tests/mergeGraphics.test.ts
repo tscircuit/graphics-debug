@@ -3,11 +3,17 @@ import { mergeGraphics } from "../lib/mergeGraphics"
 import type { GraphicsObject } from "../lib/types"
 
 describe("mergeGraphics", () => {
-  test("combines rects, points, lines, circles, texts, and arrows", () => {
+  test("combines rects, points, lines, infinite lines, circles, texts, and arrows", () => {
     const a: GraphicsObject = {
       points: [{ x: 0, y: 0 }],
       rects: [{ center: { x: 1, y: 1 }, width: 2, height: 2 }],
       texts: [{ x: 5, y: 5, text: "a" }],
+      infiniteLines: [
+        {
+          origin: { x: 0, y: 0 },
+          directionVector: { x: 1, y: 0 },
+        },
+      ],
       arrows: [
         {
           start: { x: 2, y: 2 },
@@ -26,6 +32,12 @@ describe("mergeGraphics", () => {
       ],
       circles: [{ center: { x: 4, y: 4 }, radius: 1 }],
       texts: [{ x: 6, y: 6, text: "b" }],
+      infiniteLines: [
+        {
+          origin: { x: 1, y: 1 },
+          directionVector: { x: 0, y: 1 },
+        },
+      ],
       arrows: [
         {
           start: { x: -1, y: -1 },
@@ -46,6 +58,16 @@ describe("mergeGraphics", () => {
         },
       ],
       circles: [{ center: { x: 4, y: 4 }, radius: 1 }],
+      infiniteLines: [
+        {
+          origin: { x: 0, y: 0 },
+          directionVector: { x: 1, y: 0 },
+        },
+        {
+          origin: { x: 1, y: 1 },
+          directionVector: { x: 0, y: 1 },
+        },
+      ],
       texts: [
         { x: 5, y: 5, text: "a" },
         { x: 6, y: 6, text: "b" },

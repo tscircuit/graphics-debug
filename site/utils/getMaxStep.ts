@@ -14,6 +14,7 @@ export function getMaxStep(graphics: GraphicsObject) {
 
   const maxPointStep = getMaxStepFromArray(graphics.points)
   const maxLineStep = getMaxStepFromArray(graphics.lines)
+  const maxInfiniteLineStep = getMaxStepFromArray(graphics.infiniteLines)
   const maxRectStep = getMaxStepFromArray(graphics.rects)
   const maxPolygonStep = getMaxStepFromArray(graphics.polygons)
   const maxCircleStep = getMaxStepFromArray(graphics.circles)
@@ -23,6 +24,7 @@ export function getMaxStep(graphics: GraphicsObject) {
   return Math.max(
     maxPointStep,
     maxLineStep,
+    maxInfiniteLineStep,
     maxRectStep,
     maxPolygonStep,
     maxCircleStep,
