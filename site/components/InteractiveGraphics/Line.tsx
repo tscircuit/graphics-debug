@@ -96,6 +96,7 @@ export const Line = ({
         left: svgLeft,
         width: svgWidth,
         height: svgHeight,
+        overflow: "visible",
         pointerEvents: "none",
       }}
     >
