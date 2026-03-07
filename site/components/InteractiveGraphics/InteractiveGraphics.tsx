@@ -362,60 +362,102 @@ export const InteractiveGraphics = ({
     filterLayerAndStep,
   })
 
-  const filterAndLimit = <T,>(
+  const filterObjects = <T,>(
     objects: T[] | undefined,
     filterFn: (obj: T) => boolean,
   ): (T & { originalIndex: number })[] => {
     if (!objects) return []
-    const filtered = objects
+    return objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
   }
 
-  const filteredLines = useMemo(
-    () => filterAndLimit(graphics.lines, filterLines),
-    [graphics.lines, filterLines, objectLimit],
+  const allFilteredLines = useMemo(
+    () => filterObjects(graphics.lines, filterLines),
+    [graphics.lines, filterLines],
   )
-  const filteredInfiniteLines = useMemo(
-    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
-    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+  const allFilteredInfiniteLines = useMemo(
+    () => filterObjects(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep],
   )
-  const filteredRects = useMemo(
-    () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
-    [graphics.rects, filterRects, objectLimit],
+  const allFilteredRects = useMemo(
+    () => sortRectsByArea(filterObjects(graphics.rects, filterRects)),
+    [graphics.rects, filterRects],
   )
-  const filteredPolygons = useMemo(
-    () => filterAndLimit(graphics.polygons, filterPolygons),
-    [graphics.polygons, filterPolygons, objectLimit],
+  const allFilteredPolygons = useMemo(
+    () => filterObjects(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons],
   )
-  const filteredPoints = useMemo(
-    () => filterAndLimit(graphics.points, filterPoints),
-    [graphics.points, filterPoints, objectLimit],
+  const allFilteredPoints = useMemo(
+    () => filterObjects(graphics.points, filterPoints),
+    [graphics.points, filterPoints],
   )
-  const filteredCircles = useMemo(
-    () => filterAndLimit(graphics.circles, filterCircles),
-    [graphics.circles, filterCircles, objectLimit],
+  const allFilteredCircles = useMemo(
+    () => filterObjects(graphics.circles, filterCircles),
+    [graphics.circles, filterCircles],
   )
-  const filteredTexts = useMemo(
-    () => filterAndLimit(graphics.texts, filterTexts),
-    [graphics.texts, filterTexts, objectLimit],
+  const allFilteredTexts = useMemo(
+    () => filterObjects(graphics.texts, filterTexts),
+    [graphics.texts, filterTexts],
   )
-  const filteredArrows = useMemo(
-    () => filterAndLimit(graphics.arrows, filterArrows),
-    [graphics.arrows, filterArrows, objectLimit],
+  const allFilteredArrows = useMemo(
+    () => filterObjects(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows],
   )
 
   const totalFilteredObjects =
-    filteredInfiniteLines.length +
-    filteredLines.length +
-    filteredRects.length +
-    filteredPolygons.length +
-    filteredPoints.length +
-    filteredCircles.length +
-    filteredTexts.length +
-    filteredArrows.length
-  const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
+    allFilteredInfiniteLines.length +
+    allFilteredLines.length +
+    allFilteredRects.length +
+    allFilteredPolygons.length +
+    allFilteredPoints.length +
+    allFilteredCircles.length +
+    allFilteredTexts.length +
+    allFilteredArrows.length
+
+  const applyGlobalLimit = <T,>(
+    objects: (T & { originalIndex: number })[],
+    remaining: number,
+  ) => {
+    if (remaining <= 0)
+      return { items: [] as (T & { originalIndex: number })[], remaining: 0 }
+    if (objects.length <= remaining)
+      return { items: objects, remaining: remaining - objects.length }
+    return { items: objects.slice(-remaining), remaining: 0 }
+  }
+
+  let remaining = objectLimit ?? Number.POSITIVE_INFINITY
+  const limitedArrows = applyGlobalLimit(allFilteredArrows, remaining)
+  remaining = limitedArrows.remaining
+  const limitedInfiniteLines = applyGlobalLimit(
+    allFilteredInfiniteLines,
+    remaining,
+  )
+  remaining = limitedInfiniteLines.remaining
+  const limitedLines = applyGlobalLimit(allFilteredLines, remaining)
+  remaining = limitedLines.remaining
+  const limitedRects = applyGlobalLimit(allFilteredRects, remaining)
+  remaining = limitedRects.remaining
+  const limitedPolygons = applyGlobalLimit(allFilteredPolygons, remaining)
+  remaining = limitedPolygons.remaining
+  const limitedPoints = applyGlobalLimit(allFilteredPoints, remaining)
+  remaining = limitedPoints.remaining
+  const limitedCircles = applyGlobalLimit(allFilteredCircles, remaining)
+  remaining = limitedCircles.remaining
+  const limitedTexts = applyGlobalLimit(allFilteredTexts, remaining)
+
+  const filteredArrows = limitedArrows.items
+  const filteredInfiniteLines = limitedInfiniteLines.items
+  const filteredLines = limitedLines.items
+  const filteredRects = limitedRects.items
+  const filteredPolygons = limitedPolygons.items
+  const filteredPoints = limitedPoints.items
+  const filteredCircles = limitedCircles.items
+  const filteredTexts = limitedTexts.items
+
+  const isLimitReached = Boolean(
+    objectLimit && totalFilteredObjects > objectLimit,
+  )
 
   return (
     <div>
