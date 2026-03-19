@@ -468,27 +468,6 @@ export function drawGraphicsToCanvas(
     })
   }
 
-  // Draw points
-  if (graphics.points && graphics.points.length > 0) {
-    graphics.points.forEach((point, pointIndex) => {
-      const projected = applyToPoint(matrix, point)
-
-      // Draw point as a small circle
-      ctx.beginPath()
-      ctx.arc(projected.x, projected.y, 3, 0, 2 * Math.PI)
-      ctx.fillStyle =
-        point.color || defaultColors[pointIndex % defaultColors.length]
-      ctx.fill()
-
-      // Draw label if present and labels aren't disabled
-      if (point.label && !options.disableLabels) {
-        ctx.fillStyle = point.color || "black"
-        ctx.font = "12px sans-serif"
-        ctx.fillText(point.label, projected.x + 5, projected.y - 5)
-      }
-    })
-  }
-
   // Draw texts
   if (graphics.texts && graphics.texts.length > 0) {
     graphics.texts.forEach((text) => {
@@ -523,6 +502,27 @@ export function drawGraphicsToCanvas(
       ctx.textBaseline = baselineMap[anchor]
 
       ctx.fillText(text.text, projected.x, projected.y)
+    })
+  }
+
+  // Draw points
+  if (graphics.points && graphics.points.length > 0) {
+    graphics.points.forEach((point, pointIndex) => {
+      const projected = applyToPoint(matrix, point)
+
+      // Draw point as a small circle
+      ctx.beginPath()
+      ctx.arc(projected.x, projected.y, 3, 0, 2 * Math.PI)
+      ctx.fillStyle =
+        point.color || defaultColors[pointIndex % defaultColors.length]
+      ctx.fill()
+
+      // Draw label if present and labels aren't disabled
+      if (point.label && !options.disableLabels) {
+        ctx.fillStyle = point.color || "black"
+        ctx.font = "12px sans-serif"
+        ctx.fillText(point.label, projected.x + 5, projected.y - 5)
+      }
     })
   }
 

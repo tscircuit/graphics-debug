@@ -195,46 +195,6 @@ export function getSvgFromGraphicsObject(
             },
           ]
         : []),
-      // Points
-      ...(graphics.points || []).map((point) => {
-        const projected = projectPoint(point, matrix)
-        return {
-          name: "g",
-          type: "element",
-          attributes: {},
-          children: [
-            {
-              name: "circle",
-              type: "element",
-              attributes: {
-                "data-type": "point",
-                "data-label": point.label || "",
-                "data-x": point.x.toString(),
-                "data-y": point.y.toString(),
-                cx: projected.x.toString(),
-                cy: projected.y.toString(),
-                r: "3",
-                fill: point.color || "black",
-              },
-            },
-            ...(shouldRenderLabel("points") && point.label
-              ? [
-                  {
-                    name: "text",
-                    type: "element",
-                    attributes: {
-                      x: (projected.x + 5).toString(),
-                      y: (projected.y - 5).toString(),
-                      "font-family": "sans-serif",
-                      "font-size": "12",
-                    },
-                    children: [{ type: "text", value: point.label }],
-                  },
-                ]
-              : []),
-          ],
-        }
-      }),
       // Lines
       ...(graphics.lines || []).map((line) => {
         const projectedPoints = line.points.map((p) => projectPoint(p, matrix))
@@ -656,6 +616,46 @@ export function getSvgFromGraphicsObject(
             "dominant-baseline": baselineMap[anchor],
           },
           children: [{ type: "text", value: txt.text }],
+        }
+      }),
+      // Points
+      ...(graphics.points || []).map((point) => {
+        const projected = projectPoint(point, matrix)
+        return {
+          name: "g",
+          type: "element",
+          attributes: {},
+          children: [
+            {
+              name: "circle",
+              type: "element",
+              attributes: {
+                "data-type": "point",
+                "data-label": point.label || "",
+                "data-x": point.x.toString(),
+                "data-y": point.y.toString(),
+                cx: projected.x.toString(),
+                cy: projected.y.toString(),
+                r: "3",
+                fill: point.color || "black",
+              },
+            },
+            ...(shouldRenderLabel("points") && point.label
+              ? [
+                  {
+                    name: "text",
+                    type: "element",
+                    attributes: {
+                      x: (projected.x + 5).toString(),
+                      y: (projected.y - 5).toString(),
+                      "font-family": "sans-serif",
+                      "font-size": "12",
+                    },
+                    children: [{ type: "text", value: point.label }],
+                  },
+                ]
+              : []),
+          ],
         }
       }),
       // Crosshair lines and coordinates (initially hidden)

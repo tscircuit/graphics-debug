@@ -542,14 +542,6 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPoints.map((point) => (
-            <Point
-              key={point.originalIndex}
-              point={point}
-              index={point.originalIndex}
-              interactiveState={interactiveState}
-            />
-          ))}
           {filteredCircles.map((circle) => (
             <Circle
               key={circle.originalIndex}
@@ -563,6 +555,14 @@ export const InteractiveGraphics = ({
               key={txt.originalIndex}
               textObj={txt}
               index={txt.originalIndex}
+              interactiveState={interactiveState}
+            />
+          ))}
+          {filteredPoints.map((point) => (
+            <Point
+              key={point.originalIndex}
+              point={point}
+              index={point.originalIndex}
               interactiveState={interactiveState}
             />
           ))}
