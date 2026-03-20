@@ -68,6 +68,8 @@ export interface Arrow {
   color?: string
   label?: string
   inlineLabel?: string
+  layer?: string
+  step?: number
 }
 
 export type NinePointAnchor =
