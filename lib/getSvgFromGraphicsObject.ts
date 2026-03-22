@@ -196,58 +196,67 @@ export function getSvgFromGraphicsObject(
           ]
         : []),
       // Lines
-      ...(graphics.lines || []).map((line) => {
-        const projectedPoints = line.points.map((p) => projectPoint(p, matrix))
-        return {
-          name: "g",
-          type: "element",
-          attributes: {},
-          children: [
-            {
-              name: "polyline",
-              type: "element",
-              attributes: {
-                "data-points": line.points
-                  .map((p) => `${p.x},${p.y}`)
-                  .join(" "),
-                "data-type": "line",
-                "data-label": line.label || "",
-                points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
-                fill: "none",
-                stroke: line.strokeColor || "black",
-                "stroke-width": !line.strokeWidth
-                  ? "1px"
-                  : typeof line.strokeWidth === "string"
-                    ? line.strokeWidth
-                    : (strokeScale * line.strokeWidth).toString(),
-                ...(line.strokeDash && {
-                  "stroke-dasharray": Array.isArray(line.strokeDash)
-                    ? line.strokeDash.join(" ")
-                    : line.strokeDash,
-                }),
+      ...(graphics.lines || [])
+        .map((line, originalIndex) => ({ line, originalIndex }))
+        .sort(
+          (a, b) =>
+            (a.line.zIndex ?? 0) - (b.line.zIndex ?? 0) ||
+            a.originalIndex - b.originalIndex,
+        )
+        .map(({ line }) => {
+          const projectedPoints = line.points.map((p) =>
+            projectPoint(p, matrix),
+          )
+          return {
+            name: "g",
+            type: "element",
+            attributes: {},
+            children: [
+              {
+                name: "polyline",
+                type: "element",
+                attributes: {
+                  "data-points": line.points
+                    .map((p) => `${p.x},${p.y}`)
+                    .join(" "),
+                  "data-type": "line",
+                  "data-label": line.label || "",
+                  points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
+                  fill: "none",
+                  stroke: line.strokeColor || "black",
+                  "stroke-width": !line.strokeWidth
+                    ? "1px"
+                    : typeof line.strokeWidth === "string"
+                      ? line.strokeWidth
+                      : (strokeScale * line.strokeWidth).toString(),
+                  ...(line.strokeDash && {
+                    "stroke-dasharray": Array.isArray(line.strokeDash)
+                      ? line.strokeDash.join(" ")
+                      : line.strokeDash,
+                  }),
+                },
               },
-            },
-            ...(shouldRenderLabel("lines") &&
-            line.label &&
-            projectedPoints.length > 0
-              ? [
-                  {
-                    name: "text",
-                    type: "element",
-                    attributes: {
-                      x: (projectedPoints[0].x + 5).toString(),
-                      y: (projectedPoints[0].y - 5).toString(),
-                      "font-family": "sans-serif",
-                      "font-size": "12",
-                      fill: line.strokeColor || "black",
+              ...(shouldRenderLabel("lines") &&
+              line.label &&
+              projectedPoints.length > 0
+                ? [
+                    {
+                      name: "text",
+                      type: "element",
+                      attributes: {
+                        x: (projectedPoints[0].x + 5).toString(),
+                        y: (projectedPoints[0].y - 5).toString(),
+                        "font-family": "sans-serif",
+                        "font-size": "12",
+                        fill: line.strokeColor || "black",
+                      },
+                      children: [{ type: "text", value: line.label }],
                     },
-                    children: [{ type: "text", value: line.label }],
-                  },
-                ]
-              : []),
-          ],
-        }
-      }),
+                  ]
+                : []),
+            ],
+          }
+        }),
       ...(graphics.infiniteLines || []).flatMap((line) => {
         const segment = clipInfiniteLineToBounds(line, bounds)
         if (!segment) return []

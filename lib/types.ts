@@ -12,6 +12,7 @@ export interface Line {
   strokeWidth?: number
   strokeColor?: string
   strokeDash?: string | number[]
+  zIndex?: number
   layer?: string
   step?: number
   label?: string

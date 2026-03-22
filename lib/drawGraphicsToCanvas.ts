@@ -365,57 +365,64 @@ export function drawGraphicsToCanvas(
 
   // Draw lines
   if (graphics.lines && graphics.lines.length > 0) {
-    graphics.lines.forEach((line, lineIndex) => {
-      if (line.points.length === 0) return
+    graphics.lines
+      .map((line, originalIndex) => ({ line, originalIndex }))
+      .sort(
+        (a, b) =>
+          (a.line.zIndex ?? 0) - (b.line.zIndex ?? 0) ||
+          a.originalIndex - b.originalIndex,
+      )
+      .forEach(({ line, originalIndex: lineIndex }) => {
+        if (line.points.length === 0) return
 
-      ctx.beginPath()
+        ctx.beginPath()
 
-      const firstPoint = applyToPoint(matrix, line.points[0])
-      ctx.moveTo(firstPoint.x, firstPoint.y)
+        const firstPoint = applyToPoint(matrix, line.points[0])
+        ctx.moveTo(firstPoint.x, firstPoint.y)
 
-      for (let i = 1; i < line.points.length; i++) {
-        const projected = applyToPoint(matrix, line.points[i])
-        ctx.lineTo(projected.x, projected.y)
-      }
-
-      ctx.strokeStyle =
-        line.strokeColor || defaultColors[lineIndex % defaultColors.length]
-      if (line.strokeWidth) {
-        ctx.lineWidth = line.strokeWidth * matrix.a
-      } else {
-        ctx.lineWidth = 2
-      }
-      ctx.lineCap = "round"
-
-      if (line.strokeDash) {
-        if (typeof line.strokeDash === "string") {
-          // Convert string to array of numbers, handling single values properly
-          let dashArray: number[]
-
-          // If the string contains commas, split and convert to numbers
-          if (line.strokeDash.includes(",")) {
-            dashArray = line.strokeDash
-              .split(",")
-              .map((s) => parseFloat(s.trim()))
-              .filter((n) => !Number.isNaN(n))
-          } else {
-            // Handle single value case
-            const value = parseFloat(line.strokeDash.trim())
-            dashArray = !Number.isNaN(value) ? [value] : []
-          }
-
-          // Scale dash values based on transform matrix
-          ctx.setLineDash(dashArray)
-        } else {
-          // Handle array format
-          ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
+        for (let i = 1; i < line.points.length; i++) {
+          const projected = applyToPoint(matrix, line.points[i])
+          ctx.lineTo(projected.x, projected.y)
         }
-      } else {
-        ctx.setLineDash([])
-      }
 
-      ctx.stroke()
-    })
+        ctx.strokeStyle =
+          line.strokeColor || defaultColors[lineIndex % defaultColors.length]
+        if (line.strokeWidth) {
+          ctx.lineWidth = line.strokeWidth * matrix.a
+        } else {
+          ctx.lineWidth = 2
+        }
+        ctx.lineCap = "round"
+
+        if (line.strokeDash) {
+          if (typeof line.strokeDash === "string") {
+            // Convert string to array of numbers, handling single values properly
+            let dashArray: number[]
+
+            // If the string contains commas, split and convert to numbers
+            if (line.strokeDash.includes(",")) {
+              dashArray = line.strokeDash
+                .split(",")
+                .map((s) => parseFloat(s.trim()))
+                .filter((n) => !Number.isNaN(n))
+            } else {
+              // Handle single value case
+              const value = parseFloat(line.strokeDash.trim())
+              dashArray = !Number.isNaN(value) ? [value] : []
+            }
+
+            // Scale dash values based on transform matrix
+            ctx.setLineDash(dashArray)
+          } else {
+            // Handle array format
+            ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
+          }
+        } else {
+          ctx.setLineDash([])
+        }
+
+        ctx.stroke()
+      })
   }
 
   if (graphics.infiniteLines && graphics.infiniteLines.length > 0) {
