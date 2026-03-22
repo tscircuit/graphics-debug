@@ -374,7 +374,12 @@ export const InteractiveGraphics = ({
   }
 
   const filteredLines = useMemo(
-    () => filterAndLimit(graphics.lines, filterLines),
+    () =>
+      filterAndLimit(graphics.lines, filterLines).sort(
+        (a, b) =>
+          (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
+          a.originalIndex - b.originalIndex,
+      ),
     [graphics.lines, filterLines, objectLimit],
   )
   const filteredInfiniteLines = useMemo(
