@@ -73,6 +73,10 @@ export const InteractiveGraphics = ({
     clientY: number
   } | null>(null)
   const [markers, setMarkers] = useState<MarkerPoint[]>([])
+  const [mousePosition, setMousePosition] = useState<{
+    x: number
+    y: number
+  } | null>(null)
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
@@ -503,6 +507,15 @@ export const InteractiveGraphics = ({
           height,
           overflow: "hidden",
         }}
+        onMouseMove={(event) => {
+          const rect = ref.current?.getBoundingClientRect()
+          if (!rect) return
+          setMousePosition({
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          })
+        }}
+        onMouseLeave={() => setMousePosition(null)}
         onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
@@ -529,6 +542,8 @@ export const InteractiveGraphics = ({
               line={line}
               index={line.originalIndex}
               interactiveState={interactiveState}
+              size={size}
+              mousePosition={mousePosition}
             />
           ))}
           {filteredRects.map((rect) => (
