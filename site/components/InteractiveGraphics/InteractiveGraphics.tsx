@@ -418,7 +418,7 @@ export const InteractiveGraphics = ({
       if (remaining <= 0) return []
       const allowed = Math.min(arr.length, remaining)
       remaining -= allowed
-      return arr.slice(0, allowed)
+      return arr.slice(-allowed)
     }
 
     return {
