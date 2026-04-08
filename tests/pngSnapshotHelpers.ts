@@ -45,8 +45,5 @@ export async function expectPngToMatchSnapshot(
     tolerance: 2.3,
   })
 
-  expect(
-    result.equal,
-    `PNG snapshot does not match. Diff saved at ${diffPath}`,
-  ).toBe(true)
+  throw new Error(`PNG snapshot does not match. Diff saved at ${diffPath}`)
 }
