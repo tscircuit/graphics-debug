@@ -1,6 +1,3 @@
-import { encode } from "fast-png"
-import { Bitmap } from "pureimage/dist/bitmap.js"
-import type { Context } from "pureimage/dist/context.js"
 import { applyToPoint, type Matrix } from "transformation-matrix"
 import { getArrowGeometry, getInlineLabelLayout } from "./arrowHelpers"
 import { computeTransformFromViewbox, getBounds } from "./drawGraphicsToCanvas"
@@ -8,6 +5,10 @@ import {
   clipInfiniteLineToBounds,
   getViewportBoundsFromMatrix,
 } from "./infiniteLineHelpers"
+import {
+  createSoftwareRasterSurface,
+  type RasterContext,
+} from "./softwareRasterSurface"
 import { strokeAlphabetText } from "./strokeAlphabetText"
 import type {
   GraphicsObject,
@@ -77,24 +78,8 @@ const normalizeDashPattern = (dashPattern: number[]) => {
     : [...dashPattern, ...dashPattern]
 }
 
-const withSuppressedPureImageWarnings = <T>(fn: () => T) => {
-  const originalWarn = console.warn
-  console.warn = (...args: unknown[]) => {
-    if (args[0] === "can't project the same paths") {
-      return
-    }
-    originalWarn(...args)
-  }
-
-  try {
-    return fn()
-  } finally {
-    console.warn = originalWarn
-  }
-}
-
 const strokePolyline = (
-  ctx: Context,
+  ctx: RasterContext,
   points: Point[],
   dashPattern: number[] | undefined,
 ) => {
@@ -106,7 +91,7 @@ const strokePolyline = (
     for (let i = 1; i < points.length; i++) {
       ctx.lineTo(points[i].x, points[i].y)
     }
-    withSuppressedPureImageWarnings(() => ctx.stroke())
+    ctx.stroke()
     return
   }
 
@@ -158,11 +143,11 @@ const strokePolyline = (
     }
   }
 
-  withSuppressedPureImageWarnings(() => ctx.stroke())
+  ctx.stroke()
 }
 
 const renderText = (
-  ctx: Context,
+  ctx: RasterContext,
   {
     text,
     x,
@@ -181,18 +166,16 @@ const renderText = (
     rotationRadians?: number
   },
 ) => {
-  withSuppressedPureImageWarnings(() =>
-    strokeAlphabetText({
-      ctx,
-      text,
-      fontSize,
-      startX: x,
-      startY: y,
-      color: color ?? "black",
-      anchorAlignment: anchorAlignment ?? "top_left",
-      rotationRadians,
-    }),
-  )
+  strokeAlphabetText({
+    ctx,
+    text,
+    fontSize,
+    startX: x,
+    startY: y,
+    color: color ?? "black",
+    anchorAlignment: anchorAlignment ?? "top_left",
+    rotationRadians,
+  })
 }
 
 export async function getPngBufferFromGraphicsObject(
@@ -206,8 +189,8 @@ export async function getPngBufferFromGraphicsObject(
     ...transformOptions
   }: PngRenderOptions = {},
 ): Promise<Uint8Array> {
-  const image = new Bitmap(pngWidth, pngHeight)
-  const ctx = image.getContext("2d")
+  const surface = createSoftwareRasterSurface(pngWidth, pngHeight)
+  const { ctx } = surface
 
   ctx.clearRect(0, 0, pngWidth, pngHeight)
   if (backgroundColor) {
@@ -375,7 +358,7 @@ export async function getPngBufferFromGraphicsObject(
 
     if (hasVisiblePaint(polygon.fill)) {
       ctx.fillStyle = polygon.fill!
-      withSuppressedPureImageWarnings(() => ctx.fill())
+      ctx.fill()
     }
 
     if (hasVisiblePaint(polygon.stroke)) {
@@ -384,7 +367,7 @@ export async function getPngBufferFromGraphicsObject(
         polygon.strokeWidth === undefined
           ? 1
           : Math.max(polygon.strokeWidth * strokeScale, 1)
-      withSuppressedPureImageWarnings(() => ctx.stroke())
+      ctx.stroke()
     }
 
     if (
@@ -414,13 +397,13 @@ export async function getPngBufferFromGraphicsObject(
 
     if (hasVisiblePaint(circle.fill)) {
       ctx.fillStyle = circle.fill!
-      withSuppressedPureImageWarnings(() => ctx.fill())
+      ctx.fill()
     }
 
     if (hasVisiblePaint(circle.stroke)) {
       ctx.strokeStyle = circle.stroke!
       ctx.lineWidth = 1
-      withSuppressedPureImageWarnings(() => ctx.stroke())
+      ctx.stroke()
     }
   }
 
@@ -460,7 +443,7 @@ export async function getPngBufferFromGraphicsObject(
       ctx.lineTo(leftWing.x, leftWing.y)
       ctx.lineTo(rightWing.x, rightWing.y)
       ctx.closePath()
-      withSuppressedPureImageWarnings(() => ctx.fill())
+      ctx.fill()
     }
 
     if (
@@ -516,7 +499,7 @@ export async function getPngBufferFromGraphicsObject(
     ctx.beginPath()
     ctx.arc(projected.x, projected.y, 3, 0, Math.PI * 2)
     ctx.fillStyle = point.color || "black"
-    withSuppressedPureImageWarnings(() => ctx.fill())
+    ctx.fill()
 
     if (
       shouldRenderLabel(
@@ -536,9 +519,5 @@ export async function getPngBufferFromGraphicsObject(
     }
   }
 
-  return encode({
-    width: image.width,
-    height: image.height,
-    data: image.data,
-  })
+  return surface.exportPng()
 }

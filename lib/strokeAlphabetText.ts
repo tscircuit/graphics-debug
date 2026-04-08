@@ -17,6 +17,8 @@ export interface StrokeAlphabetContext {
   rotate(angleRadians: number): void
   strokeStyle: string
   lineWidth: number
+  lineCap?: string
+  lineJoin?: string
 }
 
 export type AlphabetLayout = {
@@ -236,6 +238,8 @@ export function strokeAlphabetText({
 
   ctx.strokeStyle = color
   ctx.lineWidth = strokeWidth
+  ctx.lineCap = "round"
+  ctx.lineJoin = "round"
 
   lines.forEach((line, lineIndex) => {
     const lineStartX =
