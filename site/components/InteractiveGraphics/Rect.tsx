@@ -68,6 +68,8 @@ export const Rect = ({
             left: "50%",
             transform: "translateX(-50%)",
             marginBottom: 8,
+            zIndex: 200,
+            pointerEvents: "none",
           }}
         >
           <Tooltip text={rect.label} />
