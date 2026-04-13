@@ -6,6 +6,7 @@ import { safeLighten } from "site/utils/safeLighten"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
 import { defaultColors } from "./defaultColors"
+import { Tooltip } from "./Tooltip"
 
 export const Arrow = ({
   arrow,
@@ -62,6 +63,10 @@ export const Arrow = ({
   const baseColor =
     arrow.color || defaultColors[index % defaultColors.length] || "black"
   const displayColor = isHovered ? safeLighten(0.2, baseColor) : baseColor
+  const tooltipText = [arrow.label, arrow.inlineLabel]
+    .filter(Boolean)
+    .join("\n")
+  const tooltipAnchor = arrow.label ? labelLayout : inlineLabelLayout
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -97,71 +102,64 @@ export const Arrow = ({
   }
 
   return (
-    <svg
+    <div
       style={{
         position: "absolute",
         top: 0,
         left: 0,
         width: "100%",
         height: "100%",
+        pointerEvents: "none",
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={
-        isHovered
-          ? (event) => {
-              event.stopPropagation()
-              onObjectClicked?.({ type: "arrow", index, object: arrow })
-            }
-          : undefined
-      }
     >
-      <line
-        x1={screenPoints.shaftStart.x}
-        y1={screenPoints.shaftStart.y}
-        x2={screenPoints.shaftEnd.x}
-        y2={screenPoints.shaftEnd.y}
-        stroke={displayColor}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        pointerEvents="stroke"
-      />
-      {screenPoints.heads.map((head, headIndex) => (
-        <polygon
-          key={headIndex}
-          points={`${head.tip.x},${head.tip.y} ${head.leftWing.x},${head.leftWing.y} ${head.rightWing.x},${head.rightWing.y}`}
-          fill={displayColor}
+      <svg
+        style={{
+          width: "100%",
+          height: "100%",
+          pointerEvents: "auto",
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={
+          isHovered
+            ? (event) => {
+                event.stopPropagation()
+                onObjectClicked?.({ type: "arrow", index, object: arrow })
+              }
+            : undefined
+        }
+      >
+        <line
+          x1={screenPoints.shaftStart.x}
+          y1={screenPoints.shaftStart.y}
+          x2={screenPoints.shaftEnd.x}
+          y2={screenPoints.shaftEnd.y}
+          stroke={displayColor}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          pointerEvents="stroke"
         />
-      ))}
-      {arrow.label && (
-        <text
-          x={labelLayout.x}
-          y={labelLayout.y}
-          fill={displayColor}
-          fontSize={fontSize}
-          fontFamily="sans-serif"
-          textAnchor="middle"
-          dominantBaseline="central"
-          pointerEvents="none"
+        {screenPoints.heads.map((head, headIndex) => (
+          <polygon
+            key={headIndex}
+            points={`${head.tip.x},${head.tip.y} ${head.leftWing.x},${head.leftWing.y} ${head.rightWing.x},${head.rightWing.y}`}
+            fill={displayColor}
+          />
+        ))}
+      </svg>
+      {isHovered && tooltipText && (
+        <div
+          style={{
+            position: "absolute",
+            left: tooltipAnchor.x,
+            top: tooltipAnchor.y - 8,
+            transform: "translate(-50%, -100%)",
+            pointerEvents: "none",
+          }}
         >
-          {arrow.label}
-        </text>
+          <Tooltip text={tooltipText} />
+        </div>
       )}
-      {arrow.inlineLabel && (
-        <text
-          x={inlineLabelLayout.x}
-          y={inlineLabelLayout.y}
-          fill={displayColor}
-          fontSize={fontSize}
-          fontFamily="sans-serif"
-          textAnchor="middle"
-          dominantBaseline="central"
-          transform={`rotate(${inlineLabelLayout.angleDegrees} ${inlineLabelLayout.x} ${inlineLabelLayout.y})`}
-          pointerEvents="none"
-        >
-          {arrow.inlineLabel}
-        </text>
-      )}
-    </svg>
+    </div>
   )
 }

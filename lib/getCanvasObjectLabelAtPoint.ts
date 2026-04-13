@@ -16,6 +16,8 @@ const DEFAULT_HIT_SLOP = 8
 type ScreenPoint = { x: number; y: number }
 
 const getScaleFactor = (matrix: Matrix) => Math.hypot(matrix.a, matrix.b) || 1
+const getArrowLabel = (arrow: Arrow) =>
+  [arrow.label, arrow.inlineLabel].filter(Boolean).join("\n")
 
 const getDistanceBetweenPoints = (a: ScreenPoint, b: ScreenPoint) => {
   return Math.hypot(a.x - b.x, a.y - b.y)
@@ -305,7 +307,7 @@ export function getCanvasObjectLabelAtPoint(
 
   for (let index = (graphics.arrows?.length ?? 0) - 1; index >= 0; index -= 1) {
     const arrow = graphics.arrows?.[index]
-    const label = arrow?.label ?? arrow?.inlineLabel
+    const label = arrow ? getArrowLabel(arrow) : ""
     if (!arrow || !label) continue
     if (isArrowHit(screenPoint, arrow, matrix, hitSlop)) {
       return label

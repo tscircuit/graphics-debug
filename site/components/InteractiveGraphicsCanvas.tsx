@@ -4,6 +4,8 @@ import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { compose, scale, translate, type Matrix } from "transformation-matrix"
 import useResizeObserver from "@react-hook/resize-observer"
 import { getCanvasObjectLabelAtPoint } from "../../lib/getCanvasObjectLabelAtPoint"
+import { ObjectLabelDialog } from "./ObjectLabelDialog"
+import { Tooltip } from "./InteractiveGraphics/Tooltip"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { getGraphicsFilteredByStep } from "site/utils/getGraphicsFilteredByStep"
 import { getGraphicsBoundsWithPadding } from "site/utils/getGraphicsBoundsWithPadding"
@@ -18,7 +20,6 @@ interface InteractiveGraphicsCanvasProps {
 
 export function InteractiveGraphicsCanvas({
   graphics,
-  showLabelsByDefault = false,
   showGrid = true,
   height = 500,
   width = "100%",
@@ -27,9 +28,15 @@ export function InteractiveGraphicsCanvas({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
   const [activeStep, setActiveStep] = useState<number | null>(null)
-  const [showLabels, setShowLabels] = useState(showLabelsByDefault)
   const [showLastStep, setShowLastStep] = useState(true)
   const [enableObjectInteraction, setEnableObjectInteraction] = useState(false)
+  const [hoveredObjectLabel, setHoveredObjectLabel] = useState<string | null>(
+    null,
+  )
+  const [hoveredObjectPosition, setHoveredObjectPosition] = useState<{
+    x: number
+    y: number
+  } | null>(null)
   const [selectedObjectLabel, setSelectedObjectLabel] = useState<string | null>(
     null,
   )
@@ -91,8 +98,8 @@ export function InteractiveGraphicsCanvas({
     // Draw the graphics with the current transform
     drawGraphicsToCanvas(filteredGraphics, canvasRef.current, {
       transform: transform,
-      disableLabels: !showLabels,
-      hideInlineLabels: !showLabels,
+      disableLabels: true,
+      hideInlineLabels: true,
     })
 
     // Draw a grid for reference if requested
@@ -175,33 +182,60 @@ export function InteractiveGraphicsCanvas({
     }
   }
 
-  const handleCanvasClick = (event: MouseEvent<HTMLCanvasElement>) => {
-    if (!enableObjectInteraction || !canvasRef.current) return
+  const getCanvasLabelFromEvent = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) {
+      return {
+        label: null,
+        overlayPoint: null,
+      }
+    }
 
     const canvas = canvasRef.current
     const bounds = canvas.getBoundingClientRect()
     const scaleX = bounds.width === 0 ? 1 : canvas.width / bounds.width
     const scaleY = bounds.height === 0 ? 1 : canvas.height / bounds.height
 
+    const overlayPoint = {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    }
+
     const label = getCanvasObjectLabelAtPoint(
       filteredGraphics,
       transform,
       {
-        x: (event.clientX - bounds.left) * scaleX,
-        y: (event.clientY - bounds.top) * scaleY,
+        x: overlayPoint.x * scaleX,
+        y: overlayPoint.y * scaleY,
       },
       {
         hitSlop: 8,
       },
     )
 
+    return { label, overlayPoint }
+  }
+
+  const handleCanvasMouseMove = (event: MouseEvent<HTMLCanvasElement>) => {
+    const { label, overlayPoint } = getCanvasLabelFromEvent(event)
+    setHoveredObjectLabel(label)
+    setHoveredObjectPosition(label ? overlayPoint : null)
+  }
+
+  const handleCanvasMouseLeave = () => {
+    setHoveredObjectLabel(null)
+    setHoveredObjectPosition(null)
+  }
+
+  const handleCanvasClick = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!enableObjectInteraction) return
+    const { label } = getCanvasLabelFromEvent(event)
     setSelectedObjectLabel(label)
   }
 
   // Apply the drawing when transform changes
   useEffect(() => {
     drawCanvas()
-  }, [transform, size, filteredGraphics, showGrid, showLabels])
+  }, [transform, size, filteredGraphics, showGrid])
 
   useEffect(() => {
     if (!selectedObjectLabel) return
@@ -267,18 +301,6 @@ export function InteractiveGraphicsCanvas({
             <input
               type="checkbox"
               style={{ marginRight: 4 }}
-              checked={showLabels}
-              onChange={(e) => {
-                setShowLabels(e.target.checked)
-              }}
-            />
-            Show labels
-          </label>
-
-          <label>
-            <input
-              type="checkbox"
-              style={{ marginRight: 4 }}
               checked={enableObjectInteraction}
               onChange={(event) => {
                 const isEnabled = event.target.checked
@@ -312,6 +334,8 @@ export function InteractiveGraphicsCanvas({
       >
         <canvas
           ref={canvasRef}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseLeave={handleCanvasMouseLeave}
           onClick={handleCanvasClick}
           style={{
             position: "absolute",
@@ -322,60 +346,27 @@ export function InteractiveGraphicsCanvas({
           }}
         />
 
-        {selectedObjectLabel && (
+        {hoveredObjectLabel && hoveredObjectPosition && (
           <div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Object label"
-            onClick={() => {
-              setSelectedObjectLabel(null)
-            }}
             style={{
               position: "absolute",
-              inset: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 16,
-              background: "rgba(0, 0, 0, 0.28)",
+              left: hoveredObjectPosition.x,
+              top: hoveredObjectPosition.y - 12,
+              transform: "translate(-50%, -100%)",
+              pointerEvents: "none",
             }}
           >
-            <div
-              onClick={(event) => {
-                event.stopPropagation()
-              }}
-              style={{
-                width: "min(420px, 100%)",
-                background: "#fff",
-                borderRadius: 10,
-                boxShadow: "0 12px 32px rgba(0, 0, 0, 0.2)",
-                padding: 16,
-              }}
-            >
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>
-                Object label
-              </div>
-              <div
-                style={{
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                  marginBottom: 16,
-                }}
-              >
-                {selectedObjectLabel}
-              </div>
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedObjectLabel(null)
-                  }}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+            <Tooltip text={hoveredObjectLabel} />
           </div>
+        )}
+
+        {selectedObjectLabel && (
+          <ObjectLabelDialog
+            label={selectedObjectLabel}
+            onClose={() => {
+              setSelectedObjectLabel(null)
+            }}
+          />
         )}
       </div>
     </div>

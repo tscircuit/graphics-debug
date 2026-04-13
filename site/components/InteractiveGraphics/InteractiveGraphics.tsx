@@ -14,6 +14,7 @@ import {
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
 import { GraphicsObject } from "../../../lib"
 import { DimensionOverlay } from "../DimensionOverlay"
+import { ObjectLabelDialog } from "../ObjectLabelDialog"
 import { Arrow } from "./Arrow"
 import { Circle } from "./Circle"
 import { ContextMenu } from "./ContextMenu"
@@ -72,6 +73,10 @@ export const InteractiveGraphics = ({
     clientX: number
     clientY: number
   } | null>(null)
+  const [enableObjectInteraction, setEnableObjectInteraction] = useState(false)
+  const [selectedObjectLabel, setSelectedObjectLabel] = useState<string | null>(
+    null,
+  )
   const [markers, setMarkers] = useState<MarkerPoint[]>([])
   const [mousePosition, setMousePosition] = useState<{
     x: number
@@ -297,14 +302,55 @@ export const InteractiveGraphics = ({
     }
   }, [getSavedData, saveToLocalStorage])
 
+  const getObjectInteractionLabel = useCallback(
+    (event: GraphicsObjectClickEvent) => {
+      switch (event.type) {
+        case "arrow":
+          return [event.object.label, event.object.inlineLabel]
+            .filter(Boolean)
+            .join("\n")
+        case "text":
+          return event.object.text ?? ""
+        default:
+          return event.object.label ?? ""
+      }
+    },
+    [],
+  )
+
+  const handleObjectClicked = useCallback(
+    (event: GraphicsObjectClickEvent) => {
+      onObjectClicked?.(event)
+      if (!enableObjectInteraction) return
+      const label = getObjectInteractionLabel(event)
+      setSelectedObjectLabel(label || null)
+    },
+    [enableObjectInteraction, getObjectInteractionLabel, onObjectClicked],
+  )
+
+  useEffect(() => {
+    if (!selectedObjectLabel) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedObjectLabel(null)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [selectedObjectLabel])
+
   const interactiveState: InteractiveState = {
     activeLayers: activeLayers,
     activeStep: showLastStep ? maxStep : activeStep,
     realToScreen: realToScreen,
-    onObjectClicked: onObjectClicked,
+    onObjectClicked: handleObjectClicked,
   }
 
-  const showToolbar = availableLayers.length > 1 || maxStep > 0
+  const showToolbar = true
 
   // Use custom hooks for visibility checks and filtering
   const isPointOnScreen = useIsPointOnScreen(realToScreen, size)
@@ -429,7 +475,15 @@ export const InteractiveGraphics = ({
   return (
     <div>
       {showToolbar && (
-        <div style={{ margin: 8 }}>
+        <div
+          style={{
+            margin: 8,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
           {availableLayers.length > 1 && (
             <select
               value={activeLayers ? activeLayers[0] : ""}
@@ -497,6 +551,22 @@ export const InteractiveGraphics = ({
               )}
             </div>
           )}
+
+          <label>
+            <input
+              type="checkbox"
+              style={{ marginRight: 4 }}
+              checked={enableObjectInteraction}
+              onChange={(event) => {
+                const isEnabled = event.target.checked
+                setEnableObjectInteraction(isEnabled)
+                if (!isEnabled) {
+                  setSelectedObjectLabel(null)
+                }
+              }}
+            />
+            Enable Object Interation
+          </label>
         </div>
       )}
 
@@ -611,6 +681,14 @@ export const InteractiveGraphics = ({
             onAddMark={handleAddMark}
             onClearMarks={handleClearMarks}
             onClose={() => setContextMenu(null)}
+          />
+        )}
+        {selectedObjectLabel && (
+          <ObjectLabelDialog
+            label={selectedObjectLabel}
+            onClose={() => {
+              setSelectedObjectLabel(null)
+            }}
           />
         )}
       </div>

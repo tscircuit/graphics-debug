@@ -64,62 +64,73 @@ export const Line = ({
   const baseColor = strokeColor ?? defaultColors[index % defaultColors.length]
 
   return (
-    <svg
+    <div
       style={{
         position: "absolute",
         top: 0,
         left: 0,
         width: size.width,
         height: size.height,
-        overflow: "visible",
         pointerEvents: "none",
       }}
     >
-      <polyline
-        points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-        stroke="transparent"
-        fill="none"
-        strokeWidth={hitStrokeWidth}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        pointerEvents="stroke"
-        onClick={
-          isHovered
-            ? () =>
-                onObjectClicked?.({
-                  type: "line",
-                  index,
-                  object: line,
-                })
-            : undefined
-        }
-      />
-      <polyline
-        points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}
-        stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
-        fill="none"
-        strokeWidth={screenStrokeWidth}
-        strokeDasharray={
-          !strokeDash
-            ? undefined
-            : typeof strokeDash === "string"
-              ? strokeDash
-              : `${strokeDash[0] * Math.abs(realToScreen.a)}, ${strokeDash[1] * Math.abs(realToScreen.a)}`
-        }
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        pointerEvents="none"
-      />
-      {isHovered && line.label && (
-        <foreignObject
-          x={mousePosition?.x ?? 0}
-          y={(mousePosition?.y ?? 0) - 40}
-          width={300}
-          height={40}
+      <svg
+        style={{
+          width: size.width,
+          height: size.height,
+          overflow: "visible",
+          pointerEvents: "none",
+        }}
+      >
+        <polyline
+          points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+          stroke="transparent"
+          fill="none"
+          strokeWidth={hitStrokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pointerEvents="stroke"
+          onClick={
+            isHovered
+              ? () =>
+                  onObjectClicked?.({
+                    type: "line",
+                    index,
+                    object: line,
+                  })
+              : undefined
+          }
+        />
+        <polyline
+          points={screenPoints.map((p) => `${p.x},${p.y}`).join(" ")}
+          stroke={isHovered ? safeLighten(0.2, baseColor) : baseColor}
+          fill="none"
+          strokeWidth={screenStrokeWidth}
+          strokeDasharray={
+            !strokeDash
+              ? undefined
+              : typeof strokeDash === "string"
+                ? strokeDash
+                : `${strokeDash[0] * Math.abs(realToScreen.a)}, ${strokeDash[1] * Math.abs(realToScreen.a)}`
+          }
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          pointerEvents="none"
+        />
+      </svg>
+      {isHovered && line.label && mousePosition && (
+        <div
+          style={{
+            position: "absolute",
+            left: mousePosition.x,
+            top: mousePosition.y - 8,
+            transform: "translate(-50%, -100%)",
+            pointerEvents: "none",
+          }}
         >
           <Tooltip text={line.label} />
-        </foreignObject>
+        </div>
       )}
-    </svg>
+    </div>
   )
 }

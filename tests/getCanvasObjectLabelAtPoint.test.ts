@@ -92,12 +92,13 @@ describe("getCanvasObjectLabelAtPoint", () => {
     ).toBe("Polygon label")
   })
 
-  test("detects arrow hits and falls back to inline labels", () => {
+  test("detects arrow hits and combines multiline arrow labels", () => {
     const graphics: GraphicsObject = {
       arrows: [
         {
           start: { x: 0, y: 0 },
           end: { x: 24, y: 0 },
+          label: "I_out",
           inlineLabel: "v_out",
         },
       ],
@@ -105,7 +106,7 @@ describe("getCanvasObjectLabelAtPoint", () => {
 
     expect(
       getCanvasObjectLabelAtPoint(graphics, identityMatrix, { x: 12, y: 1 }),
-    ).toBe("v_out")
+    ).toBe("I_out\nv_out")
   })
 
   test("detects infinite line labels", () => {
