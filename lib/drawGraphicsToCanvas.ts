@@ -149,6 +149,9 @@ export function drawGraphicsToCanvas(
   target: HTMLCanvasElement | CanvasRenderingContext2D,
   options: TransformOptions = {},
 ): void {
+  const labelsDisabled = options.disableLabels !== false
+  const inlineLabelsHidden = options.hideInlineLabels ?? labelsDisabled
+
   // Get the context
   const ctx =
     target instanceof HTMLCanvasElement ? target.getContext("2d") : target
@@ -340,7 +343,7 @@ export function drawGraphicsToCanvas(
       ctx.fillStyle = color
       ctx.font = `${fontSize}px sans-serif`
 
-      if (!options.disableLabels && arrow.label) {
+      if (!labelsDisabled && arrow.label) {
         const labelX = arrowLabelLayout.x
         const labelY = arrowLabelLayout.y
 
@@ -351,7 +354,7 @@ export function drawGraphicsToCanvas(
         ctx.restore()
       }
 
-      if (!options.hideInlineLabels && arrow.inlineLabel) {
+      if (!inlineLabelsHidden && arrow.inlineLabel) {
         ctx.save()
         ctx.translate(inlineLabelLayout.x, inlineLabelLayout.y)
         ctx.rotate(inlineLabelLayout.angleRadians)
@@ -525,7 +528,7 @@ export function drawGraphicsToCanvas(
       ctx.fill()
 
       // Draw label if present and labels aren't disabled
-      if (point.label && !options.disableLabels) {
+      if (point.label && !labelsDisabled) {
         ctx.fillStyle = point.color || "black"
         ctx.font = "12px sans-serif"
         ctx.fillText(point.label, projected.x + 5, projected.y - 5)

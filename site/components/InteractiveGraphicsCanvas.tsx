@@ -1,8 +1,9 @@
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, type MouseEvent } from "react"
 import { drawGraphicsToCanvas, type GraphicsObject } from "../../lib"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
-import { compose, scale, translate } from "transformation-matrix"
+import { compose, scale, translate, type Matrix } from "transformation-matrix"
 import useResizeObserver from "@react-hook/resize-observer"
+import { getCanvasObjectLabelAtPoint } from "../../lib/getCanvasObjectLabelAtPoint"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { getGraphicsFilteredByStep } from "site/utils/getGraphicsFilteredByStep"
 import { getGraphicsBoundsWithPadding } from "site/utils/getGraphicsBoundsWithPadding"
@@ -17,7 +18,7 @@ interface InteractiveGraphicsCanvasProps {
 
 export function InteractiveGraphicsCanvas({
   graphics,
-  showLabelsByDefault = true,
+  showLabelsByDefault = false,
   showGrid = true,
   height = 500,
   width = "100%",
@@ -28,6 +29,10 @@ export function InteractiveGraphicsCanvas({
   const [activeStep, setActiveStep] = useState<number | null>(null)
   const [showLabels, setShowLabels] = useState(showLabelsByDefault)
   const [showLastStep, setShowLastStep] = useState(true)
+  const [enableObjectInteraction, setEnableObjectInteraction] = useState(false)
+  const [selectedObjectLabel, setSelectedObjectLabel] = useState<string | null>(
+    null,
+  )
 
   // Calculate the maximum step value from all graphics objects
   const maxStep = getMaxStep(graphics)
@@ -87,6 +92,7 @@ export function InteractiveGraphicsCanvas({
     drawGraphicsToCanvas(filteredGraphics, canvasRef.current, {
       transform: transform,
       disableLabels: !showLabels,
+      hideInlineLabels: !showLabels,
     })
 
     // Draw a grid for reference if requested
@@ -96,7 +102,7 @@ export function InteractiveGraphicsCanvas({
   }
 
   // Draw a grid to help with visualization
-  const drawGrid = (canvas: HTMLCanvasElement, transform: any) => {
+  const drawGrid = (canvas: HTMLCanvasElement, transform: Matrix) => {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
@@ -162,17 +168,55 @@ export function InteractiveGraphicsCanvas({
   }
 
   // Helper to transform a point through the matrix
-  const transformPoint = (point: { x: number; y: number }, matrix: any) => {
+  const transformPoint = (point: { x: number; y: number }, matrix: Matrix) => {
     return {
       x: matrix.a * point.x + matrix.c * point.y + matrix.e,
       y: matrix.b * point.x + matrix.d * point.y + matrix.f,
     }
   }
 
+  const handleCanvasClick = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!enableObjectInteraction || !canvasRef.current) return
+
+    const canvas = canvasRef.current
+    const bounds = canvas.getBoundingClientRect()
+    const scaleX = bounds.width === 0 ? 1 : canvas.width / bounds.width
+    const scaleY = bounds.height === 0 ? 1 : canvas.height / bounds.height
+
+    const label = getCanvasObjectLabelAtPoint(
+      filteredGraphics,
+      transform,
+      {
+        x: (event.clientX - bounds.left) * scaleX,
+        y: (event.clientY - bounds.top) * scaleY,
+      },
+      {
+        hitSlop: 8,
+      },
+    )
+
+    setSelectedObjectLabel(label)
+  }
+
   // Apply the drawing when transform changes
   useEffect(() => {
     drawCanvas()
   }, [transform, size, filteredGraphics, showGrid, showLabels])
+
+  useEffect(() => {
+    if (!selectedObjectLabel) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedObjectLabel(null)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [selectedObjectLabel])
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -230,6 +274,22 @@ export function InteractiveGraphicsCanvas({
             />
             Show labels
           </label>
+
+          <label>
+            <input
+              type="checkbox"
+              style={{ marginRight: 4 }}
+              checked={enableObjectInteraction}
+              onChange={(event) => {
+                const isEnabled = event.target.checked
+                setEnableObjectInteraction(isEnabled)
+                if (!isEnabled) {
+                  setSelectedObjectLabel(null)
+                }
+              }}
+            />
+            Enable Object Interation
+          </label>
         </div>
       </div>
 
@@ -252,6 +312,7 @@ export function InteractiveGraphicsCanvas({
       >
         <canvas
           ref={canvasRef}
+          onClick={handleCanvasClick}
           style={{
             position: "absolute",
             top: 0,
@@ -260,6 +321,62 @@ export function InteractiveGraphicsCanvas({
             height,
           }}
         />
+
+        {selectedObjectLabel && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Object label"
+            onClick={() => {
+              setSelectedObjectLabel(null)
+            }}
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 16,
+              background: "rgba(0, 0, 0, 0.28)",
+            }}
+          >
+            <div
+              onClick={(event) => {
+                event.stopPropagation()
+              }}
+              style={{
+                width: "min(420px, 100%)",
+                background: "#fff",
+                borderRadius: 10,
+                boxShadow: "0 12px 32px rgba(0, 0, 0, 0.2)",
+                padding: 16,
+              }}
+            >
+              <div style={{ fontWeight: 600, marginBottom: 8 }}>
+                Object label
+              </div>
+              <div
+                style={{
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  marginBottom: 16,
+                }}
+              >
+                {selectedObjectLabel}
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedObjectLabel(null)
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
