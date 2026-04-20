@@ -9,6 +9,7 @@ import {
   createSoftwareRasterSurface,
   type RasterContext,
 } from "./softwareRasterSurface"
+import { getProjectedRectGeometry } from "./rectGeometry"
 import { strokeAlphabetText } from "./strokeAlphabetText"
 import type {
   GraphicsObject,
@@ -298,29 +299,42 @@ export async function getPngBufferFromGraphicsObject(
   }
 
   for (const rect of graphics.rects || []) {
-    const topLeft = applyToPoint(matrix, {
-      x: rect.center.x - rect.width / 2,
-      y: rect.center.y - rect.height / 2,
-    })
-    const bottomRight = applyToPoint(matrix, {
-      x: rect.center.x + rect.width / 2,
-      y: rect.center.y + rect.height / 2,
-    })
-    const x = Math.min(topLeft.x, bottomRight.x)
-    const y = Math.min(topLeft.y, bottomRight.y)
-    const width = Math.abs(bottomRight.x - topLeft.x)
-    const height = Math.abs(bottomRight.y - topLeft.y)
+    const projectedRect = getProjectedRectGeometry(rect, matrix)
+    const x = projectedRect.center.x - projectedRect.width / 2
+    const y = projectedRect.center.y - projectedRect.height / 2
+
+    ctx.save()
+    ctx.translate(projectedRect.center.x, projectedRect.center.y)
+    if (Math.abs(projectedRect.angleRadians) > 1e-6) {
+      ctx.rotate(projectedRect.angleRadians)
+    }
 
     if (hasVisiblePaint(rect.fill)) {
+      ctx.beginPath()
+      ctx.rect(
+        -projectedRect.width / 2,
+        -projectedRect.height / 2,
+        projectedRect.width,
+        projectedRect.height,
+      )
       ctx.fillStyle = rect.fill!
-      ctx.fillRect(x, y, width, height)
+      ctx.fill()
     }
 
     if (hasVisiblePaint(rect.stroke)) {
+      ctx.beginPath()
+      ctx.rect(
+        -projectedRect.width / 2,
+        -projectedRect.height / 2,
+        projectedRect.width,
+        projectedRect.height,
+      )
       ctx.strokeStyle = rect.stroke!
       ctx.lineWidth = 1
-      ctx.strokeRect(x, y, width, height)
+      ctx.stroke()
     }
+
+    ctx.restore()
 
     if (
       shouldRenderLabel(
@@ -332,9 +346,9 @@ export async function getPngBufferFromGraphicsObject(
     ) {
       renderText(ctx, {
         text: rect.label,
-        x: x + 5,
-        y,
-        fontSize: ((width + height) / 2) * 0.06,
+        x: projectedRect.bounds.minX + 5,
+        y: projectedRect.bounds.minY,
+        fontSize: ((projectedRect.width + projectedRect.height) / 2) * 0.06,
         color: rect.stroke || "black",
       })
     }

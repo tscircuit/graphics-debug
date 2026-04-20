@@ -146,6 +146,33 @@ describe("getPngBufferFromGraphicsObject", () => {
     )
   })
 
+  test("renders rotated rectangles to a png snapshot", async () => {
+    const graphics: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 7,
+          height: 3,
+          ccwRotationDegrees: 30,
+          fill: "#fef08a",
+          stroke: "#854d0e",
+          label: "R1",
+        },
+      ],
+    }
+
+    const png = await getPngBufferFromGraphicsObject(graphics, {
+      ...TEST_SIZE,
+      includeTextLabels: ["rects"],
+    })
+
+    await expectPngToMatchSnapshot(
+      png,
+      import.meta.path,
+      "getPngBufferFromGraphicsObject-rotated-rects",
+    )
+  })
+
   test("renders arrows and inline labels to a png snapshot", async () => {
     const graphics: GraphicsObject = {
       arrows: [

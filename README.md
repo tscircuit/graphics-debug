@@ -59,6 +59,7 @@ interface Rect {
   center: { x: number; y: number }
   width: number
   height: number
+  ccwRotationDegrees?: number
   fill?: string
   stroke?: string
   color?: string

@@ -70,4 +70,25 @@ describe("getBounds with text", () => {
       getBounds(graphicsWithRect),
     )
   })
+
+  test("includes rotated rect corners in bounds", () => {
+    const graphics: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 4,
+          height: 2,
+          ccwRotationDegrees: 45,
+        },
+      ],
+    }
+
+    const bounds = getBounds(graphics)
+    const expectedHalfExtent = (4 * Math.SQRT2 + 2 * Math.SQRT2) / 4
+
+    expect(bounds.minX).toBeCloseTo(-expectedHalfExtent)
+    expect(bounds.maxX).toBeCloseTo(expectedHalfExtent)
+    expect(bounds.minY).toBeCloseTo(-expectedHalfExtent)
+    expect(bounds.maxY).toBeCloseTo(expectedHalfExtent)
+  })
 })

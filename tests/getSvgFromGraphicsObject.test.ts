@@ -143,6 +143,27 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "rectangles")
   })
 
+  test("should generate SVG with rotated rectangles", () => {
+    const input: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 10,
+          height: 4,
+          ccwRotationDegrees: 30,
+          fill: "yellow",
+          stroke: "green",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+    expect(svg).toContain("<rect")
+    expect(svg).toContain('data-ccw-rotation-degrees="30"')
+    expect(svg).toContain('transform="rotate(')
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "rotated-rectangles")
+  })
+
   test("should generate SVG with polygons", () => {
     const input: GraphicsObject = {
       polygons: [

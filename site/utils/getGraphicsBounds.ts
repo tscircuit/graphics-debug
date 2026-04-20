@@ -1,5 +1,6 @@
 import { GraphicsObject } from "lib/types"
 import { getArrowBoundingBox } from "lib/arrowHelpers"
+import { getRectBounds } from "lib/rectGeometry"
 
 export const getGraphicsBounds = (graphics: GraphicsObject) => {
   const bounds = {
@@ -17,13 +18,11 @@ export const getGraphicsBounds = (graphics: GraphicsObject) => {
     }
   }
   for (const rect of graphics.rects ?? []) {
-    const { center, width, height } = rect
-    const halfWidth = width / 2
-    const halfHeight = height / 2
-    bounds.minX = Math.min(bounds.minX, center.x - halfWidth)
-    bounds.minY = Math.min(bounds.minY, center.y - halfHeight)
-    bounds.maxX = Math.max(bounds.maxX, center.x + halfWidth)
-    bounds.maxY = Math.max(bounds.maxY, center.y + halfHeight)
+    const rectBounds = getRectBounds(rect)
+    bounds.minX = Math.min(bounds.minX, rectBounds.minX)
+    bounds.minY = Math.min(bounds.minY, rectBounds.minY)
+    bounds.maxX = Math.max(bounds.maxX, rectBounds.maxX)
+    bounds.maxY = Math.max(bounds.maxY, rectBounds.maxY)
   }
   for (const polygon of graphics.polygons ?? []) {
     for (const point of polygon.points ?? []) {
