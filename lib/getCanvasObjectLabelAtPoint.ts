@@ -1,5 +1,5 @@
 import { getArrowGeometry } from "./arrowHelpers"
-import { getRectCorners } from "./rectGeometry"
+import { getProjectedRectGeometry } from "./rectGeometry"
 import type {
   Arrow,
   Circle,
@@ -186,9 +186,7 @@ const isRectHit = (
   matrix: Matrix,
   hitSlop: number,
 ) => {
-  const corners = getRectCorners(rect).map((point) =>
-    projectPoint(matrix, point),
-  )
+  const corners = getProjectedRectGeometry(rect, matrix).corners
 
   return (
     isPointInPolygon(screenPoint, corners) ||

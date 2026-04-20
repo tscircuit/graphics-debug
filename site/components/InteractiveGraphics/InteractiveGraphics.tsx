@@ -387,6 +387,7 @@ export const InteractiveGraphics = ({
   })
 
   const filterRects = useFilterRects({
+    realToScreen,
     isPointOnScreen,
     doesLineIntersectViewport,
     filterLayerAndStep,

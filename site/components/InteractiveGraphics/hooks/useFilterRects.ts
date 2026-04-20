@@ -1,5 +1,6 @@
+import { getRectCornersForMatrix } from "lib/rectGeometry"
 import { useMemo } from "react"
-import { getRectCorners } from "lib/rectGeometry"
+import type { Matrix } from "transformation-matrix"
 
 type Rect = {
   center: { x: number; y: number }
@@ -11,6 +12,7 @@ type Rect = {
 }
 
 type UseFilterRectsParams = {
+  realToScreen: Matrix
   isPointOnScreen: (point: { x: number; y: number }) => boolean
   doesLineIntersectViewport: (
     p1: { x: number; y: number },
@@ -20,6 +22,7 @@ type UseFilterRectsParams = {
 }
 
 export const useFilterRects = ({
+  realToScreen,
   isPointOnScreen,
   doesLineIntersectViewport,
   filterLayerAndStep,
@@ -31,7 +34,8 @@ export const useFilterRects = ({
 
       // For rectangles, check if any corner or the center is visible
       const { center } = rect
-      const [topLeft, topRight, bottomRight, bottomLeft] = getRectCorners(rect)
+      const [topLeft, topRight, bottomRight, bottomLeft] =
+        getRectCornersForMatrix(rect, realToScreen)
 
       // Check if any corner or center is visible
       if (
@@ -52,5 +56,10 @@ export const useFilterRects = ({
         doesLineIntersectViewport(bottomLeft, topLeft)
       )
     }
-  }, [isPointOnScreen, doesLineIntersectViewport, filterLayerAndStep])
+  }, [
+    realToScreen,
+    isPointOnScreen,
+    doesLineIntersectViewport,
+    filterLayerAndStep,
+  ])
 }

@@ -109,7 +109,7 @@ describe("getCanvasObjectLabelAtPoint", () => {
       getCanvasObjectLabelAtPoint(graphics, identityMatrix, { x: 5, y: 5 }),
     ).toBe("Rotated rect")
     expect(
-      getCanvasObjectLabelAtPoint(graphics, identityMatrix, { x: 8, y: -8 }),
+      getCanvasObjectLabelAtPoint(graphics, identityMatrix, { x: 8, y: 8 }),
     ).toBeNull()
   })
 
