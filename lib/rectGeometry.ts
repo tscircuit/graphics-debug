@@ -26,7 +26,6 @@ export const getRectRotationRadiansForMatrix = (
 ) => {
   return getRectRotationRadians(rect) * getScreenRotationMultiplier(matrix)
 }
-
 const rotatePoint = (point: XYPoint, angleRadians: number): XYPoint => {
   const cos = Math.cos(angleRadians)
   const sin = Math.sin(angleRadians)
