@@ -6,6 +6,10 @@ import "bun-match-svg"
 import * as jsdom from "jsdom"
 import { getSvgsFromLogString } from "../lib"
 
+declare global {
+  var IS_REACT_ACT_ENVIRONMENT: boolean
+}
+
 // Setup global DOM environment
 beforeAll(() => {
   const { JSDOM } = jsdom
