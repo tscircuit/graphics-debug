@@ -5,6 +5,14 @@
       "center": { "x": 0, "y": 0 },
       "width": 100,
       "height": 100
+    },
+    {
+      "center": { "x": 55, "y": -25 },
+      "width": 50,
+      "height": 24,
+      "ccwRotationDegrees": 30,
+      "fill": "rgba(249, 115, 22, 0.25)",
+      "stroke": "#c2410c"
     }
   ],
   "points": [

@@ -44,6 +44,14 @@ const simpleGraphics: GraphicsObject = {
       fill: "rgba(200, 200, 200, 0.5)",
       stroke: "black",
     },
+    {
+      center: { x: 70, y: 30 },
+      width: 26,
+      height: 18,
+      ccwRotationDegrees: 30,
+      fill: "rgba(251, 146, 60, 0.35)",
+      stroke: "#c2410c",
+    },
   ],
   circles: [
     {
