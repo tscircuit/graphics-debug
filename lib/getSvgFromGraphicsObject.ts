@@ -15,6 +15,7 @@ import {
 } from "./arrowHelpers"
 import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
 import { clipInfiniteLineToBounds } from "./infiniteLineHelpers"
+import { getProjectedRectGeometry, getRectCorners } from "./rectGeometry"
 import type { GraphicsObject, Point } from "./types"
 
 const DEFAULT_SVG_SIZE = 640
@@ -33,14 +34,7 @@ function getBounds(graphics: GraphicsObject): Bounds {
     ...(graphics.lines || []).flatMap((line) => line.points),
     ...(graphics.polygons || []).flatMap((polygon) => polygon.points),
     ...(graphics.rects || []).flatMap((rect) => {
-      const halfWidth = rect.width / 2
-      const halfHeight = rect.height / 2
-      return [
-        { x: rect.center.x - halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x - halfWidth, y: rect.center.y + halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y + halfHeight },
-      ]
+      return getRectCorners(rect)
     }),
     ...(graphics.circles || []).flatMap((circle) => [
       { x: circle.center.x - circle.radius, y: circle.center.y }, // left
@@ -324,20 +318,12 @@ export function getSvgFromGraphicsObject(
       }),
       // Rectangles
       ...(graphics.rects || []).map((rect) => {
-        const corner1 = {
-          x: rect.center.x - rect.width / 2,
-          y: rect.center.y - rect.height / 2,
-        }
-        const projectedCorner1 = projectPoint(corner1, matrix)
-        const corner2 = {
-          x: rect.center.x + rect.width / 2,
-          y: rect.center.y + rect.height / 2,
-        }
-        const projectedCorner2 = projectPoint(corner2, matrix)
-        const scaledWidth = Math.abs(projectedCorner2.x - projectedCorner1.x)
-        const scaledHeight = Math.abs(projectedCorner2.y - projectedCorner1.y)
-        const rectX = Math.min(projectedCorner1.x, projectedCorner2.x)
-        const rectY = Math.min(projectedCorner1.y, projectedCorner2.y)
+        const projectedRect = getProjectedRectGeometry(rect, matrix)
+        const rectX = projectedRect.center.x - projectedRect.width / 2
+        const rectY = projectedRect.center.y - projectedRect.height / 2
+        const labelX = projectedRect.bounds.minX + 5
+        const labelY = projectedRect.bounds.minY
+        const hasRotation = Math.abs(projectedRect.angleDegrees) > 1e-6
 
         return {
           name: "g",
@@ -352,13 +338,20 @@ export function getSvgFromGraphicsObject(
                 "data-label": rect.label || "",
                 "data-x": rect.center.x.toString(),
                 "data-y": rect.center.y.toString(),
+                ...(rect.ccwRotationDegrees !== undefined && {
+                  "data-ccw-rotation-degrees":
+                    rect.ccwRotationDegrees.toString(),
+                }),
                 x: rectX.toString(),
                 y: rectY.toString(),
-                width: scaledWidth.toString(),
-                height: scaledHeight.toString(),
+                width: projectedRect.width.toString(),
+                height: projectedRect.height.toString(),
                 fill: rect.fill || "none",
                 stroke: rect.stroke || "black",
                 "stroke-width": Math.abs(1 / matrix.a).toString(), // Consider scaling stroke width like lines if needed
+                ...(hasRotation && {
+                  transform: `rotate(${projectedRect.angleDegrees} ${projectedRect.center.x} ${projectedRect.center.y})`,
+                }),
               },
             },
             ...(shouldRenderLabel("rects") && rect.label
@@ -367,12 +360,12 @@ export function getSvgFromGraphicsObject(
                     name: "text",
                     type: "element",
                     attributes: {
-                      x: (rectX + 5).toString(),
-                      y: rectY.toString(),
+                      x: labelX.toString(),
+                      y: labelY.toString(),
                       "font-family": "sans-serif",
                       "dominant-baseline": "text-before-edge",
                       "font-size": (
-                        ((scaledWidth + scaledHeight) / 2) *
+                        ((projectedRect.width + projectedRect.height) / 2) *
                         0.06
                       ).toString(),
                       fill: rect.stroke || "black", // Default to stroke color for label

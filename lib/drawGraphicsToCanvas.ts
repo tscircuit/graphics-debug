@@ -16,6 +16,7 @@ import {
   clipInfiniteLineToBounds,
   getViewportBoundsFromMatrix,
 } from "./infiniteLineHelpers"
+import { getProjectedRectGeometry, getRectCorners } from "./rectGeometry"
 import type {
   CenterViewbox,
   GraphicsObject,
@@ -75,14 +76,7 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
     ...(graphics.lines || []).flatMap((line) => line.points),
     ...(graphics.polygons || []).flatMap((polygon) => polygon.points),
     ...(graphics.rects || []).flatMap((rect) => {
-      const halfWidth = rect.width / 2
-      const halfHeight = rect.height / 2
-      return [
-        { x: rect.center.x - halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x - halfWidth, y: rect.center.y + halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y + halfHeight },
-      ]
+      return getRectCorners(rect)
     }),
     ...(graphics.circles || []).flatMap((circle) => [
       { x: circle.center.x - circle.radius, y: circle.center.y }, // left
@@ -202,28 +196,19 @@ export function drawGraphicsToCanvas(
   // Draw rectangles
   if (graphics.rects && graphics.rects.length > 0) {
     graphics.rects.forEach((rect) => {
-      const halfWidth = rect.width / 2
-      const halfHeight = rect.height / 2
+      const projectedRect = getProjectedRectGeometry(rect, matrix)
 
-      const topLeft = applyToPoint(matrix, {
-        x: rect.center.x - halfWidth,
-        y: rect.center.y - halfHeight,
-      })
-
-      const bottomRight = applyToPoint(matrix, {
-        x: rect.center.x + halfWidth,
-        y: rect.center.y + halfHeight,
-      })
-
-      const width = Math.abs(bottomRight.x - topLeft.x)
-      const height = Math.abs(bottomRight.y - topLeft.y)
-
+      ctx.save()
+      ctx.translate(projectedRect.center.x, projectedRect.center.y)
+      if (Math.abs(projectedRect.angleRadians) > 1e-6) {
+        ctx.rotate(projectedRect.angleRadians)
+      }
       ctx.beginPath()
       ctx.rect(
-        Math.min(topLeft.x, bottomRight.x),
-        Math.min(topLeft.y, bottomRight.y),
-        width,
-        height,
+        -projectedRect.width / 2,
+        -projectedRect.height / 2,
+        projectedRect.width,
+        projectedRect.height,
       )
 
       if (rect.fill) {
@@ -235,6 +220,8 @@ export function drawGraphicsToCanvas(
         ctx.strokeStyle = rect.stroke
         ctx.stroke()
       }
+
+      ctx.restore()
     })
   }
 

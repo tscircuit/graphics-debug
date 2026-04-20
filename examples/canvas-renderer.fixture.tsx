@@ -37,6 +37,14 @@ const exampleGraphics: GraphicsObject = {
       fill: "rgba(255, 0, 0, 0.2)",
       stroke: "red",
     },
+    {
+      center: { x: -30, y: -15 },
+      width: 28,
+      height: 16,
+      ccwRotationDegrees: 28,
+      fill: "rgba(249, 115, 22, 0.25)",
+      stroke: "#c2410c",
+    },
   ],
   circles: [
     {

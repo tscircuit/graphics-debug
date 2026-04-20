@@ -54,6 +54,14 @@ const complexExample: GraphicsObject = {
       fill: "rgba(0, 0, 255, 0.2)",
       stroke: "blue",
     },
+    {
+      center: { x: 45, y: -20 },
+      width: 42,
+      height: 22,
+      ccwRotationDegrees: 32,
+      fill: "rgba(249, 115, 22, 0.25)",
+      stroke: "#c2410c",
+    },
   ],
   circles: [
     {

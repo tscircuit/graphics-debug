@@ -92,6 +92,27 @@ describe("getCanvasObjectLabelAtPoint", () => {
     ).toBe("Polygon label")
   })
 
+  test("detects rotated rect hits using the rotated outline", () => {
+    const graphics: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 20,
+          height: 6,
+          ccwRotationDegrees: 45,
+          label: "Rotated rect",
+        },
+      ],
+    }
+
+    expect(
+      getCanvasObjectLabelAtPoint(graphics, identityMatrix, { x: 5, y: 5 }),
+    ).toBe("Rotated rect")
+    expect(
+      getCanvasObjectLabelAtPoint(graphics, identityMatrix, { x: 8, y: -8 }),
+    ).toBeNull()
+  })
+
   test("detects arrow hits and combines multiline arrow labels", () => {
     const graphics: GraphicsObject = {
       arrows: [
