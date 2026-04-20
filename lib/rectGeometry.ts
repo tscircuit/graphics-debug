@@ -13,6 +13,20 @@ export const getRectRotationRadians = (
   return ((rect.ccwRotationDegrees ?? 0) * Math.PI) / 180
 }
 
+const getScreenRotationMultiplier = (matrix: Matrix) => {
+  // Screen coordinates have +Y downward. Orientation-preserving transforms
+  // therefore need the math angle inverted to look visually CCW.
+  const determinant = matrix.a * matrix.d - matrix.b * matrix.c
+  return determinant < 0 ? 1 : -1
+}
+
+export const getRectRotationRadiansForMatrix = (
+  rect: Pick<Rect, "ccwRotationDegrees">,
+  matrix: Matrix,
+) => {
+  return getRectRotationRadians(rect) * getScreenRotationMultiplier(matrix)
+}
+
 const rotatePoint = (point: XYPoint, angleRadians: number): XYPoint => {
   const cos = Math.cos(angleRadians)
   const sin = Math.sin(angleRadians)
@@ -26,9 +40,25 @@ const rotatePoint = (point: XYPoint, angleRadians: number): XYPoint => {
 export const getRectCorners = (
   rect: Pick<Rect, "center" | "width" | "height" | "ccwRotationDegrees">,
 ): Point[] => {
+  return getRectCornersWithAngle(rect, getRectRotationRadians(rect))
+}
+
+export const getRectCornersForMatrix = (
+  rect: Pick<Rect, "center" | "width" | "height" | "ccwRotationDegrees">,
+  matrix: Matrix,
+): Point[] => {
+  return getRectCornersWithAngle(
+    rect,
+    getRectRotationRadiansForMatrix(rect, matrix),
+  )
+}
+
+const getRectCornersWithAngle = (
+  rect: Pick<Rect, "center" | "width" | "height" | "ccwRotationDegrees">,
+  angleRadians: number,
+): Point[] => {
   const halfWidth = rect.width / 2
   const halfHeight = rect.height / 2
-  const angleRadians = getRectRotationRadians(rect)
 
   return [
     { x: -halfWidth, y: -halfHeight },
@@ -69,7 +99,7 @@ export const getProjectedRectGeometry = (
   rect: Pick<Rect, "center" | "width" | "height" | "ccwRotationDegrees">,
   matrix: Matrix,
 ) => {
-  const corners = getRectCorners(rect).map((point) =>
+  const corners = getRectCornersForMatrix(rect, matrix).map((point) =>
     applyToPoint(matrix, point),
   )
   const center = applyToPoint(matrix, rect.center)

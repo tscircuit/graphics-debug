@@ -1,4 +1,5 @@
 import { describe, expect, test, beforeAll } from "bun:test"
+import { act } from "react"
 import { createRoot } from "react-dom/client"
 import SVGRenderer from "../site/components/SVGRenderer"
 import "bun-match-svg"
@@ -13,10 +14,11 @@ beforeAll(() => {
   global.document = dom.window.document
   global.window = dom.window as unknown as Window & typeof globalThis
   global.navigator = dom.window.navigator
+  globalThis.IS_REACT_ACT_ENVIRONMENT = true
 })
 
 describe("SVGRenderer", () => {
-  test("snapshot matches expected SVG output", () => {
+  test("snapshot matches expected SVG output", async () => {
     const container = document.createElement("div")
     document.body.appendChild(container)
 
@@ -25,38 +27,33 @@ describe("SVGRenderer", () => {
 
     const root = createRoot(container)
 
-    return new Promise<void>((resolve) => {
-      // Render the SVGs
-      root.render(
-        graphics.length > 0 ? (
-          <div className="space-y-8">
-            {graphics.map(({ title, svg }, index) => (
-              <SVGRenderer key={index} title={title} svg={svg} />
-            ))}
-          </div>
-        ) : null,
-      )
+    try {
+      await act(async () => {
+        // Render the SVGs
+        root.render(
+          graphics.length > 0 ? (
+            <div className="space-y-8">
+              {graphics.map(({ title, svg }, index) => (
+                <SVGRenderer key={index} title={title} svg={svg} />
+              ))}
+            </div>
+          ) : null,
+        )
+      })
 
-      // Use setTimeout to allow rendering to complete
-      setTimeout(() => {
-        try {
-          const renderedSvgs = container.querySelectorAll("svg")
-          expect(renderedSvgs.length).toBeGreaterThan(0)
-          const firstRenderedSvg = renderedSvgs[0]?.outerHTML
-          // Perform snapshot test
-          expect(firstRenderedSvg).toMatchSvgSnapshot(
-            import.meta.path,
-            "renderer-graphics",
-          )
-          root.unmount()
-          document.body.removeChild(container)
-          resolve()
-        } catch (error) {
-          root.unmount()
-          document.body.removeChild(container)
-          throw error
-        }
-      }, 50)
-    })
+      const renderedSvgs = container.querySelectorAll("svg")
+      expect(renderedSvgs.length).toBeGreaterThan(0)
+      const firstRenderedSvg = renderedSvgs[0]?.outerHTML
+      // Perform snapshot test
+      expect(firstRenderedSvg).toMatchSvgSnapshot(
+        import.meta.path,
+        "renderer-graphics",
+      )
+    } finally {
+      await act(async () => {
+        root.unmount()
+      })
+      document.body.removeChild(container)
+    }
   })
 })
