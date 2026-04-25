@@ -5,6 +5,7 @@ import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
 import { Tooltip } from "./Tooltip"
 import { defaultColors } from "./defaultColors"
+import { tooltipLayerZIndex } from "./tooltipLayer"
 
 export const Polygon = ({
   polygon,
@@ -92,6 +93,7 @@ export const Polygon = ({
             transform: "translateX(-50%)",
             marginBottom: 8,
             pointerEvents: "none",
+            zIndex: tooltipLayerZIndex,
           }}
         >
           <Tooltip text={polygon.label} />

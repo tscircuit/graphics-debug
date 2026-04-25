@@ -4,6 +4,7 @@ import type { InteractiveState } from "./InteractiveState"
 import { useState } from "react"
 import { Tooltip } from "./Tooltip"
 import { defaultColors } from "./defaultColors"
+import { tooltipLayerZIndex } from "./tooltipLayer"
 import { safeLighten } from "site/utils/safeLighten"
 
 export const Rect = ({
@@ -42,6 +43,7 @@ export const Rect = ({
         height: projectedRect.height,
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
+        zIndex: isHovered ? tooltipLayerZIndex : undefined,
       }}
     >
       <div
@@ -78,6 +80,7 @@ export const Rect = ({
             transform: "translateX(-50%)",
             marginBottom: 8,
             pointerEvents: "none",
+            zIndex: tooltipLayerZIndex,
           }}
         >
           <Tooltip text={rect.label} />
