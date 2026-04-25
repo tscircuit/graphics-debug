@@ -495,16 +495,7 @@ export const InteractiveGraphics = ({
 
   // Apply global objectLimit proportionally across all object types so the
   // total rendered objects never exceeds the requested limit.
-  const [
-    filteredLines,
-    filteredInfiniteLines,
-    filteredRects,
-    filteredPolygons,
-    filteredPoints,
-    filteredCircles,
-    filteredTexts,
-    filteredArrows,
-  ] = useMemo(
+  const limitedArrays = useMemo(
     () =>
       applyObjectLimit(
         [
@@ -531,6 +522,15 @@ export const InteractiveGraphics = ({
       objectLimit,
     ],
   )
+
+  const filteredLines = limitedArrays[0] as typeof filteredLinesAll
+  const filteredInfiniteLines = limitedArrays[1] as typeof filteredInfiniteLinesAll
+  const filteredRects = limitedArrays[2] as typeof filteredRectsAll
+  const filteredPolygons = limitedArrays[3] as typeof filteredPolygonsAll
+  const filteredPoints = limitedArrays[4] as typeof filteredPointsAll
+  const filteredCircles = limitedArrays[5] as typeof filteredCirclesAll
+  const filteredTexts = limitedArrays[6] as typeof filteredTextsAll
+  const filteredArrows = limitedArrays[7] as typeof filteredArrowsAll
 
   return (
     <div>
