@@ -37,6 +37,10 @@ import {
   useFilterTexts,
   useIsPointOnScreen,
 } from "./hooks"
+import {
+  applyObjectLimit,
+  isObjectLimitReached,
+} from "../../../lib/applyObjectLimit"
 
 export type GraphicsObjectClickEvent = {
   type:
@@ -413,65 +417,120 @@ export const InteractiveGraphics = ({
     filterLayerAndStep,
   })
 
-  const filterAndLimit = <T,>(
+  // Filter objects by layer/step/viewport — no limit applied yet.
+  const filterOnly = <T,>(
     objects: T[] | undefined,
     filterFn: (obj: T) => boolean,
   ): (T & { originalIndex: number })[] => {
     if (!objects) return []
-    const filtered = objects
+    return objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
   }
 
-  const filteredLines = useMemo(
+  // All filtered arrays before any objectLimit is applied.
+  const filteredLinesAll = useMemo(
     () =>
-      filterAndLimit(graphics.lines, filterLines).sort(
+      filterOnly(graphics.lines, filterLines).sort(
         (a, b) =>
           (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
           a.originalIndex - b.originalIndex,
       ),
-    [graphics.lines, filterLines, objectLimit],
+    [graphics.lines, filterLines],
   )
-  const filteredInfiniteLines = useMemo(
-    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
-    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+  const filteredInfiniteLinesAll = useMemo(
+    () => filterOnly(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep],
   )
-  const filteredRects = useMemo(
-    () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
-    [graphics.rects, filterRects, objectLimit],
+  const filteredRectsAll = useMemo(
+    () => sortRectsByArea(filterOnly(graphics.rects, filterRects)),
+    [graphics.rects, filterRects],
   )
-  const filteredPolygons = useMemo(
-    () => filterAndLimit(graphics.polygons, filterPolygons),
-    [graphics.polygons, filterPolygons, objectLimit],
+  const filteredPolygonsAll = useMemo(
+    () => filterOnly(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons],
   )
-  const filteredPoints = useMemo(
-    () => filterAndLimit(graphics.points, filterPoints),
-    [graphics.points, filterPoints, objectLimit],
+  const filteredPointsAll = useMemo(
+    () => filterOnly(graphics.points, filterPoints),
+    [graphics.points, filterPoints],
   )
-  const filteredCircles = useMemo(
-    () => filterAndLimit(graphics.circles, filterCircles),
-    [graphics.circles, filterCircles, objectLimit],
+  const filteredCirclesAll = useMemo(
+    () => filterOnly(graphics.circles, filterCircles),
+    [graphics.circles, filterCircles],
   )
-  const filteredTexts = useMemo(
-    () => filterAndLimit(graphics.texts, filterTexts),
-    [graphics.texts, filterTexts, objectLimit],
+  const filteredTextsAll = useMemo(
+    () => filterOnly(graphics.texts, filterTexts),
+    [graphics.texts, filterTexts],
   )
-  const filteredArrows = useMemo(
-    () => filterAndLimit(graphics.arrows, filterArrows),
-    [graphics.arrows, filterArrows, objectLimit],
+  const filteredArrowsAll = useMemo(
+    () => filterOnly(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows],
   )
 
+  // Total number of objects that pass the layer/step/viewport filters.
   const totalFilteredObjects =
-    filteredInfiniteLines.length +
-    filteredLines.length +
-    filteredRects.length +
-    filteredPolygons.length +
-    filteredPoints.length +
-    filteredCircles.length +
-    filteredTexts.length +
-    filteredArrows.length
-  const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
+    filteredLinesAll.length +
+    filteredInfiniteLinesAll.length +
+    filteredRectsAll.length +
+    filteredPolygonsAll.length +
+    filteredPointsAll.length +
+    filteredCirclesAll.length +
+    filteredTextsAll.length +
+    filteredArrowsAll.length
+
+  // `isLimitReached` is true when the global limit is exceeded BEFORE slicing.
+  const isLimitReached = isObjectLimitReached(
+    [
+      filteredLinesAll,
+      filteredInfiniteLinesAll,
+      filteredRectsAll,
+      filteredPolygonsAll,
+      filteredPointsAll,
+      filteredCirclesAll,
+      filteredTextsAll,
+      filteredArrowsAll,
+    ],
+    objectLimit,
+  )
+
+  // Apply global objectLimit proportionally across all object types so the
+  // total rendered objects never exceeds the requested limit.
+  const [
+    filteredLines,
+    filteredInfiniteLines,
+    filteredRects,
+    filteredPolygons,
+    filteredPoints,
+    filteredCircles,
+    filteredTexts,
+    filteredArrows,
+  ] = useMemo(
+    () =>
+      applyObjectLimit(
+        [
+          filteredLinesAll,
+          filteredInfiniteLinesAll,
+          filteredRectsAll,
+          filteredPolygonsAll,
+          filteredPointsAll,
+          filteredCirclesAll,
+          filteredTextsAll,
+          filteredArrowsAll,
+        ],
+        objectLimit,
+      ),
+    [
+      filteredLinesAll,
+      filteredInfiniteLinesAll,
+      filteredRectsAll,
+      filteredPolygonsAll,
+      filteredPointsAll,
+      filteredCirclesAll,
+      filteredTextsAll,
+      filteredArrowsAll,
+      objectLimit,
+    ],
+  )
 
   return (
     <div>
@@ -544,13 +603,14 @@ export const InteractiveGraphics = ({
                 />
                 Show last step
               </label>
-              {isLimitReached && (
-                <span style={{ color: "red", fontSize: "12px" }}>
-                  Display limited to {objectLimit} objects. Received:{" "}
-                  {totalFilteredObjects}.
-                </span>
-              )}
             </div>
+          )}
+
+          {isLimitReached && (
+            <span style={{ color: "red", fontSize: "12px" }}>
+              Display limited to {objectLimit} objects. Received:{" "}
+              {totalFilteredObjects}.
+            </span>
           )}
 
           <label>
