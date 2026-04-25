@@ -10,10 +10,10 @@
  * @param objectLimit  Maximum total objects to display, or undefined for no limit.
  * @returns The same arrays, each potentially sliced to fit within the limit.
  */
-export function applyObjectLimit<T>(
-  arrays: T[][],
+export function applyObjectLimit(
+  arrays: unknown[][],
   objectLimit: number | undefined,
-): T[][] {
+): unknown[][] {
   if (!objectLimit) return arrays
   const total = arrays.reduce((sum, arr) => sum + arr.length, 0)
   if (total <= objectLimit) return arrays

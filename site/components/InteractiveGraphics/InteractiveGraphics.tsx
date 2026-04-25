@@ -524,13 +524,16 @@ export const InteractiveGraphics = ({
   )
 
   const filteredLines = limitedArrays[0] as typeof filteredLinesAll
-  const filteredInfiniteLines = limitedArrays[1] as typeof filteredInfiniteLinesAll
-  const filteredRects = limitedArrays[2] as typeof filteredRectsAll
-  const filteredPolygons = limitedArrays[3] as typeof filteredPolygonsAll
-  const filteredPoints = limitedArrays[4] as typeof filteredPointsAll
-  const filteredCircles = limitedArrays[5] as typeof filteredCirclesAll
-  const filteredTexts = limitedArrays[6] as typeof filteredTextsAll
-  const filteredArrows = limitedArrays[7] as typeof filteredArrowsAll
+  const filteredInfiniteLines =
+    limitedArrays[1] as unknown as typeof filteredInfiniteLinesAll
+  const filteredRects = limitedArrays[2] as unknown as typeof filteredRectsAll
+  const filteredPolygons =
+    limitedArrays[3] as unknown as typeof filteredPolygonsAll
+  const filteredPoints = limitedArrays[4] as unknown as typeof filteredPointsAll
+  const filteredCircles =
+    limitedArrays[5] as unknown as typeof filteredCirclesAll
+  const filteredTexts = limitedArrays[6] as unknown as typeof filteredTextsAll
+  const filteredArrows = limitedArrays[7] as unknown as typeof filteredArrowsAll
 
   return (
     <div>
