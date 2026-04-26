@@ -26,6 +26,7 @@ import { Point } from "./Point"
 import { Polygon } from "./Polygon"
 import { Rect } from "./Rect"
 import { Text } from "./Text"
+import { Tooltip } from "./Tooltip"
 import {
   useDoesLineIntersectViewport,
   useFilterArrows,
@@ -37,6 +38,7 @@ import {
   useFilterTexts,
   useIsPointOnScreen,
 } from "./hooks"
+import { tooltipLayerZIndex } from "./tooltipLayer"
 
 export type GraphicsObjectClickEvent = {
   type:
@@ -79,6 +81,11 @@ export const InteractiveGraphics = ({
   )
   const [markers, setMarkers] = useState<MarkerPoint[]>([])
   const [mousePosition, setMousePosition] = useState<{
+    x: number
+    y: number
+  } | null>(null)
+  const [hoverTooltip, setHoverTooltip] = useState<{
+    text: string
     x: number
     y: number
   } | null>(null)
@@ -348,6 +355,7 @@ export const InteractiveGraphics = ({
     activeStep: showLastStep ? maxStep : activeStep,
     realToScreen: realToScreen,
     onObjectClicked: handleObjectClicked,
+    setHoverTooltip,
   }
 
   const showToolbar = true
@@ -672,6 +680,20 @@ export const InteractiveGraphics = ({
             transform={realToScreen}
           />
         ))}
+        {hoverTooltip && (
+          <div
+            style={{
+              position: "absolute",
+              left: hoverTooltip.x,
+              top: hoverTooltip.y - 8,
+              transform: "translate(-50%, -100%)",
+              pointerEvents: "none",
+              zIndex: tooltipLayerZIndex,
+            }}
+          >
+            <Tooltip text={hoverTooltip.text} />
+          </div>
+        )}
         {contextMenu && (
           <ContextMenu
             x={contextMenu.x}

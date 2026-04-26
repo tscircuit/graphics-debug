@@ -1,12 +1,11 @@
 import { getArrowGeometry, getInlineLabelLayout } from "lib/arrowHelpers"
 import type * as Types from "lib/types"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { distToLineSegment } from "site/utils/distToLineSegment"
 import { safeLighten } from "site/utils/safeLighten"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
 import { defaultColors } from "./defaultColors"
-import { Tooltip } from "./Tooltip"
 
 export const Arrow = ({
   arrow,
@@ -17,7 +16,7 @@ export const Arrow = ({
   index: number
   interactiveState: InteractiveState
 }) => {
-  const { realToScreen, onObjectClicked } = interactiveState
+  const { realToScreen, onObjectClicked, setHoverTooltip } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
   const geometry = useMemo(() => getArrowGeometry(arrow), [arrow])
@@ -67,6 +66,26 @@ export const Arrow = ({
     .filter(Boolean)
     .join("\n")
   const tooltipAnchor = arrow.label ? labelLayout : inlineLabelLayout
+
+  useEffect(() => {
+    if (!isHovered || !tooltipText) return
+
+    setHoverTooltip?.({
+      text: tooltipText,
+      x: tooltipAnchor.x,
+      y: tooltipAnchor.y,
+    })
+
+    return () => {
+      setHoverTooltip?.(null)
+    }
+  }, [
+    isHovered,
+    setHoverTooltip,
+    tooltipAnchor.x,
+    tooltipAnchor.y,
+    tooltipText,
+  ])
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -119,7 +138,10 @@ export const Arrow = ({
           pointerEvents: "auto",
         }}
         onMouseMove={handleMouseMove}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setHoverTooltip?.(null)
+        }}
         onClick={
           isHovered
             ? (event) => {
@@ -147,19 +169,6 @@ export const Arrow = ({
           />
         ))}
       </svg>
-      {isHovered && tooltipText && (
-        <div
-          style={{
-            position: "absolute",
-            left: tooltipAnchor.x,
-            top: tooltipAnchor.y - 8,
-            transform: "translate(-50%, -100%)",
-            pointerEvents: "none",
-          }}
-        >
-          <Tooltip text={tooltipText} />
-        </div>
-      )}
     </div>
   )
 }

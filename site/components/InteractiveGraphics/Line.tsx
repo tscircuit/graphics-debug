@@ -1,8 +1,7 @@
 import type * as Types from "lib/types"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { useMemo } from "react"
-import { Tooltip } from "./Tooltip"
+import { useEffect, useMemo } from "react"
 import { distToLineSegment } from "site/utils/distToLineSegment"
 import { defaultColors } from "./defaultColors"
 import { safeLighten } from "site/utils/safeLighten"
@@ -20,8 +19,13 @@ export const Line = ({
   size: { width: number; height: number }
   mousePosition: { x: number; y: number } | null
 }) => {
-  const { activeLayers, activeStep, realToScreen, onObjectClicked } =
-    interactiveState
+  const {
+    activeLayers,
+    activeStep,
+    realToScreen,
+    onObjectClicked,
+    setHoverTooltip,
+  } = interactiveState
   const {
     points,
     layer,
@@ -62,6 +66,26 @@ export const Line = ({
   }, [hoverRadius, mousePosition, screenPoints])
 
   const baseColor = strokeColor ?? defaultColors[index % defaultColors.length]
+
+  useEffect(() => {
+    if (!isHovered || !line.label || !mousePosition) return
+
+    setHoverTooltip?.({
+      text: line.label,
+      x: mousePosition.x,
+      y: mousePosition.y,
+    })
+
+    return () => {
+      setHoverTooltip?.(null)
+    }
+  }, [
+    isHovered,
+    line.label,
+    mousePosition?.x,
+    mousePosition?.y,
+    setHoverTooltip,
+  ])
 
   return (
     <div
@@ -118,19 +142,6 @@ export const Line = ({
           pointerEvents="none"
         />
       </svg>
-      {isHovered && line.label && mousePosition && (
-        <div
-          style={{
-            position: "absolute",
-            left: mousePosition.x,
-            top: mousePosition.y - 8,
-            transform: "translate(-50%, -100%)",
-            pointerEvents: "none",
-          }}
-        >
-          <Tooltip text={line.label} />
-        </div>
-      )}
     </div>
   )
 }
