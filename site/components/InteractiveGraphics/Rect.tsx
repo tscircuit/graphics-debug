@@ -1,10 +1,8 @@
 import type * as Types from "lib/types"
 import { getProjectedRectGeometry } from "lib/rectGeometry"
 import type { InteractiveState } from "./InteractiveState"
-import { useState } from "react"
-import { Tooltip } from "./Tooltip"
+import { useEffect, useState } from "react"
 import { defaultColors } from "./defaultColors"
-import { tooltipLayerZIndex } from "./tooltipLayer"
 import { safeLighten } from "site/utils/safeLighten"
 
 export const Rect = ({
@@ -18,8 +16,13 @@ export const Rect = ({
 }) => {
   const defaultColor = defaultColors[index % defaultColors.length]
   let { fill, stroke } = rect
-  const { activeLayers, activeStep, realToScreen, onObjectClicked } =
-    interactiveState
+  const {
+    activeLayers,
+    activeStep,
+    realToScreen,
+    onObjectClicked,
+    setHoverTooltip,
+  } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
   const projectedRect = getProjectedRectGeometry(rect, realToScreen)
@@ -33,6 +36,27 @@ export const Rect = ({
     stroke = safeLighten(0.2, stroke!)
   }
 
+  useEffect(() => {
+    if (!isHovered || !rect.label) return
+
+    setHoverTooltip?.({
+      text: rect.label,
+      x: projectedRect.center.x,
+      y: projectedRect.center.y - projectedRect.height / 2,
+    })
+
+    return () => {
+      setHoverTooltip?.(null)
+    }
+  }, [
+    isHovered,
+    projectedRect.center.x,
+    projectedRect.center.y,
+    projectedRect.height,
+    rect.label,
+    setHoverTooltip,
+  ])
+
   return (
     <div
       style={{
@@ -43,7 +67,6 @@ export const Rect = ({
         height: projectedRect.height,
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
-        zIndex: isHovered ? tooltipLayerZIndex : undefined,
       }}
     >
       <div
@@ -62,7 +85,10 @@ export const Rect = ({
           pointerEvents: "auto",
         }}
         onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setHoverTooltip?.(null)
+        }}
         onClick={() =>
           onObjectClicked?.({
             type: "rect",
@@ -71,21 +97,6 @@ export const Rect = ({
           })
         }
       />
-      {isHovered && rect.label && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "100%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            marginBottom: 8,
-            pointerEvents: "none",
-            zIndex: tooltipLayerZIndex,
-          }}
-        >
-          <Tooltip text={rect.label} />
-        </div>
-      )}
     </div>
   )
 }

@@ -8,7 +8,6 @@ import { safeLighten } from "site/utils/safeLighten"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
 import { defaultColors } from "./defaultColors"
-import { Tooltip } from "./Tooltip"
 
 export const InfiniteLine = ({
   infiniteLine,
@@ -21,7 +20,7 @@ export const InfiniteLine = ({
   interactiveState: InteractiveState
   size: { width: number; height: number }
 }) => {
-  const { realToScreen, onObjectClicked } = interactiveState
+  const { realToScreen, onObjectClicked, setHoverTooltip } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
   const viewportBounds = getViewportBoundsFromMatrix(
@@ -72,8 +71,20 @@ export const InfiniteLine = ({
           stroke="transparent"
           strokeWidth={strokeWidth + 10}
           pointerEvents="stroke"
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseEnter={() => {
+            setIsHovered(true)
+            if (infiniteLine.label) {
+              setHoverTooltip?.({
+                text: infiniteLine.label,
+                x: tooltipX,
+                y: tooltipY,
+              })
+            }
+          }}
+          onMouseLeave={() => {
+            setIsHovered(false)
+            setHoverTooltip?.(null)
+          }}
           onClick={() =>
             onObjectClicked?.({
               type: "infinite-line",
@@ -101,19 +112,6 @@ export const InfiniteLine = ({
           pointerEvents="none"
         />
       </svg>
-      {isHovered && infiniteLine.label && (
-        <div
-          style={{
-            position: "absolute",
-            left: tooltipX,
-            top: tooltipY - 8,
-            transform: "translate(-50%, -100%)",
-            pointerEvents: "none",
-          }}
-        >
-          <Tooltip text={infiniteLine.label} />
-        </div>
-      )}
     </div>
   )
 }

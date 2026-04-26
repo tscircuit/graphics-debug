@@ -1,11 +1,9 @@
 import type * as Types from "lib/types"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { safeLighten } from "site/utils/safeLighten"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { Tooltip } from "./Tooltip"
 import { defaultColors } from "./defaultColors"
-import { tooltipLayerZIndex } from "./tooltipLayer"
 
 export const Polygon = ({
   polygon,
@@ -17,18 +15,19 @@ export const Polygon = ({
   index: number
 }) => {
   const { points, fill, stroke, strokeWidth } = polygon
-  const { realToScreen, onObjectClicked } = interactiveState
+  const { realToScreen, onObjectClicked, setHoverTooltip } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
-  if (!points || points.length === 0) return null
-
-  const screenPoints = points.map((p) => applyToPoint(realToScreen, p))
+  const hasPoints = Boolean(points && points.length > 0)
+  const screenPoints = hasPoints
+    ? points.map((p) => applyToPoint(realToScreen, p))
+    : []
   const xs = screenPoints.map((p) => p.x)
   const ys = screenPoints.map((p) => p.y)
-  const minX = Math.min(...xs)
-  const maxX = Math.max(...xs)
-  const minY = Math.min(...ys)
-  const maxY = Math.max(...ys)
+  const minX = hasPoints ? Math.min(...xs) : 0
+  const maxX = hasPoints ? Math.max(...xs) : 0
+  const minY = hasPoints ? Math.min(...ys) : 0
+  const maxY = hasPoints ? Math.max(...ys) : 0
   const padding = 4
 
   const svgLeft = minX - padding
@@ -55,6 +54,22 @@ export const Polygon = ({
   const screenStrokeWidth =
     strokeWidth === undefined ? undefined : strokeWidth * realToScreen.a
 
+  useEffect(() => {
+    if (!hasPoints || !isHovered || !polygon.label) return
+
+    setHoverTooltip?.({
+      text: polygon.label,
+      x: (minX + maxX) / 2,
+      y: svgTop,
+    })
+
+    return () => {
+      setHoverTooltip?.(null)
+    }
+  }, [hasPoints, isHovered, maxX, minX, polygon.label, setHoverTooltip, svgTop])
+
+  if (!hasPoints) return null
+
   return (
     <div
       style={{
@@ -74,7 +89,10 @@ export const Polygon = ({
           strokeWidth={screenStrokeWidth}
           pointerEvents="all"
           onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseLeave={() => {
+            setIsHovered(false)
+            setHoverTooltip?.(null)
+          }}
           onClick={() =>
             onObjectClicked?.({
               type: "polygon",
@@ -84,21 +102,6 @@ export const Polygon = ({
           }
         />
       </svg>
-      {isHovered && polygon.label && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "100%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            marginBottom: 8,
-            pointerEvents: "none",
-            zIndex: tooltipLayerZIndex,
-          }}
-        >
-          <Tooltip text={polygon.label} />
-        </div>
-      )}
     </div>
   )
 }

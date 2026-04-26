@@ -1,8 +1,7 @@
 import type * as Types from "lib/types"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { useState } from "react"
-import { Tooltip } from "./Tooltip"
+import { useEffect, useState } from "react"
 import { defaultColors } from "./defaultColors"
 import { safeLighten } from "site/utils/safeLighten"
 
@@ -16,12 +15,32 @@ export const Point = ({
   index: number
 }) => {
   const { color, label, layer, step } = point
-  const { activeLayers, activeStep, realToScreen, onObjectClicked } =
-    interactiveState
+  const {
+    activeLayers,
+    activeStep,
+    realToScreen,
+    onObjectClicked,
+    setHoverTooltip,
+  } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
   const screenPoint = applyToPoint(realToScreen, point)
   const size = 10
+  const tooltipText = `${label ? `${label}\n` : ""}x: ${point.x.toFixed(2)}, y: ${point.y.toFixed(2)}`
+
+  useEffect(() => {
+    if (!isHovered) return
+
+    setHoverTooltip?.({
+      text: tooltipText,
+      x: screenPoint.x,
+      y: screenPoint.y - size / 2,
+    })
+
+    return () => {
+      setHoverTooltip?.(null)
+    }
+  }, [isHovered, screenPoint.x, screenPoint.y, setHoverTooltip, tooltipText])
 
   return (
     <div
@@ -44,7 +63,10 @@ export const Point = ({
         transition: "border-color 0.2s",
       }}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false)
+        setHoverTooltip?.(null)
+      }}
       onClick={() =>
         onObjectClicked?.({
           type: "point",
@@ -52,22 +74,6 @@ export const Point = ({
           object: point,
         })
       }
-    >
-      {isHovered && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "100%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            marginBottom: 8,
-          }}
-        >
-          <Tooltip
-            text={`${label ? `${label}\n` : ""}x: ${point.x.toFixed(2)}, y: ${point.y.toFixed(2)}`}
-          />
-        </div>
-      )}
-    </div>
+    ></div>
   )
 }

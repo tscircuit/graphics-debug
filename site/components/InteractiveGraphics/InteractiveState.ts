@@ -6,4 +6,11 @@ export type InteractiveState = {
   activeStep: number | null
   realToScreen: Matrix
   onObjectClicked?: (event: GraphicsObjectClickEvent) => void
+  setHoverTooltip?: (tooltip: HoverTooltip | null) => void
+}
+
+export type HoverTooltip = {
+  text: string
+  x: number
+  y: number
 }
