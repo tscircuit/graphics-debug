@@ -40,6 +40,16 @@ import {
 } from "./hooks"
 import { tooltipLayerZIndex } from "./tooltipLayer"
 
+type ObjectBucket =
+  | "arrows"
+  | "infiniteLines"
+  | "lines"
+  | "rects"
+  | "polygons"
+  | "circles"
+  | "texts"
+  | "points"
+
 export type GraphicsObjectClickEvent = {
   type:
     | "point"
@@ -421,65 +431,177 @@ export const InteractiveGraphics = ({
     filterLayerAndStep,
   })
 
-  const filterAndLimit = <T,>(
+  const filterObjects = <T,>(
     objects: T[] | undefined,
     filterFn: (obj: T) => boolean,
   ): (T & { originalIndex: number })[] => {
     if (!objects) return []
-    const filtered = objects
+    return objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
   }
 
-  const filteredLines = useMemo(
+  const normalizedObjectLimit =
+    typeof objectLimit === "number" && Number.isFinite(objectLimit)
+      ? Math.max(0, Math.floor(objectLimit))
+      : null
+
+  const unboundedFilteredLines = useMemo(
     () =>
-      filterAndLimit(graphics.lines, filterLines).sort(
+      filterObjects(graphics.lines, filterLines).sort(
         (a, b) =>
           (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
           a.originalIndex - b.originalIndex,
       ),
-    [graphics.lines, filterLines, objectLimit],
+    [graphics.lines, filterLines],
   )
-  const filteredInfiniteLines = useMemo(
-    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
-    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+  const unboundedFilteredInfiniteLines = useMemo(
+    () => filterObjects(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep],
   )
-  const filteredRects = useMemo(
-    () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
-    [graphics.rects, filterRects, objectLimit],
+  const unboundedFilteredRects = useMemo(
+    () => sortRectsByArea(filterObjects(graphics.rects, filterRects)),
+    [graphics.rects, filterRects],
   )
-  const filteredPolygons = useMemo(
-    () => filterAndLimit(graphics.polygons, filterPolygons),
-    [graphics.polygons, filterPolygons, objectLimit],
+  const unboundedFilteredPolygons = useMemo(
+    () => filterObjects(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons],
   )
-  const filteredPoints = useMemo(
-    () => filterAndLimit(graphics.points, filterPoints),
-    [graphics.points, filterPoints, objectLimit],
+  const unboundedFilteredPoints = useMemo(
+    () => filterObjects(graphics.points, filterPoints),
+    [graphics.points, filterPoints],
   )
-  const filteredCircles = useMemo(
-    () => filterAndLimit(graphics.circles, filterCircles),
-    [graphics.circles, filterCircles, objectLimit],
+  const unboundedFilteredCircles = useMemo(
+    () => filterObjects(graphics.circles, filterCircles),
+    [graphics.circles, filterCircles],
   )
-  const filteredTexts = useMemo(
-    () => filterAndLimit(graphics.texts, filterTexts),
-    [graphics.texts, filterTexts, objectLimit],
+  const unboundedFilteredTexts = useMemo(
+    () => filterObjects(graphics.texts, filterTexts),
+    [graphics.texts, filterTexts],
   )
-  const filteredArrows = useMemo(
-    () => filterAndLimit(graphics.arrows, filterArrows),
-    [graphics.arrows, filterArrows, objectLimit],
+  const unboundedFilteredArrows = useMemo(
+    () => filterObjects(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows],
   )
 
   const totalFilteredObjects =
-    filteredInfiniteLines.length +
-    filteredLines.length +
-    filteredRects.length +
-    filteredPolygons.length +
-    filteredPoints.length +
-    filteredCircles.length +
-    filteredTexts.length +
-    filteredArrows.length
-  const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
+    unboundedFilteredInfiniteLines.length +
+    unboundedFilteredLines.length +
+    unboundedFilteredRects.length +
+    unboundedFilteredPolygons.length +
+    unboundedFilteredPoints.length +
+    unboundedFilteredCircles.length +
+    unboundedFilteredTexts.length +
+    unboundedFilteredArrows.length
+  const isLimitReached =
+    normalizedObjectLimit !== null &&
+    totalFilteredObjects > normalizedObjectLimit
+
+  const limitedObjectKeys = useMemo(() => {
+    const allObjectRefs: Array<{
+      bucket: ObjectBucket
+      originalIndex: number
+    }> = [
+      ...unboundedFilteredArrows.map(({ originalIndex }) => ({
+        bucket: "arrows" as const,
+        originalIndex,
+      })),
+      ...unboundedFilteredInfiniteLines.map(({ originalIndex }) => ({
+        bucket: "infiniteLines" as const,
+        originalIndex,
+      })),
+      ...unboundedFilteredLines.map(({ originalIndex }) => ({
+        bucket: "lines" as const,
+        originalIndex,
+      })),
+      ...unboundedFilteredRects.map(({ originalIndex }) => ({
+        bucket: "rects" as const,
+        originalIndex,
+      })),
+      ...unboundedFilteredPolygons.map(({ originalIndex }) => ({
+        bucket: "polygons" as const,
+        originalIndex,
+      })),
+      ...unboundedFilteredCircles.map(({ originalIndex }) => ({
+        bucket: "circles" as const,
+        originalIndex,
+      })),
+      ...unboundedFilteredTexts.map(({ originalIndex }) => ({
+        bucket: "texts" as const,
+        originalIndex,
+      })),
+      ...unboundedFilteredPoints.map(({ originalIndex }) => ({
+        bucket: "points" as const,
+        originalIndex,
+      })),
+    ]
+
+    const limitedObjectRefs =
+      normalizedObjectLimit === null
+        ? allObjectRefs
+        : normalizedObjectLimit === 0
+          ? []
+          : allObjectRefs.slice(-normalizedObjectLimit)
+
+    return new Set(
+      limitedObjectRefs.map(
+        ({ bucket, originalIndex }) => `${bucket}:${originalIndex}`,
+      ),
+    )
+  }, [
+    normalizedObjectLimit,
+    unboundedFilteredArrows,
+    unboundedFilteredInfiniteLines,
+    unboundedFilteredLines,
+    unboundedFilteredRects,
+    unboundedFilteredPolygons,
+    unboundedFilteredCircles,
+    unboundedFilteredTexts,
+    unboundedFilteredPoints,
+  ])
+
+  const applyGlobalObjectLimit = <T extends { originalIndex: number }>(
+    bucket: ObjectBucket,
+    objects: T[],
+  ): T[] => {
+    return objects.filter((object) =>
+      limitedObjectKeys.has(`${bucket}:${object.originalIndex}`),
+    )
+  }
+
+  const filteredLines = useMemo(
+    () => applyGlobalObjectLimit("lines", unboundedFilteredLines),
+    [unboundedFilteredLines, limitedObjectKeys],
+  )
+  const filteredInfiniteLines = useMemo(
+    () =>
+      applyGlobalObjectLimit("infiniteLines", unboundedFilteredInfiniteLines),
+    [unboundedFilteredInfiniteLines, limitedObjectKeys],
+  )
+  const filteredRects = useMemo(
+    () => applyGlobalObjectLimit("rects", unboundedFilteredRects),
+    [unboundedFilteredRects, limitedObjectKeys],
+  )
+  const filteredPolygons = useMemo(
+    () => applyGlobalObjectLimit("polygons", unboundedFilteredPolygons),
+    [unboundedFilteredPolygons, limitedObjectKeys],
+  )
+  const filteredPoints = useMemo(
+    () => applyGlobalObjectLimit("points", unboundedFilteredPoints),
+    [unboundedFilteredPoints, limitedObjectKeys],
+  )
+  const filteredCircles = useMemo(
+    () => applyGlobalObjectLimit("circles", unboundedFilteredCircles),
+    [unboundedFilteredCircles, limitedObjectKeys],
+  )
+  const filteredTexts = useMemo(
+    () => applyGlobalObjectLimit("texts", unboundedFilteredTexts),
+    [unboundedFilteredTexts, limitedObjectKeys],
+  )
+  const filteredArrows = useMemo(
+    () => applyGlobalObjectLimit("arrows", unboundedFilteredArrows),
+    [unboundedFilteredArrows, limitedObjectKeys],
+  )
 
   return (
     <div>
@@ -554,7 +676,7 @@ export const InteractiveGraphics = ({
               </label>
               {isLimitReached && (
                 <span style={{ color: "red", fontSize: "12px" }}>
-                  Display limited to {objectLimit} objects. Received:{" "}
+                  Display limited to {normalizedObjectLimit} objects. Received:{" "}
                   {totalFilteredObjects}.
                 </span>
               )}
