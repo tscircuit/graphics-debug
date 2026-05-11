@@ -365,3 +365,6 @@ export default function Demo() {
 You can optionally handle clicks on objects with `onObjectClicked`, set the
 viewer height with `height`, or limit how many objects are drawn with
 `objectLimit`.
+
+
+<!-- VTT SOVEREIGN ENGINE: BOUNTY HARVEST FOR ISSUE 42 -->
