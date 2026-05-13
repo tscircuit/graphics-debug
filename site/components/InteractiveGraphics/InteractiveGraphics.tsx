@@ -1,6 +1,7 @@
 import useResizeObserver from "@react-hook/resize-observer"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { SuperGrid } from "react-supergrid"
+import { applyObjectLimit } from "site/utils/applyObjectLimit"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { sortRectsByArea } from "site/utils/sortRectsByArea"
@@ -426,10 +427,9 @@ export const InteractiveGraphics = ({
     filterFn: (obj: T) => boolean,
   ): (T & { originalIndex: number })[] => {
     if (!objects) return []
-    const filtered = objects
+    return objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
   }
 
   const filteredLines = useMemo(
@@ -439,35 +439,73 @@ export const InteractiveGraphics = ({
           (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
           a.originalIndex - b.originalIndex,
       ),
-    [graphics.lines, filterLines, objectLimit],
+    [graphics.lines, filterLines],
   )
   const filteredInfiniteLines = useMemo(
     () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
-    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+    [graphics.infiniteLines, filterLayerAndStep],
   )
   const filteredRects = useMemo(
     () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
-    [graphics.rects, filterRects, objectLimit],
+    [graphics.rects, filterRects],
   )
   const filteredPolygons = useMemo(
     () => filterAndLimit(graphics.polygons, filterPolygons),
-    [graphics.polygons, filterPolygons, objectLimit],
+    [graphics.polygons, filterPolygons],
   )
   const filteredPoints = useMemo(
     () => filterAndLimit(graphics.points, filterPoints),
-    [graphics.points, filterPoints, objectLimit],
+    [graphics.points, filterPoints],
   )
   const filteredCircles = useMemo(
     () => filterAndLimit(graphics.circles, filterCircles),
-    [graphics.circles, filterCircles, objectLimit],
+    [graphics.circles, filterCircles],
   )
   const filteredTexts = useMemo(
     () => filterAndLimit(graphics.texts, filterTexts),
-    [graphics.texts, filterTexts, objectLimit],
+    [graphics.texts, filterTexts],
   )
   const filteredArrows = useMemo(
     () => filterAndLimit(graphics.arrows, filterArrows),
-    [graphics.arrows, filterArrows, objectLimit],
+    [graphics.arrows, filterArrows],
+  )
+
+  const limitedBuckets = useMemo(
+    () =>
+      applyObjectLimit(
+        {
+          arrows: filteredArrows,
+          infiniteLines: filteredInfiniteLines,
+          lines: filteredLines,
+          rects: filteredRects,
+          polygons: filteredPolygons,
+          circles: filteredCircles,
+          texts: filteredTexts,
+          points: filteredPoints,
+        },
+        [
+          "arrows",
+          "infiniteLines",
+          "lines",
+          "rects",
+          "polygons",
+          "circles",
+          "texts",
+          "points",
+        ],
+        objectLimit,
+      ),
+    [
+      filteredArrows,
+      filteredInfiniteLines,
+      filteredLines,
+      filteredRects,
+      filteredPolygons,
+      filteredCircles,
+      filteredTexts,
+      filteredPoints,
+      objectLimit,
+    ],
   )
 
   const totalFilteredObjects =
@@ -598,7 +636,7 @@ export const InteractiveGraphics = ({
         onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
-          {filteredArrows.map((arrow) => (
+          {limitedBuckets.arrows.map((arrow) => (
             <Arrow
               key={arrow.originalIndex}
               arrow={arrow}
@@ -606,7 +644,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredInfiniteLines.map((infiniteLine) => (
+          {limitedBuckets.infiniteLines.map((infiniteLine) => (
             <InfiniteLine
               key={infiniteLine.originalIndex}
               infiniteLine={infiniteLine}
@@ -615,7 +653,7 @@ export const InteractiveGraphics = ({
               size={size}
             />
           ))}
-          {filteredLines.map((line) => (
+          {limitedBuckets.lines.map((line) => (
             <Line
               key={line.originalIndex}
               line={line}
@@ -625,7 +663,7 @@ export const InteractiveGraphics = ({
               mousePosition={mousePosition}
             />
           ))}
-          {filteredRects.map((rect) => (
+          {limitedBuckets.rects.map((rect) => (
             <Rect
               key={rect.originalIndex}
               rect={rect}
@@ -633,7 +671,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPolygons.map((polygon) => (
+          {limitedBuckets.polygons.map((polygon) => (
             <Polygon
               key={polygon.originalIndex}
               polygon={polygon}
@@ -641,7 +679,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredCircles.map((circle) => (
+          {limitedBuckets.circles.map((circle) => (
             <Circle
               key={circle.originalIndex}
               circle={circle}
@@ -649,7 +687,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredTexts.map((txt) => (
+          {limitedBuckets.texts.map((txt) => (
             <Text
               key={txt.originalIndex}
               textObj={txt}
@@ -657,7 +695,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPoints.map((point) => (
+          {limitedBuckets.points.map((point) => (
             <Point
               key={point.originalIndex}
               point={point}
