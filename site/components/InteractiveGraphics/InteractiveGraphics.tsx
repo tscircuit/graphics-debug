@@ -38,6 +38,7 @@ import {
   useFilterTexts,
   useIsPointOnScreen,
 } from "./hooks"
+import { normalizeObjectLimit, takeObjectLimit } from "./object-limit"
 import { tooltipLayerZIndex } from "./tooltipLayer"
 
 export type GraphicsObjectClickEvent = {
@@ -421,65 +422,105 @@ export const InteractiveGraphics = ({
     filterLayerAndStep,
   })
 
-  const filterAndLimit = <T,>(
+  const filterObjects = <T extends object>(
     objects: T[] | undefined,
     filterFn: (obj: T) => boolean,
   ): (T & { originalIndex: number })[] => {
     if (!objects) return []
-    const filtered = objects
+    return objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
   }
 
-  const filteredLines = useMemo(
+  const filteredLinesBeforeLimit = useMemo(
     () =>
-      filterAndLimit(graphics.lines, filterLines).sort(
+      filterObjects(graphics.lines, filterLines).sort(
         (a, b) =>
           (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
           a.originalIndex - b.originalIndex,
       ),
-    [graphics.lines, filterLines, objectLimit],
+    [graphics.lines, filterLines],
   )
-  const filteredInfiniteLines = useMemo(
-    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
-    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+  const filteredInfiniteLinesBeforeLimit = useMemo(
+    () => filterObjects(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep],
   )
-  const filteredRects = useMemo(
-    () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
-    [graphics.rects, filterRects, objectLimit],
+  const filteredRectsBeforeLimit = useMemo(
+    () => sortRectsByArea(filterObjects(graphics.rects, filterRects)),
+    [graphics.rects, filterRects],
   )
-  const filteredPolygons = useMemo(
-    () => filterAndLimit(graphics.polygons, filterPolygons),
-    [graphics.polygons, filterPolygons, objectLimit],
+  const filteredPolygonsBeforeLimit = useMemo(
+    () => filterObjects(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons],
   )
-  const filteredPoints = useMemo(
-    () => filterAndLimit(graphics.points, filterPoints),
-    [graphics.points, filterPoints, objectLimit],
+  const filteredPointsBeforeLimit = useMemo(
+    () => filterObjects(graphics.points, filterPoints),
+    [graphics.points, filterPoints],
   )
-  const filteredCircles = useMemo(
-    () => filterAndLimit(graphics.circles, filterCircles),
-    [graphics.circles, filterCircles, objectLimit],
+  const filteredCirclesBeforeLimit = useMemo(
+    () => filterObjects(graphics.circles, filterCircles),
+    [graphics.circles, filterCircles],
   )
-  const filteredTexts = useMemo(
-    () => filterAndLimit(graphics.texts, filterTexts),
-    [graphics.texts, filterTexts, objectLimit],
+  const filteredTextsBeforeLimit = useMemo(
+    () => filterObjects(graphics.texts, filterTexts),
+    [graphics.texts, filterTexts],
   )
-  const filteredArrows = useMemo(
-    () => filterAndLimit(graphics.arrows, filterArrows),
-    [graphics.arrows, filterArrows, objectLimit],
+  const filteredArrowsBeforeLimit = useMemo(
+    () => filterObjects(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows],
   )
 
-  const totalFilteredObjects =
-    filteredInfiniteLines.length +
-    filteredLines.length +
-    filteredRects.length +
-    filteredPolygons.length +
-    filteredPoints.length +
-    filteredCircles.length +
-    filteredTexts.length +
-    filteredArrows.length
-  const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
+  const normalizedObjectLimit = normalizeObjectLimit(objectLimit)
+
+  const [
+    filteredArrows,
+    filteredInfiniteLines,
+    filteredLines,
+    filteredRects,
+    filteredPolygons,
+    filteredCircles,
+    filteredTexts,
+    filteredPoints,
+  ] = useMemo(
+    () =>
+      takeObjectLimit(
+        [
+          filteredArrowsBeforeLimit,
+          filteredInfiniteLinesBeforeLimit,
+          filteredLinesBeforeLimit,
+          filteredRectsBeforeLimit,
+          filteredPolygonsBeforeLimit,
+          filteredCirclesBeforeLimit,
+          filteredTextsBeforeLimit,
+          filteredPointsBeforeLimit,
+        ] as const,
+        normalizedObjectLimit,
+      ),
+    [
+      filteredArrowsBeforeLimit,
+      filteredInfiniteLinesBeforeLimit,
+      filteredLinesBeforeLimit,
+      filteredRectsBeforeLimit,
+      filteredPolygonsBeforeLimit,
+      filteredCirclesBeforeLimit,
+      filteredTextsBeforeLimit,
+      filteredPointsBeforeLimit,
+      normalizedObjectLimit,
+    ],
+  )
+
+  const totalFilteredObjectsBeforeLimit =
+    filteredInfiniteLinesBeforeLimit.length +
+    filteredLinesBeforeLimit.length +
+    filteredRectsBeforeLimit.length +
+    filteredPolygonsBeforeLimit.length +
+    filteredPointsBeforeLimit.length +
+    filteredCirclesBeforeLimit.length +
+    filteredTextsBeforeLimit.length +
+    filteredArrowsBeforeLimit.length
+  const isLimitReached =
+    normalizedObjectLimit !== null &&
+    totalFilteredObjectsBeforeLimit > normalizedObjectLimit
 
   return (
     <div>
@@ -554,8 +595,8 @@ export const InteractiveGraphics = ({
               </label>
               {isLimitReached && (
                 <span style={{ color: "red", fontSize: "12px" }}>
-                  Display limited to {objectLimit} objects. Received:{" "}
-                  {totalFilteredObjects}.
+                  Display limited to {normalizedObjectLimit} objects. Received:{" "}
+                  {totalFilteredObjectsBeforeLimit}.
                 </span>
               )}
             </div>
