@@ -4,6 +4,7 @@ import { SuperGrid } from "react-supergrid"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { sortRectsByArea } from "site/utils/sortRectsByArea"
+import { applyObjectLimit } from "site/utils/applyObjectLimit"
 import {
   applyToPoint,
   compose,
@@ -421,7 +422,7 @@ export const InteractiveGraphics = ({
     filterLayerAndStep,
   })
 
-  const filterAndLimit = <T,>(
+  const filterOnly = <T,>(
     objects: T[] | undefined,
     filterFn: (obj: T) => boolean,
   ): (T & { originalIndex: number })[] => {
@@ -429,48 +430,48 @@ export const InteractiveGraphics = ({
     const filtered = objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
+    return filtered
   }
 
   const filteredLines = useMemo(
     () =>
-      filterAndLimit(graphics.lines, filterLines).sort(
+      filterOnly(graphics.lines, filterLines).sort(
         (a, b) =>
           (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
           a.originalIndex - b.originalIndex,
       ),
-    [graphics.lines, filterLines, objectLimit],
+    [graphics.lines, filterLines],
   )
   const filteredInfiniteLines = useMemo(
-    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
-    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+    () => filterOnly(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep],
   )
   const filteredRects = useMemo(
-    () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
-    [graphics.rects, filterRects, objectLimit],
+    () => sortRectsByArea(filterOnly(graphics.rects, filterRects)),
+    [graphics.rects, filterRects],
   )
   const filteredPolygons = useMemo(
-    () => filterAndLimit(graphics.polygons, filterPolygons),
-    [graphics.polygons, filterPolygons, objectLimit],
+    () => filterOnly(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons],
   )
   const filteredPoints = useMemo(
-    () => filterAndLimit(graphics.points, filterPoints),
-    [graphics.points, filterPoints, objectLimit],
+    () => filterOnly(graphics.points, filterPoints),
+    [graphics.points, filterPoints],
   )
   const filteredCircles = useMemo(
-    () => filterAndLimit(graphics.circles, filterCircles),
-    [graphics.circles, filterCircles, objectLimit],
+    () => filterOnly(graphics.circles, filterCircles),
+    [graphics.circles, filterCircles],
   )
   const filteredTexts = useMemo(
-    () => filterAndLimit(graphics.texts, filterTexts),
-    [graphics.texts, filterTexts, objectLimit],
+    () => filterOnly(graphics.texts, filterTexts),
+    [graphics.texts, filterTexts],
   )
   const filteredArrows = useMemo(
-    () => filterAndLimit(graphics.arrows, filterArrows),
-    [graphics.arrows, filterArrows, objectLimit],
+    () => filterOnly(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows],
   )
 
-  const totalFilteredObjects =
+  const totalPreLimitObjects =
     filteredInfiniteLines.length +
     filteredLines.length +
     filteredRects.length +
@@ -479,7 +480,52 @@ export const InteractiveGraphics = ({
     filteredCircles.length +
     filteredTexts.length +
     filteredArrows.length
-  const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
+
+  const [
+    limitedLines,
+    limitedInfiniteLines,
+    limitedRects,
+    limitedPolygons,
+    limitedPoints,
+    limitedCircles,
+    limitedTexts,
+    limitedArrows,
+  ] = useMemo(() => {
+    const buckets = [
+      filteredLines,
+      filteredInfiniteLines,
+      filteredRects,
+      filteredPolygons,
+      filteredPoints,
+      filteredCircles,
+      filteredTexts,
+      filteredArrows,
+    ]
+    const typedBuckets = buckets as [
+      typeof filteredLines,
+      typeof filteredInfiniteLines,
+      typeof filteredRects,
+      typeof filteredPolygons,
+      typeof filteredPoints,
+      typeof filteredCircles,
+      typeof filteredTexts,
+      typeof filteredArrows,
+    ]
+    if (!objectLimit || totalPreLimitObjects <= objectLimit) return typedBuckets
+    return applyObjectLimit(buckets, objectLimit) as typeof typedBuckets
+  }, [
+    filteredLines,
+    filteredInfiniteLines,
+    filteredRects,
+    filteredPolygons,
+    filteredPoints,
+    filteredCircles,
+    filteredTexts,
+    filteredArrows,
+    objectLimit,
+    totalPreLimitObjects,
+  ])
+  const isLimitReached = objectLimit && totalPreLimitObjects > objectLimit
 
   return (
     <div>
@@ -555,7 +601,7 @@ export const InteractiveGraphics = ({
               {isLimitReached && (
                 <span style={{ color: "red", fontSize: "12px" }}>
                   Display limited to {objectLimit} objects. Received:{" "}
-                  {totalFilteredObjects}.
+                  {totalPreLimitObjects}.
                 </span>
               )}
             </div>
@@ -598,7 +644,7 @@ export const InteractiveGraphics = ({
         onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
-          {filteredArrows.map((arrow) => (
+          {limitedArrows.map((arrow) => (
             <Arrow
               key={arrow.originalIndex}
               arrow={arrow}
@@ -606,7 +652,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredInfiniteLines.map((infiniteLine) => (
+          {limitedInfiniteLines.map((infiniteLine) => (
             <InfiniteLine
               key={infiniteLine.originalIndex}
               infiniteLine={infiniteLine}
@@ -615,7 +661,7 @@ export const InteractiveGraphics = ({
               size={size}
             />
           ))}
-          {filteredLines.map((line) => (
+          {limitedLines.map((line) => (
             <Line
               key={line.originalIndex}
               line={line}
@@ -625,7 +671,7 @@ export const InteractiveGraphics = ({
               mousePosition={mousePosition}
             />
           ))}
-          {filteredRects.map((rect) => (
+          {limitedRects.map((rect) => (
             <Rect
               key={rect.originalIndex}
               rect={rect}
@@ -633,7 +679,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPolygons.map((polygon) => (
+          {limitedPolygons.map((polygon) => (
             <Polygon
               key={polygon.originalIndex}
               polygon={polygon}
@@ -641,7 +687,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredCircles.map((circle) => (
+          {limitedCircles.map((circle) => (
             <Circle
               key={circle.originalIndex}
               circle={circle}
@@ -649,7 +695,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredTexts.map((txt) => (
+          {limitedTexts.map((txt) => (
             <Text
               key={txt.originalIndex}
               textObj={txt}
@@ -657,7 +703,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPoints.map((point) => (
+          {limitedPoints.map((point) => (
             <Point
               key={point.originalIndex}
               point={point}
