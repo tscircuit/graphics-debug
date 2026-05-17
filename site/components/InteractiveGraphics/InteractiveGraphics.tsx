@@ -429,7 +429,7 @@ export const InteractiveGraphics = ({
     const filtered = objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
+    return filtered
   }
 
   const filteredLines = useMemo(
@@ -469,6 +469,50 @@ export const InteractiveGraphics = ({
     () => filterAndLimit(graphics.arrows, filterArrows),
     [graphics.arrows, filterArrows, objectLimit],
   )
+
+  const applyObjectLimit = <T,>(groups: T[][]): T[][] => {
+    if (!objectLimit) return groups
+
+    let remaining = objectLimit
+    return groups
+      .slice()
+      .reverse()
+      .map((group) => {
+        const limitedGroup = remaining > 0 ? group.slice(-remaining) : []
+        remaining -= limitedGroup.length
+        return limitedGroup
+      })
+      .reverse()
+  }
+
+  const [
+    visibleArrows,
+    visibleInfiniteLines,
+    visibleLines,
+    visibleRects,
+    visiblePolygons,
+    visibleCircles,
+    visibleTexts,
+    visiblePoints,
+  ] = applyObjectLimit([
+    filteredArrows,
+    filteredInfiniteLines,
+    filteredLines,
+    filteredRects,
+    filteredPolygons,
+    filteredCircles,
+    filteredTexts,
+    filteredPoints,
+  ]) as [
+    typeof filteredArrows,
+    typeof filteredInfiniteLines,
+    typeof filteredLines,
+    typeof filteredRects,
+    typeof filteredPolygons,
+    typeof filteredCircles,
+    typeof filteredTexts,
+    typeof filteredPoints,
+  ]
 
   const totalFilteredObjects =
     filteredInfiniteLines.length +
@@ -598,7 +642,7 @@ export const InteractiveGraphics = ({
         onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
-          {filteredArrows.map((arrow) => (
+          {visibleArrows.map((arrow) => (
             <Arrow
               key={arrow.originalIndex}
               arrow={arrow}
@@ -606,7 +650,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredInfiniteLines.map((infiniteLine) => (
+          {visibleInfiniteLines.map((infiniteLine) => (
             <InfiniteLine
               key={infiniteLine.originalIndex}
               infiniteLine={infiniteLine}
@@ -615,7 +659,7 @@ export const InteractiveGraphics = ({
               size={size}
             />
           ))}
-          {filteredLines.map((line) => (
+          {visibleLines.map((line) => (
             <Line
               key={line.originalIndex}
               line={line}
@@ -625,7 +669,7 @@ export const InteractiveGraphics = ({
               mousePosition={mousePosition}
             />
           ))}
-          {filteredRects.map((rect) => (
+          {visibleRects.map((rect) => (
             <Rect
               key={rect.originalIndex}
               rect={rect}
@@ -633,7 +677,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPolygons.map((polygon) => (
+          {visiblePolygons.map((polygon) => (
             <Polygon
               key={polygon.originalIndex}
               polygon={polygon}
@@ -641,7 +685,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredCircles.map((circle) => (
+          {visibleCircles.map((circle) => (
             <Circle
               key={circle.originalIndex}
               circle={circle}
@@ -649,7 +693,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredTexts.map((txt) => (
+          {visibleTexts.map((txt) => (
             <Text
               key={txt.originalIndex}
               textObj={txt}
@@ -657,7 +701,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPoints.map((point) => (
+          {visiblePoints.map((point) => (
             <Point
               key={point.originalIndex}
               point={point}
