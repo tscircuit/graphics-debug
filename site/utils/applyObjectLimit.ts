@@ -21,7 +21,7 @@ export const applyObjectLimit = <TGroups extends ObjectGroups>(
     const keepCount = Math.min(objects.length, remaining)
     limitedGroups[key] = objects.slice(
       objects.length - keepCount,
-    ) as TGroups[typeof key]
+    ) as unknown as TGroups[typeof key]
     remaining -= keepCount
   }
 
