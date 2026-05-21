@@ -42,4 +42,53 @@ describe("applyObjectLimit", () => {
       points: [],
     })
   })
+
+  test("carries unused budget to earlier groups", () => {
+    const limited = applyObjectLimit(
+      {
+        lines: ["line-1", "line-2"],
+        rects: ["rect-1"],
+        points: [],
+      },
+      2,
+    )
+
+    expect(limited).toEqual({
+      lines: ["line-2"],
+      rects: ["rect-1"],
+      points: [],
+    })
+  })
+
+  test("preserves every group key after the budget is consumed", () => {
+    const limited = applyObjectLimit(
+      {
+        lines: ["line-1"],
+        rects: ["rect-1"],
+        points: ["point-1"],
+      },
+      1,
+    )
+
+    expect(limited).toEqual({
+      lines: [],
+      rects: [],
+      points: ["point-1"],
+    })
+  })
+
+  test("treats negative limits as zero", () => {
+    expect(
+      applyObjectLimit(
+        {
+          lines: ["line-1"],
+          points: ["point-1"],
+        },
+        -1,
+      ),
+    ).toEqual({
+      lines: [],
+      points: [],
+    })
+  })
 })
