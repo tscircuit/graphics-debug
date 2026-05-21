@@ -414,6 +414,7 @@ export const InteractiveGraphics = ({
   const filterArrows = useFilterArrows({
     isPointOnScreen,
     doesLineIntersectViewport,
+    filterLayerAndStep,
   })
   const filterPolygons = useFilterPolygons({
     isPointOnScreen,
