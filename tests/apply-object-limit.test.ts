@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test"
-import { applyObjectLimit } from "site/utils/applyObjectLimit"
+import {
+  applyObjectLimit,
+  normalizeObjectLimit,
+} from "site/utils/applyObjectLimit"
 
 describe("applyObjectLimit", () => {
   test("applies one shared limit across object groups", () => {
@@ -90,5 +93,38 @@ describe("applyObjectLimit", () => {
       lines: [],
       points: [],
     })
+  })
+
+  test("floors fractional limits before slicing groups", () => {
+    expect(
+      applyObjectLimit(
+        {
+          lines: ["line-1", "line-2"],
+          points: ["point-1", "point-2"],
+        },
+        2.9,
+      ),
+    ).toEqual({
+      lines: [],
+      points: ["point-1", "point-2"],
+    })
+  })
+
+  test("ignores non-finite limits", () => {
+    const groups = {
+      lines: ["line-1"],
+      points: ["point-1"],
+    }
+
+    expect(applyObjectLimit(groups, Number.NaN)).toBe(groups)
+    expect(applyObjectLimit(groups, Number.POSITIVE_INFINITY)).toBe(groups)
+  })
+
+  test("normalizes finite limits for UI messages", () => {
+    expect(normalizeObjectLimit(undefined)).toBeUndefined()
+    expect(normalizeObjectLimit(Number.NaN)).toBeUndefined()
+    expect(normalizeObjectLimit(Number.POSITIVE_INFINITY)).toBeUndefined()
+    expect(normalizeObjectLimit(-4)).toBe(0)
+    expect(normalizeObjectLimit(3.9)).toBe(3)
   })
 })

@@ -1,7 +1,10 @@
 import useResizeObserver from "@react-hook/resize-observer"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { SuperGrid } from "react-supergrid"
-import { applyObjectLimit } from "site/utils/applyObjectLimit"
+import {
+  applyObjectLimit,
+  normalizeObjectLimit,
+} from "site/utils/applyObjectLimit"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { sortRectsByArea } from "site/utils/sortRectsByArea"
@@ -507,8 +510,10 @@ export const InteractiveGraphics = ({
     preLimitCircles.length +
     preLimitTexts.length +
     preLimitArrows.length
+  const normalizedObjectLimit = normalizeObjectLimit(objectLimit)
   const isLimitReached =
-    objectLimit !== undefined && totalFilteredObjects > objectLimit
+    normalizedObjectLimit !== undefined &&
+    totalFilteredObjects > normalizedObjectLimit
 
   const {
     arrows: filteredArrows,
@@ -594,7 +599,7 @@ export const InteractiveGraphics = ({
               </label>
               {isLimitReached && (
                 <span style={{ color: "red", fontSize: "12px" }}>
-                  Display limited to {objectLimit} objects. Received:{" "}
+                  Display limited to {normalizedObjectLimit} objects. Received:{" "}
                   {totalFilteredObjects}.
                 </span>
               )}
