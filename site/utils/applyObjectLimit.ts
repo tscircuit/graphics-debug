@@ -14,14 +14,14 @@ export function applyObjectLimit<TBuckets extends ObjectBuckets>(
   const limitedBuckets = {} as LimitedBuckets<TBuckets>
 
   for (const key of bucketKeys) {
-    limitedBuckets[key] = [] as LimitedBuckets<TBuckets>[typeof key]
+    limitedBuckets[key] = [] as unknown as LimitedBuckets<TBuckets>[typeof key]
   }
 
   if (!objectLimit || objectLimit <= 0) {
     for (const key of bucketKeys) {
       limitedBuckets[key] = [
         ...buckets[key],
-      ] as LimitedBuckets<TBuckets>[typeof key]
+      ] as unknown as LimitedBuckets<TBuckets>[typeof key]
     }
     return limitedBuckets
   }
