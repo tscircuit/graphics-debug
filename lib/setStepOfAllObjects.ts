@@ -14,6 +14,16 @@ export function setStepOfAllObjects(
       line.step = step
     }
   }
+  if (graphics.infiniteLines) {
+    for (const infiniteLine of graphics.infiniteLines) {
+      infiniteLine.step = step
+    }
+  }
+  if (graphics.polygons) {
+    for (const polygon of graphics.polygons) {
+      polygon.step = step
+    }
+  }
   if (graphics.rects) {
     for (const rect of graphics.rects) {
       rect.step = step

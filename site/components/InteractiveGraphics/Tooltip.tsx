@@ -8,11 +8,10 @@ export const Tooltip = ({ text }: { text: string }) => {
         borderRadius: "4px",
         padding: "4px 8px",
         fontSize: "12px",
-        minWidth: "150px",
+        minWidth: "120px",
         maxWidth: "300px",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
         whiteSpace: "pre-wrap",
+        overflowWrap: "anywhere",
         zIndex: 100,
       }}
     >

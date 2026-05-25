@@ -12,6 +12,18 @@ export interface Line {
   strokeWidth?: number
   strokeColor?: string
   strokeDash?: string | number[]
+  zIndex?: number
+  layer?: string
+  step?: number
+  label?: string
+}
+
+export interface InfiniteLine {
+  directionVector: { x: number; y: number }
+  origin: { x: number; y: number }
+  strokeWidth?: number
+  strokeColor?: string
+  strokeDash?: string | number[]
   layer?: string
   step?: number
   label?: string
@@ -21,6 +33,7 @@ export interface Rect {
   center: { x: number; y: number }
   width: number
   height: number
+  ccwRotationDegrees?: number
   fill?: string
   stroke?: string
   color?: string
@@ -39,11 +52,24 @@ export interface Circle {
   label?: string
 }
 
+export interface Polygon {
+  points: { x: number; y: number }[]
+  fill?: string
+  stroke?: string
+  strokeWidth?: number
+  color?: string
+  layer?: string
+  step?: number
+  label?: string
+}
+
 export interface Arrow {
   start: { x: number; y: number }
   end: { x: number; y: number }
   doubleSided?: boolean
   color?: string
+  label?: string
+  inlineLabel?: string
 }
 
 export type NinePointAnchor =
@@ -71,8 +97,10 @@ export interface Text {
 export interface GraphicsObject {
   points?: Point[]
   lines?: Line[]
+  infiniteLines?: InfiniteLine[]
   rects?: Rect[]
   circles?: Circle[]
+  polygons?: Polygon[]
   arrows?: Arrow[]
   texts?: Text[]
   coordinateSystem?: "cartesian" | "screen"
@@ -98,4 +126,5 @@ export type TransformOptions = {
   padding?: number
   yFlip?: boolean
   disableLabels?: boolean
+  hideInlineLabels?: boolean
 }

@@ -82,6 +82,46 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "lines")
   })
 
+  test("should generate SVG with infinite lines without affecting bounds", () => {
+    const withOnlyRect: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 10,
+          height: 10,
+        },
+      ],
+    }
+
+    const withRectAndInfiniteLine: GraphicsObject = {
+      ...withOnlyRect,
+      infiniteLines: [
+        {
+          origin: { x: 0, y: 0 },
+          directionVector: { x: 1, y: 0 },
+          strokeColor: "#555",
+          strokeWidth: 0.5,
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(withRectAndInfiniteLine)
+    const svgWithoutInfiniteLine = getSvgFromGraphicsObject(withOnlyRect)
+
+    expect(svg).toContain('data-type="infinite-line"')
+    expect(svg).toContain('data-origin="0,0"')
+    expect(svg).toContain('data-direction="1,0"')
+
+    const rectWidthWithInfiniteLine = svg.match(
+      /<rect[^>]*data-type="rect"[^>]*width="([0-9.]+)"/,
+    )?.[1]
+    const rectWidthWithoutInfiniteLine = svgWithoutInfiniteLine.match(
+      /<rect[^>]*data-type="rect"[^>]*width="([0-9.]+)"/,
+    )?.[1]
+    expect(rectWidthWithInfiniteLine).toBe(rectWidthWithoutInfiniteLine)
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "infinite-lines")
+  })
+
   test("should generate SVG with rectangles", () => {
     const input: GraphicsObject = {
       rects: [
@@ -101,6 +141,55 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toContain('fill="yellow"')
     expect(svg).toContain('stroke="green"')
     expect(svg).toMatchSvgSnapshot(import.meta.path, "rectangles")
+  })
+
+  test("should generate SVG with rotated rectangles", () => {
+    const input: GraphicsObject = {
+      rects: [
+        {
+          center: { x: 0, y: 0 },
+          width: 10,
+          height: 4,
+          ccwRotationDegrees: 30,
+          fill: "yellow",
+          stroke: "green",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+    expect(svg).toContain("<rect")
+    expect(svg).toContain('data-ccw-rotation-degrees="30"')
+    expect(svg).toContain('transform="rotate(')
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "rotated-rectangles")
+  })
+
+  test("should generate SVG with polygons", () => {
+    const input: GraphicsObject = {
+      polygons: [
+        {
+          points: [
+            { x: 0, y: 0 },
+            { x: 10, y: 0 },
+            { x: 5, y: 10 },
+          ],
+          fill: "gold",
+          stroke: "black",
+          strokeWidth: 0.2,
+          label: "Tri",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input, {
+      includeTextLabels: ["polygons"],
+    })
+    expect(svg).toBeString()
+    expect(svg).toContain("<polygon")
+    expect(svg).toContain('fill="gold"')
+    expect(svg).toContain('stroke="black"')
+    expect(svg).toContain(">Tri<")
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "polygons")
   })
 
   test("rect label font size scales with dimensions", () => {
@@ -195,6 +284,45 @@ describe("getSvgFromGraphicsObject", () => {
     const headCount = (svg.match(/data-type="arrow-head"/g) ?? []).length
     expect(headCount).toBe(2)
     expect(svg).toMatchSvgSnapshot(import.meta.path, "double-sided-arrows")
+  })
+
+  test("renders inline arrow labels by default and optional labels on request", () => {
+    const input: GraphicsObject = {
+      arrows: [
+        {
+          start: { x: 0, y: 0 },
+          end: { x: 20, y: 10 },
+          color: "teal",
+          label: "Vector",
+          inlineLabel: "v",
+        },
+      ],
+    }
+
+    const svgWithoutLabels = getSvgFromGraphicsObject(input)
+    expect(svgWithoutLabels).not.toContain(">Vector<")
+    expect(svgWithoutLabels).toContain(">v<")
+    expect(svgWithoutLabels).toContain('data-type="arrow-inline-label"')
+
+    const svgWithInlineLabelsHidden = getSvgFromGraphicsObject(input, {
+      hideInlineLabels: true,
+    })
+    expect(svgWithInlineLabelsHidden).not.toContain(">v<")
+    expect(svgWithInlineLabelsHidden).not.toContain(
+      'data-type="arrow-inline-label"',
+    )
+
+    const svgWithLabels = getSvgFromGraphicsObject(input, {
+      includeTextLabels: ["arrows"],
+    })
+
+    expect(svgWithLabels).toContain('data-label="Vector"')
+    expect(svgWithLabels).toContain('data-inline-label="v"')
+    expect(svgWithLabels).toContain('data-type="arrow-label"')
+    expect(svgWithLabels).toContain('data-type="arrow-inline-label"')
+    expect(svgWithLabels).toContain(">Vector<")
+    expect(svgWithLabels).toContain(">v<")
+    expect(svgWithLabels).toContain('transform="rotate(')
   })
 
   test("should generate SVG with texts", () => {

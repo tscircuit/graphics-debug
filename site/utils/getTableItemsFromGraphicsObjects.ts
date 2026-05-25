@@ -39,12 +39,35 @@ export const getTableItemsFromGraphicsObjects = (
     })
   }
 
+  if (graphicsObject.infiniteLines) {
+    graphicsObject.infiniteLines.forEach((line, idx) => {
+      objects.push({
+        type: "infinite-line",
+        id: `infinite-line-${idx}`,
+        properties: flattenObject(line),
+      })
+    })
+  }
+
   if (graphicsObject.rects) {
     graphicsObject.rects.forEach((rect, idx) => {
       objects.push({
         type: "rect",
         id: `rect-${idx}`,
         properties: flattenObject(rect),
+      })
+    })
+  }
+
+  if (graphicsObject.polygons) {
+    graphicsObject.polygons.forEach((polygon, idx) => {
+      objects.push({
+        type: "polygon",
+        id: `polygon-${idx}`,
+        properties: {
+          ...flattenObject(polygon),
+          points: `[${polygon.points.map((p) => `(${p.x},${p.y})`).join(", ")}]`,
+        },
       })
     })
   }

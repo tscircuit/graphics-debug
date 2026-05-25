@@ -1,11 +1,11 @@
+import { getArrowGeometry, getInlineLabelLayout } from "lib/arrowHelpers"
 import type * as Types from "lib/types"
+import { useEffect, useMemo, useState } from "react"
+import { distToLineSegment } from "site/utils/distToLineSegment"
+import { safeLighten } from "site/utils/safeLighten"
 import { applyToPoint } from "transformation-matrix"
 import type { InteractiveState } from "./InteractiveState"
-import { useMemo, useState } from "react"
 import { defaultColors } from "./defaultColors"
-import { safeLighten } from "site/utils/safeLighten"
-import { distToLineSegment } from "site/utils/distToLineSegment"
-import { getArrowGeometry } from "lib/arrowHelpers"
 
 export const Arrow = ({
   arrow,
@@ -16,7 +16,7 @@ export const Arrow = ({
   index: number
   interactiveState: InteractiveState
 }) => {
-  const { realToScreen, onObjectClicked } = interactiveState
+  const { realToScreen, onObjectClicked, setHoverTooltip } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
   const geometry = useMemo(() => getArrowGeometry(arrow), [arrow])
@@ -35,10 +35,57 @@ export const Arrow = ({
   }, [geometry, realToScreen])
 
   const scaleFactor = Math.abs(realToScreen.a)
+  const fontSize = 12
+  const strokeWidth = geometry.shaftWidth * (scaleFactor || 1)
+  const alongSeparation = fontSize * 0.6
+  const inlineLabelLayout = useMemo(
+    () =>
+      getInlineLabelLayout(screenPoints.shaftStart, screenPoints.shaftEnd, {
+        fontSize,
+        strokeWidth,
+        normalPadding: 6,
+        alongOffset: arrow.label ? alongSeparation : 0,
+      }),
+    [screenPoints, fontSize, strokeWidth, arrow.label, alongSeparation],
+  )
+  const labelLayout = useMemo(
+    () =>
+      getInlineLabelLayout(screenPoints.shaftStart, screenPoints.shaftEnd, {
+        fontSize,
+        strokeWidth,
+        normalPadding: 12,
+        alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+      }),
+    [screenPoints, fontSize, strokeWidth, arrow.inlineLabel, alongSeparation],
+  )
 
   const baseColor =
     arrow.color || defaultColors[index % defaultColors.length] || "black"
   const displayColor = isHovered ? safeLighten(0.2, baseColor) : baseColor
+  const tooltipText = [arrow.label, arrow.inlineLabel]
+    .filter(Boolean)
+    .join("\n")
+  const tooltipAnchor = arrow.label ? labelLayout : inlineLabelLayout
+
+  useEffect(() => {
+    if (!isHovered || !tooltipText) return
+
+    setHoverTooltip?.({
+      text: tooltipText,
+      x: tooltipAnchor.x,
+      y: tooltipAnchor.y,
+    })
+
+    return () => {
+      setHoverTooltip?.(null)
+    }
+  }, [
+    isHovered,
+    setHoverTooltip,
+    tooltipAnchor.x,
+    tooltipAnchor.y,
+    tooltipText,
+  ])
 
   const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
@@ -74,42 +121,54 @@ export const Arrow = ({
   }
 
   return (
-    <svg
+    <div
       style={{
         position: "absolute",
         top: 0,
         left: 0,
         width: "100%",
         height: "100%",
+        pointerEvents: "none",
       }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={
-        isHovered
-          ? (event) => {
-              event.stopPropagation()
-              onObjectClicked?.({ type: "arrow", index, object: arrow })
-            }
-          : undefined
-      }
     >
-      <line
-        x1={screenPoints.shaftStart.x}
-        y1={screenPoints.shaftStart.y}
-        x2={screenPoints.shaftEnd.x}
-        y2={screenPoints.shaftEnd.y}
-        stroke={displayColor}
-        strokeWidth={geometry.shaftWidth * (scaleFactor || 1)}
-        strokeLinecap="round"
-        pointerEvents="stroke"
-      />
-      {screenPoints.heads.map((head, headIndex) => (
-        <polygon
-          key={headIndex}
-          points={`${head.tip.x},${head.tip.y} ${head.leftWing.x},${head.leftWing.y} ${head.rightWing.x},${head.rightWing.y}`}
-          fill={displayColor}
+      <svg
+        style={{
+          width: "100%",
+          height: "100%",
+          pointerEvents: "auto",
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setHoverTooltip?.(null)
+        }}
+        onClick={
+          isHovered
+            ? (event) => {
+                event.stopPropagation()
+                onObjectClicked?.({ type: "arrow", index, object: arrow })
+              }
+            : undefined
+        }
+      >
+        <line
+          x1={screenPoints.shaftStart.x}
+          y1={screenPoints.shaftStart.y}
+          x2={screenPoints.shaftEnd.x}
+          y2={screenPoints.shaftEnd.y}
+          stroke={displayColor}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          pointerEvents="stroke"
         />
-      ))}
-    </svg>
+        {screenPoints.heads.map((head, headIndex) => (
+          <polygon
+            key={headIndex}
+            points={`${head.tip.x},${head.tip.y} ${head.leftWing.x},${head.leftWing.y} ${head.rightWing.x},${head.rightWing.y}`}
+            fill={displayColor}
+          />
+        ))}
+      </svg>
+    </div>
   )
 }

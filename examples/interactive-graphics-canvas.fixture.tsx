@@ -57,6 +57,15 @@ const steppedGraphics: GraphicsObject = {
       stroke: "blue",
       step: 2,
     },
+    {
+      center: { x: 30, y: -5 },
+      width: 32,
+      height: 18,
+      ccwRotationDegrees: 35,
+      fill: "rgba(249, 115, 22, 0.25)",
+      stroke: "#c2410c",
+      step: 3,
+    },
   ],
   circles: [
     {

@@ -1,9 +1,10 @@
 # graphics-debug
 
-Module for debugging graphics, turn log output into meaningful markdown and SVG diagrams.
+Module for debugging graphics, turn log output into meaningful SVG and PNG diagrams.
 
-Just pipe in output with graphics JSON objects into `graphics-debug` (or `gd`) to get an html file
-with all your graphics drawn-in.
+graphics-debug is usually used as a library with tscircuit solvers.
+
+## CLI Usage
 
 ```bash
 echo ':graphics { points: [{x: 0, y: 0, label: "hello world" }], title: "test graphic" } }' | graphics-debug
@@ -58,6 +59,7 @@ interface Rect {
   center: { x: number; y: number }
   width: number
   height: number
+  ccwRotationDegrees?: number
   fill?: string
   stroke?: string
   color?: string
@@ -200,6 +202,25 @@ const graphicsObject = {
 const svg = getSvgFromGraphicsObject(graphicsObject)
 // Returns a formatted SVG string ready to be written to a file or embedded in HTML
 ```
+
+### Write a PNG directly from a GraphicsObject
+
+```tsx
+import fs from "node:fs"
+import { getPngBufferFromGraphicsObject } from "graphics-debug"
+
+const graphicsObject = solver.visualize() // common pattern for algorithms
+
+const png = await getPngBufferFromGraphicsObject(graphicsObject, {
+  pngWidth: 1024,
+  pngHeight: 1024,
+})
+
+fs.writeFileSync("solver-debug.png", png)
+```
+
+`getPngBufferFromGraphicsObject` returns PNG bytes as a `Uint8Array`, so you can
+write it directly with `fs.writeFileSync(...)`.
 
 ### Translate a GraphicsObject
 

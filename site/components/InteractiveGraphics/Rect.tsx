@@ -1,9 +1,7 @@
 import type * as Types from "lib/types"
-import { applyToPoint } from "transformation-matrix"
+import { getProjectedRectGeometry } from "lib/rectGeometry"
 import type { InteractiveState } from "./InteractiveState"
-import { lighten } from "polished"
-import { useState } from "react"
-import { Tooltip } from "./Tooltip"
+import { useEffect, useState } from "react"
 import { defaultColors } from "./defaultColors"
 import { safeLighten } from "site/utils/safeLighten"
 
@@ -17,14 +15,17 @@ export const Rect = ({
   index: number
 }) => {
   const defaultColor = defaultColors[index % defaultColors.length]
-  let { center, width, height, fill, stroke, layer, step } = rect
-  const { activeLayers, activeStep, realToScreen, onObjectClicked } =
-    interactiveState
+  let { fill, stroke } = rect
+  const {
+    activeLayers,
+    activeStep,
+    realToScreen,
+    onObjectClicked,
+    setHoverTooltip,
+  } = interactiveState
   const [isHovered, setIsHovered] = useState(false)
 
-  const screenCenter = applyToPoint(realToScreen, center)
-  const screenWidth = width * realToScreen.a
-  const screenHeight = height * Math.abs(realToScreen.d)
+  const projectedRect = getProjectedRectGeometry(rect, realToScreen)
 
   // Default style when neither fill nor stroke is specified
   const hasStrokeOrFill = fill !== undefined || stroke !== undefined
@@ -35,44 +36,67 @@ export const Rect = ({
     stroke = safeLighten(0.2, stroke!)
   }
 
+  useEffect(() => {
+    if (!isHovered || !rect.label) return
+
+    setHoverTooltip?.({
+      text: rect.label,
+      x: projectedRect.center.x,
+      y: projectedRect.center.y - projectedRect.height / 2,
+    })
+
+    return () => {
+      setHoverTooltip?.(null)
+    }
+  }, [
+    isHovered,
+    projectedRect.center.x,
+    projectedRect.center.y,
+    projectedRect.height,
+    rect.label,
+    setHoverTooltip,
+  ])
+
   return (
     <div
       style={{
         position: "absolute",
-        left: screenCenter.x - screenWidth / 2,
-        top: screenCenter.y - screenHeight / 2,
-        width: screenWidth,
-        height: screenHeight,
-        backgroundColor,
-        border: stroke
-          ? `2px solid ${isHovered ? safeLighten(0.2, stroke) : stroke}`
-          : "none",
-        cursor: "pointer",
-        transition: "border-color 0.2s",
+        left: projectedRect.center.x,
+        top: projectedRect.center.y,
+        width: projectedRect.width,
+        height: projectedRect.height,
+        transform: "translate(-50%, -50%)",
+        pointerEvents: "none",
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={() =>
-        onObjectClicked?.({
-          type: "rect",
-          index,
-          object: rect,
-        })
-      }
     >
-      {isHovered && rect.label && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "100%",
-            left: "50%",
-            transform: "translateX(-50%)",
-            marginBottom: 8,
-          }}
-        >
-          <Tooltip text={rect.label} />
-        </div>
-      )}
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          backgroundColor,
+          border: stroke
+            ? `2px solid ${isHovered ? safeLighten(0.2, stroke) : stroke}`
+            : "none",
+          boxSizing: "border-box",
+          cursor: "pointer",
+          transition: "border-color 0.2s",
+          transformOrigin: "center",
+          transform: `rotate(${projectedRect.angleDegrees}deg)`,
+          pointerEvents: "auto",
+        }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false)
+          setHoverTooltip?.(null)
+        }}
+        onClick={() =>
+          onObjectClicked?.({
+            type: "rect",
+            index,
+            object: rect,
+          })
+        }
+      />
     </div>
   )
 }

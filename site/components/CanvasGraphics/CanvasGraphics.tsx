@@ -56,7 +56,7 @@ export const CanvasGraphics = ({
   width = 600,
   height = 600,
   withGrid = true,
-  disableLabels = false,
+  disableLabels = true,
   initialTransform,
 }: CanvasGraphicsProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -141,13 +141,14 @@ export const CanvasGraphics = ({
     drawGraphicsToCanvas(graphics, canvasRef.current, {
       transform: currentTransform,
       disableLabels,
+      hideInlineLabels: disableLabels,
     })
 
     // Draw a grid for reference if enabled
     if (withGrid) {
       drawGrid(canvasRef.current, currentTransform)
     }
-  }, [canvasRef, currentTransform, graphics, size, withGrid])
+  }, [canvasRef, currentTransform, disableLabels, graphics, size, withGrid])
 
   // Draw a grid to help with visualization
   const drawGrid = (canvas: HTMLCanvasElement, transform: Matrix) => {

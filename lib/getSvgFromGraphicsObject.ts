@@ -1,16 +1,22 @@
-import {
-  transform,
-  compose,
-  translate,
-  scale,
-  applyToPoint,
-  identity,
-  type Matrix,
-} from "transformation-matrix"
-import type { GraphicsObject, Point } from "./types"
 import { stringify } from "svgson"
-import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
-import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
+import {
+  type Matrix,
+  applyToPoint,
+  compose,
+  identity,
+  scale,
+  transform,
+  translate,
+} from "transformation-matrix"
+import {
+  getArrowBoundingBox,
+  getArrowGeometry,
+  getInlineLabelLayout,
+} from "./arrowHelpers"
+import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
+import { clipInfiniteLineToBounds } from "./infiniteLineHelpers"
+import { getProjectedRectGeometry, getRectCorners } from "./rectGeometry"
+import type { GraphicsObject, Point } from "./types"
 
 const DEFAULT_SVG_SIZE = 640
 const PADDING = 40
@@ -26,15 +32,9 @@ function getBounds(graphics: GraphicsObject): Bounds {
   const points: Point[] = [
     ...(graphics.points || []),
     ...(graphics.lines || []).flatMap((line) => line.points),
+    ...(graphics.polygons || []).flatMap((polygon) => polygon.points),
     ...(graphics.rects || []).flatMap((rect) => {
-      const halfWidth = rect.width / 2
-      const halfHeight = rect.height / 2
-      return [
-        { x: rect.center.x - halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x - halfWidth, y: rect.center.y + halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y + halfHeight },
-      ]
+      return getRectCorners(rect)
     }),
     ...(graphics.circles || []).flatMap((circle) => [
       { x: circle.center.x - circle.radius, y: circle.center.y }, // left
@@ -122,12 +122,18 @@ export function getSvgFromGraphicsObject(
   graphics: GraphicsObject,
   {
     includeTextLabels = false,
+    hideInlineLabels = false,
     backgroundColor = "white",
     svgWidth = DEFAULT_SVG_SIZE,
     svgHeight = DEFAULT_SVG_SIZE,
   }: {
-    includeTextLabels?: boolean | Array<"points" | "lines" | "rects">
+    includeTextLabels?:
+      | boolean
+      | Array<
+          "points" | "lines" | "infiniteLines" | "rects" | "polygons" | "arrows"
+        >
     backgroundColor?: string | null
+    hideInlineLabels?: boolean
     svgWidth?: number
     svgHeight?: number
   } = {},
@@ -141,7 +147,15 @@ export function getSvgFromGraphicsObject(
   )
   const strokeScale = Math.abs(matrix.a)
 
-  const shouldRenderLabel = (type: "points" | "lines" | "rects"): boolean => {
+  const shouldRenderLabel = (
+    type:
+      | "points"
+      | "lines"
+      | "infiniteLines"
+      | "rects"
+      | "polygons"
+      | "arrows",
+  ): boolean => {
     if (typeof includeTextLabels === "boolean") {
       return includeTextLabels
     }
@@ -175,115 +189,141 @@ export function getSvgFromGraphicsObject(
             },
           ]
         : []),
-      // Points
-      ...(graphics.points || []).map((point) => {
-        const projected = projectPoint(point, matrix)
-        return {
-          name: "g",
-          type: "element",
-          attributes: {},
-          children: [
-            {
-              name: "circle",
-              type: "element",
-              attributes: {
-                "data-type": "point",
-                "data-label": point.label || "",
-                "data-x": point.x.toString(),
-                "data-y": point.y.toString(),
-                cx: projected.x.toString(),
-                cy: projected.y.toString(),
-                r: "3",
-                fill: point.color || "black",
-              },
-            },
-            ...(shouldRenderLabel("points") && point.label
-              ? [
-                  {
-                    name: "text",
-                    type: "element",
-                    attributes: {
-                      x: (projected.x + 5).toString(),
-                      y: (projected.y - 5).toString(),
-                      "font-family": "sans-serif",
-                      "font-size": "12",
-                    },
-                    children: [{ type: "text", value: point.label }],
-                  },
-                ]
-              : []),
-          ],
-        }
-      }),
       // Lines
-      ...(graphics.lines || []).map((line) => {
-        const projectedPoints = line.points.map((p) => projectPoint(p, matrix))
-        return {
-          name: "g",
-          type: "element",
-          attributes: {},
-          children: [
-            {
-              name: "polyline",
-              type: "element",
-              attributes: {
-                "data-points": line.points
-                  .map((p) => `${p.x},${p.y}`)
-                  .join(" "),
-                "data-type": "line",
-                "data-label": line.label || "",
-                points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
-                fill: "none",
-                stroke: line.strokeColor || "black",
-                "stroke-width": !line.strokeWidth
-                  ? "1px"
-                  : typeof line.strokeWidth === "string"
-                    ? line.strokeWidth
-                    : (strokeScale * line.strokeWidth).toString(),
-                ...(line.strokeDash && {
-                  "stroke-dasharray": Array.isArray(line.strokeDash)
-                    ? line.strokeDash.join(" ")
-                    : line.strokeDash,
-                }),
+      ...(graphics.lines || [])
+        .map((line, originalIndex) => ({ line, originalIndex }))
+        .sort(
+          (a, b) =>
+            (a.line.zIndex ?? 0) - (b.line.zIndex ?? 0) ||
+            a.originalIndex - b.originalIndex,
+        )
+        .map(({ line }) => {
+          const projectedPoints = line.points.map((p) =>
+            projectPoint(p, matrix),
+          )
+          return {
+            name: "g",
+            type: "element",
+            attributes: {},
+            children: [
+              {
+                name: "polyline",
+                type: "element",
+                attributes: {
+                  "data-points": line.points
+                    .map((p) => `${p.x},${p.y}`)
+                    .join(" "),
+                  "data-type": "line",
+                  "data-label": line.label || "",
+                  points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
+                  fill: "none",
+                  stroke: line.strokeColor || "black",
+                  "stroke-width": !line.strokeWidth
+                    ? "1px"
+                    : typeof line.strokeWidth === "string"
+                      ? line.strokeWidth
+                      : (strokeScale * line.strokeWidth).toString(),
+                  ...(line.strokeDash && {
+                    "stroke-dasharray": Array.isArray(line.strokeDash)
+                      ? line.strokeDash.join(" ")
+                      : line.strokeDash,
+                  }),
+                },
               },
-            },
-            ...(shouldRenderLabel("lines") &&
-            line.label &&
-            projectedPoints.length > 0
-              ? [
-                  {
-                    name: "text",
-                    type: "element",
-                    attributes: {
-                      x: (projectedPoints[0].x + 5).toString(),
-                      y: (projectedPoints[0].y - 5).toString(),
-                      "font-family": "sans-serif",
-                      "font-size": "12",
-                      fill: line.strokeColor || "black",
+              ...(shouldRenderLabel("lines") &&
+              line.label &&
+              projectedPoints.length > 0
+                ? [
+                    {
+                      name: "text",
+                      type: "element",
+                      attributes: {
+                        x: (projectedPoints[0].x + 5).toString(),
+                        y: (projectedPoints[0].y - 5).toString(),
+                        "font-family": "sans-serif",
+                        "font-size": "12",
+                        fill: line.strokeColor || "black",
+                      },
+                      children: [{ type: "text", value: line.label }],
                     },
-                    children: [{ type: "text", value: line.label }],
-                  },
-                ]
-              : []),
-          ],
-        }
+                  ]
+                : []),
+            ],
+          }
+        }),
+      ...(graphics.infiniteLines || []).flatMap((line) => {
+        const segment = clipInfiniteLineToBounds(line, bounds)
+        if (!segment) return []
+
+        const [start, end] = segment
+        const projectedStart = projectPoint(start, matrix)
+        const projectedEnd = projectPoint(end, matrix)
+
+        return [
+          {
+            name: "g",
+            type: "element",
+            attributes: {},
+            children: [
+              {
+                name: "line",
+                type: "element",
+                attributes: {
+                  "data-type": "infinite-line",
+                  "data-label": line.label || "",
+                  "data-origin": `${line.origin.x},${line.origin.y}`,
+                  "data-direction": `${line.directionVector.x},${line.directionVector.y}`,
+                  x1: projectedStart.x.toString(),
+                  y1: projectedStart.y.toString(),
+                  x2: projectedEnd.x.toString(),
+                  y2: projectedEnd.y.toString(),
+                  stroke: line.strokeColor || "black",
+                  "stroke-width": !line.strokeWidth
+                    ? "1px"
+                    : typeof line.strokeWidth === "string"
+                      ? line.strokeWidth
+                      : (strokeScale * line.strokeWidth).toString(),
+                  ...(line.strokeDash && {
+                    "stroke-dasharray": Array.isArray(line.strokeDash)
+                      ? line.strokeDash.join(" ")
+                      : line.strokeDash,
+                  }),
+                },
+              },
+              ...(shouldRenderLabel("infiniteLines") && line.label
+                ? [
+                    {
+                      name: "text",
+                      type: "element",
+                      attributes: {
+                        x: (
+                          (projectedStart.x + projectedEnd.x) / 2 +
+                          5
+                        ).toString(),
+                        y: (
+                          (projectedStart.y + projectedEnd.y) / 2 -
+                          5
+                        ).toString(),
+                        "font-family": "sans-serif",
+                        "font-size": "12",
+                        fill: line.strokeColor || "black",
+                      },
+                      children: [{ type: "text", value: line.label }],
+                    },
+                  ]
+                : []),
+            ],
+          },
+        ]
       }),
       // Rectangles
       ...(graphics.rects || []).map((rect) => {
-        const corner1 = {
-          x: rect.center.x - rect.width / 2,
-          y: rect.center.y - rect.height / 2,
-        }
-        const projectedCorner1 = projectPoint(corner1, matrix)
-        const corner2 = {
-          x: rect.center.x + rect.width / 2,
-          y: rect.center.y + rect.height / 2,
-        }
-        const projectedCorner2 = projectPoint(corner2, matrix)
-        const scaledWidth = Math.abs(projectedCorner2.x - projectedCorner1.x)
-        const scaledHeight = Math.abs(projectedCorner2.y - projectedCorner1.y)
-        const rectX = Math.min(projectedCorner1.x, projectedCorner2.x)
-        const rectY = Math.min(projectedCorner1.y, projectedCorner2.y)
+        const projectedRect = getProjectedRectGeometry(rect, matrix)
+        const rectX = projectedRect.center.x - projectedRect.width / 2
+        const rectY = projectedRect.center.y - projectedRect.height / 2
+        const labelX = projectedRect.bounds.minX + 5
+        const labelY = projectedRect.bounds.minY
+        const hasRotation = Math.abs(projectedRect.angleDegrees) > 1e-6
 
         return {
           name: "g",
@@ -298,13 +338,20 @@ export function getSvgFromGraphicsObject(
                 "data-label": rect.label || "",
                 "data-x": rect.center.x.toString(),
                 "data-y": rect.center.y.toString(),
+                ...(rect.ccwRotationDegrees !== undefined && {
+                  "data-ccw-rotation-degrees":
+                    rect.ccwRotationDegrees.toString(),
+                }),
                 x: rectX.toString(),
                 y: rectY.toString(),
-                width: scaledWidth.toString(),
-                height: scaledHeight.toString(),
+                width: projectedRect.width.toString(),
+                height: projectedRect.height.toString(),
                 fill: rect.fill || "none",
                 stroke: rect.stroke || "black",
                 "stroke-width": Math.abs(1 / matrix.a).toString(), // Consider scaling stroke width like lines if needed
+                ...(hasRotation && {
+                  transform: `rotate(${projectedRect.angleDegrees} ${projectedRect.center.x} ${projectedRect.center.y})`,
+                }),
               },
             },
             ...(shouldRenderLabel("rects") && rect.label
@@ -313,17 +360,71 @@ export function getSvgFromGraphicsObject(
                     name: "text",
                     type: "element",
                     attributes: {
-                      x: (rectX + 5).toString(),
-                      y: rectY.toString(),
+                      x: labelX.toString(),
+                      y: labelY.toString(),
                       "font-family": "sans-serif",
                       "dominant-baseline": "text-before-edge",
                       "font-size": (
-                        ((scaledWidth + scaledHeight) / 2) *
+                        ((projectedRect.width + projectedRect.height) / 2) *
                         0.06
                       ).toString(),
                       fill: rect.stroke || "black", // Default to stroke color for label
                     },
                     children: [{ type: "text", value: rect.label }],
+                  },
+                ]
+              : []),
+          ],
+        }
+      }),
+      // Polygons
+      ...(graphics.polygons || []).map((polygon) => {
+        const projectedPoints = polygon.points.map((point) =>
+          projectPoint(point, matrix),
+        )
+        const xs = projectedPoints.map((p) => p.x)
+        const ys = projectedPoints.map((p) => p.y)
+        const minX = xs.length > 0 ? Math.min(...xs) : 0
+        const minY = ys.length > 0 ? Math.min(...ys) : 0
+        const polygonStrokeWidth =
+          polygon.strokeWidth === undefined
+            ? Math.abs(1 / matrix.a)
+            : strokeScale * polygon.strokeWidth
+
+        return {
+          name: "g",
+          type: "element",
+          attributes: {},
+          children: [
+            {
+              name: "polygon",
+              type: "element",
+              attributes: {
+                "data-type": "polygon",
+                "data-label": polygon.label || "",
+                "data-points": polygon.points
+                  .map((p) => `${p.x},${p.y}`)
+                  .join(" "),
+                points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
+                fill: polygon.fill || "none",
+                stroke: polygon.stroke || "black",
+                "stroke-width": polygonStrokeWidth.toString(),
+              },
+            },
+            ...(shouldRenderLabel("polygons") && polygon.label
+              ? [
+                  {
+                    name: "text",
+                    type: "element",
+                    attributes: {
+                      x: (minX + 5).toString(),
+                      y: minY.toString(),
+                      "font-family": "sans-serif",
+                      "dominant-baseline": "text-before-edge",
+                      "font-size": "12",
+                      fill: polygon.stroke || "black",
+                    },
+                    children: [{ type: "text", value: polygon.label }],
                   },
                 ]
               : []),
@@ -355,6 +456,29 @@ export function getSvgFromGraphicsObject(
         const geometry = getArrowGeometry(arrow)
         const projectedShaftStart = projectPoint(geometry.shaftStart, matrix)
         const projectedShaftEnd = projectPoint(geometry.shaftEnd, matrix)
+        const fontSize = 12
+        const strokeWidth = geometry.shaftWidth
+        const alongSeparation = fontSize * 0.6
+        const inlineLabelLayout = getInlineLabelLayout(
+          projectedShaftStart,
+          projectedShaftEnd,
+          {
+            fontSize,
+            strokeWidth,
+            normalPadding: 6,
+            alongOffset: arrow.label ? alongSeparation : 0,
+          },
+        )
+        const arrowLabelLayout = getInlineLabelLayout(
+          projectedShaftStart,
+          projectedShaftEnd,
+          {
+            fontSize,
+            strokeWidth,
+            normalPadding: 12,
+            alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+          },
+        )
 
         const color = arrow.color || "black"
 
@@ -394,6 +518,45 @@ export function getSvgFromGraphicsObject(
             },
           },
           ...headChildren,
+          ...(shouldRenderLabel("arrows") && arrow.label
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    "data-type": "arrow-label",
+                    x: arrowLabelLayout.x.toString(),
+                    y: arrowLabelLayout.y.toString(),
+                    "font-family": "sans-serif",
+                    "font-size": fontSize.toString(),
+                    "text-anchor": "middle",
+                    "dominant-baseline": "central",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.label }],
+                },
+              ]
+            : []),
+          ...(!hideInlineLabels && arrow.inlineLabel
+            ? [
+                {
+                  name: "text",
+                  type: "element",
+                  attributes: {
+                    "data-type": "arrow-inline-label",
+                    x: inlineLabelLayout.x.toString(),
+                    y: inlineLabelLayout.y.toString(),
+                    transform: `rotate(${inlineLabelLayout.angleDegrees} ${inlineLabelLayout.x} ${inlineLabelLayout.y})`,
+                    "font-family": "sans-serif",
+                    "font-size": fontSize.toString(),
+                    "text-anchor": "middle",
+                    "dominant-baseline": "central",
+                    fill: color,
+                  },
+                  children: [{ type: "text", value: arrow.inlineLabel }],
+                },
+              ]
+            : []),
         ]
 
         return {
@@ -404,6 +567,10 @@ export function getSvgFromGraphicsObject(
             "data-start": `${arrow.start.x},${arrow.start.y}`,
             "data-end": `${arrow.end.x},${arrow.end.y}`,
             "data-double-sided": arrow.doubleSided ? "true" : "false",
+            ...(arrow.label ? { "data-label": arrow.label } : {}),
+            ...(arrow.inlineLabel
+              ? { "data-inline-label": arrow.inlineLabel }
+              : {}),
           },
           children,
         }
@@ -451,6 +618,46 @@ export function getSvgFromGraphicsObject(
             "dominant-baseline": baselineMap[anchor],
           },
           children: [{ type: "text", value: txt.text }],
+        }
+      }),
+      // Points
+      ...(graphics.points || []).map((point) => {
+        const projected = projectPoint(point, matrix)
+        return {
+          name: "g",
+          type: "element",
+          attributes: {},
+          children: [
+            {
+              name: "circle",
+              type: "element",
+              attributes: {
+                "data-type": "point",
+                "data-label": point.label || "",
+                "data-x": point.x.toString(),
+                "data-y": point.y.toString(),
+                cx: projected.x.toString(),
+                cy: projected.y.toString(),
+                r: "3",
+                fill: point.color || "black",
+              },
+            },
+            ...(shouldRenderLabel("points") && point.label
+              ? [
+                  {
+                    name: "text",
+                    type: "element",
+                    attributes: {
+                      x: (projected.x + 5).toString(),
+                      y: (projected.y - 5).toString(),
+                      "font-family": "sans-serif",
+                      "font-size": "12",
+                    },
+                    children: [{ type: "text", value: point.label }],
+                  },
+                ]
+              : []),
+          ],
         }
       }),
       // Crosshair lines and coordinates (initially hidden)

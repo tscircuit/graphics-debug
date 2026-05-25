@@ -13,6 +13,18 @@ debugGraphics(
         color: "green",
       },
     ],
+    polygons: [
+      {
+        points: [
+          { x: -60, y: -40 },
+          { x: -20, y: -40 },
+          { x: -40, y: -10 },
+        ],
+        fill: "gold",
+        stroke: "black",
+        label: "Triangle",
+      },
+    ],
     points: [{ x: 50, y: 50, color: "red", label: "Test Output!" }],
   }),
 )

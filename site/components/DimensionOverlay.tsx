@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { applyToPoint, identity, inverse } from "transformation-matrix"
 import type { Matrix } from "transformation-matrix"
+import { useDiagonalLabel } from "../hooks/useDiagonalLabel"
 
 interface Props {
   transform?: Matrix
@@ -17,13 +18,27 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
   const [dEnd, setDEnd] = useState({ x: 0, y: 0 })
   const mousePosRef = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const isMouseOverRef = useRef(false)
   const container = containerRef.current!
   const containerBounds = container?.getBoundingClientRect()
 
-  const bindKeys = () => {
-    const container = containerRef.current
+  const handleMouseEnter = useCallback(() => {
+    isMouseOverRef.current = true
+    containerRef.current?.focus()
+  }, [])
 
+  const handleMouseLeave = useCallback(() => {
+    isMouseOverRef.current = false
+  }, [])
+
+  useEffect(() => {
     const down = (e: KeyboardEvent) => {
+      const containerHasFocus =
+        containerRef.current?.contains(document.activeElement) ||
+        document.activeElement === containerRef.current
+
+      if (!isMouseOverRef.current && !containerHasFocus) return
+
       if (e.key === "d") {
         setDStart({ x: mousePosRef.current.x, y: mousePosRef.current.y })
         setDEnd({ x: mousePosRef.current.x, y: mousePosRef.current.y })
@@ -36,41 +51,11 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
       }
     }
 
-    const addKeyListener = () => {
-      if (container) {
-        window.addEventListener("keydown", down)
-      }
-    }
-
-    const removeKeyListener = () => {
-      if (container) {
-        window.removeEventListener("keydown", down)
-      }
-    }
-
-    if (container) {
-      container.addEventListener("focus", addKeyListener)
-      container.addEventListener("blur", removeKeyListener)
-      container.addEventListener("mouseenter", addKeyListener)
-      container.addEventListener("mouseleave", removeKeyListener)
-
-      // Ensure the key listener is active immediately so the "d" hotkey
-      // works without requiring a mouse enter/leave cycle
-      addKeyListener()
-    }
+    window.addEventListener("keydown", down)
     return () => {
-      // Always remove the key listener on cleanup to avoid leaks
-      removeKeyListener()
-      if (container) {
-        container.removeEventListener("focus", addKeyListener)
-        container.removeEventListener("blur", removeKeyListener)
-        container.removeEventListener("mouseenter", addKeyListener)
-        container.removeEventListener("mouseleave", removeKeyListener)
-      }
+      window.removeEventListener("keydown", down)
     }
-  }
-
-  useEffect(bindKeys, [containerBounds?.width, containerBounds?.height])
+  }, [])
 
   const screenDStart = applyToPoint(transform, dStart)
   const screenDEnd = applyToPoint(transform, dEnd)
@@ -87,6 +72,15 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
   }
   arrowScreenBounds.width = arrowScreenBounds.right - arrowScreenBounds.left
   arrowScreenBounds.height = arrowScreenBounds.bottom - arrowScreenBounds.top
+
+  const diagonalLabel = useDiagonalLabel({
+    dimensionStart: dStart,
+    dimensionEnd: dEnd,
+    screenDimensionStart: screenDStart,
+    screenDimensionEnd: screenDEnd,
+    flipX: arrowScreenBounds.flipX,
+    flipY: arrowScreenBounds.flipY,
+  })
 
   return (
     <div
@@ -112,15 +106,30 @@ export const DimensionOverlay: React.FC<Props> = ({ children, transform }) => {
           setDimensionToolVisible(false)
         }
       }}
-      onMouseEnter={() => {
-        if (containerRef.current) {
-          bindKeys()
-        }
-      }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {children}
       {dimensionToolVisible && (
         <>
+          {diagonalLabel.show && (
+            <div
+              style={{
+                position: "absolute",
+                left: diagonalLabel.x,
+                top: diagonalLabel.y,
+                color: "red",
+                mixBlendMode: "difference",
+                pointerEvents: "none",
+                fontSize: 12,
+                fontFamily: "sans-serif",
+                whiteSpace: "nowrap",
+                zIndex: 30,
+              }}
+            >
+              {diagonalLabel.distance.toFixed(2)}
+            </div>
+          )}
           <div
             style={{
               position: "absolute",

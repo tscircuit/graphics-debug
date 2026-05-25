@@ -1,43 +1,49 @@
+import { getRectCornersForMatrix } from "lib/rectGeometry"
 import { useMemo } from "react"
+import type { Matrix } from "transformation-matrix"
 
 type Rect = {
   center: { x: number; y: number }
   width: number
   height: number
+  ccwRotationDegrees?: number
   layer?: string
   step?: number
 }
 
-export const useFilterRects = (
-  isPointOnScreen: (point: { x: number; y: number }) => boolean,
+type UseFilterRectsParams = {
+  realToScreen: Matrix
+  isPointOnScreen: (point: { x: number; y: number }) => boolean
   doesLineIntersectViewport: (
     p1: { x: number; y: number },
     p2: { x: number; y: number },
-  ) => boolean,
-  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean,
-) => {
+  ) => boolean
+  filterLayerAndStep: (obj: { layer?: string; step?: number }) => boolean
+}
+
+export const useFilterRects = ({
+  realToScreen,
+  isPointOnScreen,
+  doesLineIntersectViewport,
+  filterLayerAndStep,
+}: UseFilterRectsParams) => {
   return useMemo(() => {
     return (rect: Rect) => {
       // First apply layer and step filters
       if (!filterLayerAndStep(rect)) return false
 
       // For rectangles, check if any corner or the center is visible
-      const { center, width, height } = rect
-      const halfWidth = width / 2
-      const halfHeight = height / 2
-
-      const topLeft = { x: center.x - halfWidth, y: center.y - halfHeight }
-      const topRight = { x: center.x + halfWidth, y: center.y - halfHeight }
-      const bottomLeft = { x: center.x - halfWidth, y: center.y + halfHeight }
-      const bottomRight = { x: center.x + halfWidth, y: center.y + halfHeight }
+      const { center } = rect
+      const [topLeft, topRight, bottomRight, bottomLeft] =
+        getRectCornersForMatrix(rect, realToScreen)
 
       // Check if any corner or center is visible
       if (
         isPointOnScreen(center) ||
         isPointOnScreen(topLeft) ||
         isPointOnScreen(topRight) ||
-        isPointOnScreen(bottomLeft) ||
-        isPointOnScreen(bottomRight)
+        isPointOnScreen(bottomRight) ||
+        isPointOnScreen(bottomLeft)
       ) {
         return true
       }
@@ -50,5 +56,10 @@ export const useFilterRects = (
         doesLineIntersectViewport(bottomLeft, topLeft)
       )
     }
-  }, [isPointOnScreen, doesLineIntersectViewport, filterLayerAndStep])
+  }, [
+    realToScreen,
+    isPointOnScreen,
+    doesLineIntersectViewport,
+    filterLayerAndStep,
+  ])
 }

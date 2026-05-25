@@ -1,5 +1,5 @@
 import React from "react"
-import { getSvgFromGraphicsObject, GraphicsObject } from "../lib"
+import { GraphicsObject, getSvgFromGraphicsObject } from "../lib"
 
 const graphicsWithLabels: GraphicsObject = {
   title: "SVG Label Rendering Test",
@@ -25,6 +25,15 @@ const graphicsWithLabels: GraphicsObject = {
       fill: "rgba(0, 255, 0, 0.3)",
       stroke: "green",
       label: "Rect X",
+    },
+  ],
+  arrows: [
+    {
+      start: { x: 10, y: 70 },
+      end: { x: 50, y: 85 },
+      color: "#0f766e",
+      label: "Force",
+      inlineLabel: "F",
     },
   ],
   coordinateSystem: "screen", // Use screen to simplify coordinates for SVG
@@ -61,6 +70,14 @@ export default function SvgLabelRenderingFixture() {
   const svgPointAndRectLabels = getSvgFromGraphicsObject(graphicsWithLabels, {
     includeTextLabels: ["points", "rects"],
   })
+  const svgArrowDefaultInline = getSvgFromGraphicsObject(graphicsWithLabels)
+  const svgArrowWithAllLabels = getSvgFromGraphicsObject(graphicsWithLabels, {
+    includeTextLabels: ["arrows"],
+  })
+  const svgArrowWithoutInline = getSvgFromGraphicsObject(graphicsWithLabels, {
+    includeTextLabels: ["arrows"],
+    hideInlineLabels: true,
+  })
 
   return (
     <div style={{ padding: "20px" }}>
@@ -78,6 +95,18 @@ export default function SvgLabelRenderingFixture() {
       <SvgDisplay
         title="Labels: Points and Rects"
         svgString={svgPointAndRectLabels}
+      />
+      <SvgDisplay
+        title="Arrows: Inline Labels By Default"
+        svgString={svgArrowDefaultInline}
+      />
+      <SvgDisplay
+        title="Arrows: Standard + Inline Labels"
+        svgString={svgArrowWithAllLabels}
+      />
+      <SvgDisplay
+        title="Arrows: hideInlineLabels=true"
+        svgString={svgArrowWithoutInline}
       />
     </div>
   )

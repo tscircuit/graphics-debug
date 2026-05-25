@@ -1,8 +1,11 @@
-import { useRef, useEffect, useState } from "react"
+import { useRef, useEffect, useState, type MouseEvent } from "react"
 import { drawGraphicsToCanvas, type GraphicsObject } from "../../lib"
 import useMouseMatrixTransform from "use-mouse-matrix-transform"
-import { compose, scale, translate } from "transformation-matrix"
+import { compose, scale, translate, type Matrix } from "transformation-matrix"
 import useResizeObserver from "@react-hook/resize-observer"
+import { getCanvasObjectLabelAtPoint } from "../../lib/getCanvasObjectLabelAtPoint"
+import { ObjectLabelDialog } from "./ObjectLabelDialog"
+import { Tooltip } from "./InteractiveGraphics/Tooltip"
 import { getMaxStep } from "site/utils/getMaxStep"
 import { getGraphicsFilteredByStep } from "site/utils/getGraphicsFilteredByStep"
 import { getGraphicsBoundsWithPadding } from "site/utils/getGraphicsBoundsWithPadding"
@@ -30,15 +33,25 @@ export function InteractiveGraphicsCanvas({
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [size, setSize] = useState({ width: 600, height: 600 })
   const [activeStep, setActiveStep] = useState<number | null>(null)
-  const [showLabels, setShowLabels] = useState(showLabelsByDefault)
   const [showLastStep, setShowLastStep] = useState(true)
+  const [enableObjectInteraction, setEnableObjectInteraction] = useState(false)
+  const [hoveredObjectLabel, setHoveredObjectLabel] = useState<string | null>(
+    null,
+  )
+  const [hoveredObjectPosition, setHoveredObjectPosition] = useState<{
+    x: number
+    y: number
+  } | null>(null)
+  const [selectedObjectLabel, setSelectedObjectLabel] = useState<string | null>(
+    null,
+  )
 
   // Calculate the maximum step value from all graphics objects
   const maxStep = getMaxStep(graphics)
   const showToolbar = alwaysShowToolbar || maxStep > 0 || showLabelsByDefault
   const stepTitle =
     maxStep > 0
-      ? stepMetadata?.[showLastStep ? maxStep : (activeStep ?? -1)]?.title
+      ? stepMetadata?.[showLastStep ? maxStep : activeStep ?? -1]?.title
       : undefined
 
   // Filter graphics objects based on step
@@ -95,7 +108,8 @@ export function InteractiveGraphicsCanvas({
     // Draw the graphics with the current transform
     drawGraphicsToCanvas(filteredGraphics, canvasRef.current, {
       transform: transform,
-      disableLabels: !showLabels,
+      disableLabels: true,
+      hideInlineLabels: true,
     })
 
     // Draw a grid for reference if requested
@@ -105,7 +119,7 @@ export function InteractiveGraphicsCanvas({
   }
 
   // Draw a grid to help with visualization
-  const drawGrid = (canvas: HTMLCanvasElement, transform: any) => {
+  const drawGrid = (canvas: HTMLCanvasElement, transform: Matrix) => {
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
@@ -171,28 +185,87 @@ export function InteractiveGraphicsCanvas({
   }
 
   // Helper to transform a point through the matrix
-  const transformPoint = (point: { x: number; y: number }, matrix: any) => {
+  const transformPoint = (point: { x: number; y: number }, matrix: Matrix) => {
     return {
       x: matrix.a * point.x + matrix.c * point.y + matrix.e,
       y: matrix.b * point.x + matrix.d * point.y + matrix.f,
     }
   }
 
+  const getCanvasLabelFromEvent = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current) {
+      return {
+        label: null,
+        overlayPoint: null,
+      }
+    }
+
+    const canvas = canvasRef.current
+    const bounds = canvas.getBoundingClientRect()
+    const scaleX = bounds.width === 0 ? 1 : canvas.width / bounds.width
+    const scaleY = bounds.height === 0 ? 1 : canvas.height / bounds.height
+
+    const overlayPoint = {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    }
+
+    const label = getCanvasObjectLabelAtPoint(
+      filteredGraphics,
+      transform,
+      {
+        x: overlayPoint.x * scaleX,
+        y: overlayPoint.y * scaleY,
+      },
+      {
+        hitSlop: 8,
+      },
+    )
+
+    return { label, overlayPoint }
+  }
+
+  const handleCanvasMouseMove = (event: MouseEvent<HTMLCanvasElement>) => {
+    const { label, overlayPoint } = getCanvasLabelFromEvent(event)
+    setHoveredObjectLabel(label)
+    setHoveredObjectPosition(label ? overlayPoint : null)
+  }
+
+  const handleCanvasMouseLeave = () => {
+    setHoveredObjectLabel(null)
+    setHoveredObjectPosition(null)
+  }
+
+  const handleCanvasClick = (event: MouseEvent<HTMLCanvasElement>) => {
+    if (!enableObjectInteraction) return
+    const { label } = getCanvasLabelFromEvent(event)
+    setSelectedObjectLabel(label)
+  }
+
   // Apply the drawing when transform changes
   useEffect(() => {
     drawCanvas()
-  }, [transform, size, filteredGraphics, showGrid, showLabels])
+  }, [transform, size, filteredGraphics, showGrid])
+
+  useEffect(() => {
+    if (!selectedObjectLabel) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedObjectLabel(null)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [selectedObjectLabel])
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
       {showToolbar && (
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            alignItems: "center",
-          }}
-        >
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             {maxStep > 0 && (
               <>
@@ -238,18 +311,26 @@ export function InteractiveGraphicsCanvas({
                 </label>
               </>
             )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <label>
               <input
                 type="checkbox"
                 style={{ marginRight: 4 }}
-                checked={showLabels}
-                onChange={(e) => {
-                  setShowLabels(e.target.checked)
+                checked={enableObjectInteraction}
+                onChange={(event) => {
+                  const isEnabled = event.target.checked
+                  setEnableObjectInteraction(isEnabled)
+                  if (!isEnabled) {
+                    setSelectedObjectLabel(null)
+                  }
                 }}
               />
-              Show labels
+              Enable Object Interation
             </label>
           </div>
+
           {maxStep > 0 && stepTitle && (
             <div style={{ marginLeft: "auto", textAlign: "right" }}>
               {stepTitle}
@@ -277,6 +358,9 @@ export function InteractiveGraphicsCanvas({
       >
         <canvas
           ref={canvasRef}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseLeave={handleCanvasMouseLeave}
+          onClick={handleCanvasClick}
           style={{
             position: "absolute",
             top: 0,
@@ -285,6 +369,29 @@ export function InteractiveGraphicsCanvas({
             height,
           }}
         />
+
+        {hoveredObjectLabel && hoveredObjectPosition && (
+          <div
+            style={{
+              position: "absolute",
+              left: hoveredObjectPosition.x,
+              top: hoveredObjectPosition.y - 12,
+              transform: "translate(-50%, -100%)",
+              pointerEvents: "none",
+            }}
+          >
+            <Tooltip text={hoveredObjectLabel} />
+          </div>
+        )}
+
+        {selectedObjectLabel && (
+          <ObjectLabelDialog
+            label={selectedObjectLabel}
+            onClose={() => {
+              setSelectedObjectLabel(null)
+            }}
+          />
+        )}
       </div>
     </div>
   )

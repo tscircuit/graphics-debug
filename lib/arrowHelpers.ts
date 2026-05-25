@@ -21,6 +21,15 @@ export type ArrowGeometry = {
   length: number
 }
 
+export type InlineLabelLayout = {
+  x: number
+  y: number
+  angleRadians: number
+  angleDegrees: number
+  direction: { x: number; y: number }
+  normal: { x: number; y: number }
+}
+
 const createDegenerateHead = (point: {
   x: number
   y: number
@@ -143,4 +152,64 @@ export function getArrowBoundingBox(arrow: Arrow) {
     }),
     { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity },
   )
+}
+
+export function getInlineLabelLayout(
+  shaftStart: { x: number; y: number },
+  shaftEnd: { x: number; y: number },
+  {
+    fontSize = 12,
+    strokeWidth = 2,
+    normalPadding = 6,
+    alongOffset = 0,
+  }: {
+    fontSize?: number
+    strokeWidth?: number
+    normalPadding?: number
+    alongOffset?: number
+  } = {},
+): InlineLabelLayout {
+  const midpoint = {
+    x: (shaftStart.x + shaftEnd.x) / 2,
+    y: (shaftStart.y + shaftEnd.y) / 2,
+  }
+  const dx = shaftEnd.x - shaftStart.x
+  const dy = shaftEnd.y - shaftStart.y
+  const length = Math.hypot(dx, dy)
+
+  if (length === 0) {
+    return {
+      x: midpoint.x + alongOffset,
+      y: midpoint.y - (strokeWidth / 2 + fontSize * 0.65 + normalPadding),
+      angleRadians: 0,
+      angleDegrees: 0,
+      direction: { x: 1, y: 0 },
+      normal: { x: 0, y: -1 },
+    }
+  }
+
+  let dirX = dx / length
+  let dirY = dy / length
+  let normalX = -dirY
+  let normalY = dirX
+
+  const isUpsideDown = dirX < 0 || (dirX === 0 && dirY < 0)
+  if (isUpsideDown) {
+    dirX = -dirX
+    dirY = -dirY
+    normalX = -normalX
+    normalY = -normalY
+  }
+
+  const angleRadians = Math.atan2(dirY, dirX)
+  const normalOffset = strokeWidth / 2 + fontSize * 0.65 + normalPadding
+
+  return {
+    x: midpoint.x + normalX * normalOffset + dirX * alongOffset,
+    y: midpoint.y + normalY * normalOffset + dirY * alongOffset,
+    angleRadians,
+    angleDegrees: (angleRadians * 180) / Math.PI,
+    direction: { x: dirX, y: dirY },
+    normal: { x: normalX, y: normalY },
+  }
 }

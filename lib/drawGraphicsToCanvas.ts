@@ -1,19 +1,28 @@
+import { defaultColors } from "site/components/InteractiveGraphics/defaultColors"
 import {
+  type Matrix,
+  applyToPoint,
   compose,
   scale,
   translate,
-  applyToPoint,
-  type Matrix,
 } from "transformation-matrix"
+import {
+  getArrowBoundingBox,
+  getArrowGeometry,
+  getInlineLabelLayout,
+} from "./arrowHelpers"
+import { FONT_SIZE_HEIGHT_RATIO, FONT_SIZE_WIDTH_RATIO } from "./constants"
+import {
+  clipInfiniteLineToBounds,
+  getViewportBoundsFromMatrix,
+} from "./infiniteLineHelpers"
+import { getProjectedRectGeometry, getRectCorners } from "./rectGeometry"
 import type {
-  GraphicsObject,
-  Viewbox,
   CenterViewbox,
+  GraphicsObject,
   TransformOptions,
+  Viewbox,
 } from "./types"
-import { defaultColors } from "site/components/InteractiveGraphics/defaultColors"
-import { FONT_SIZE_WIDTH_RATIO, FONT_SIZE_HEIGHT_RATIO } from "./constants"
-import { getArrowBoundingBox, getArrowGeometry } from "./arrowHelpers"
 
 /**
  * Computes a transformation matrix based on a provided viewbox
@@ -65,15 +74,9 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
   const points = [
     ...(graphics.points || []),
     ...(graphics.lines || []).flatMap((line) => line.points),
+    ...(graphics.polygons || []).flatMap((polygon) => polygon.points),
     ...(graphics.rects || []).flatMap((rect) => {
-      const halfWidth = rect.width / 2
-      const halfHeight = rect.height / 2
-      return [
-        { x: rect.center.x - halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y - halfHeight },
-        { x: rect.center.x - halfWidth, y: rect.center.y + halfHeight },
-        { x: rect.center.x + halfWidth, y: rect.center.y + halfHeight },
-      ]
+      return getRectCorners(rect)
     }),
     ...(graphics.circles || []).flatMap((circle) => [
       { x: circle.center.x - circle.radius, y: circle.center.y }, // left
@@ -140,6 +143,9 @@ export function drawGraphicsToCanvas(
   target: HTMLCanvasElement | CanvasRenderingContext2D,
   options: TransformOptions = {},
 ): void {
+  const labelsDisabled = options.disableLabels !== false
+  const inlineLabelsHidden = options.hideInlineLabels ?? labelsDisabled
+
   // Get the context
   const ctx =
     target instanceof HTMLCanvasElement ? target.getContext("2d") : target
@@ -190,28 +196,19 @@ export function drawGraphicsToCanvas(
   // Draw rectangles
   if (graphics.rects && graphics.rects.length > 0) {
     graphics.rects.forEach((rect) => {
-      const halfWidth = rect.width / 2
-      const halfHeight = rect.height / 2
+      const projectedRect = getProjectedRectGeometry(rect, matrix)
 
-      const topLeft = applyToPoint(matrix, {
-        x: rect.center.x - halfWidth,
-        y: rect.center.y - halfHeight,
-      })
-
-      const bottomRight = applyToPoint(matrix, {
-        x: rect.center.x + halfWidth,
-        y: rect.center.y + halfHeight,
-      })
-
-      const width = Math.abs(bottomRight.x - topLeft.x)
-      const height = Math.abs(bottomRight.y - topLeft.y)
-
+      ctx.save()
+      ctx.translate(projectedRect.center.x, projectedRect.center.y)
+      if (Math.abs(projectedRect.angleRadians) > 1e-6) {
+        ctx.rotate(projectedRect.angleRadians)
+      }
       ctx.beginPath()
       ctx.rect(
-        Math.min(topLeft.x, bottomRight.x),
-        Math.min(topLeft.y, bottomRight.y),
-        width,
-        height,
+        -projectedRect.width / 2,
+        -projectedRect.height / 2,
+        projectedRect.width,
+        projectedRect.height,
       )
 
       if (rect.fill) {
@@ -223,6 +220,8 @@ export function drawGraphicsToCanvas(
         ctx.strokeStyle = rect.stroke
         ctx.stroke()
       }
+
+      ctx.restore()
     })
   }
 
@@ -242,6 +241,37 @@ export function drawGraphicsToCanvas(
 
       if (circle.stroke) {
         ctx.strokeStyle = circle.stroke ?? "transparent"
+        ctx.stroke()
+      }
+    })
+  }
+
+  // Draw polygons
+  if (graphics.polygons && graphics.polygons.length > 0) {
+    graphics.polygons.forEach((polygon) => {
+      if (polygon.points.length === 0) return
+
+      const projectedPoints = polygon.points.map((point) =>
+        applyToPoint(matrix, point),
+      )
+
+      ctx.beginPath()
+      ctx.moveTo(projectedPoints[0].x, projectedPoints[0].y)
+      for (let i = 1; i < projectedPoints.length; i++) {
+        ctx.lineTo(projectedPoints[i].x, projectedPoints[i].y)
+      }
+      ctx.closePath()
+
+      if (polygon.fill) {
+        ctx.fillStyle = polygon.fill
+        ctx.fill()
+      }
+
+      if (polygon.stroke) {
+        ctx.strokeStyle = polygon.stroke
+        if (polygon.strokeWidth !== undefined) {
+          ctx.lineWidth = polygon.strokeWidth * Math.abs(matrix.a)
+        }
         ctx.stroke()
       }
     })
@@ -280,54 +310,151 @@ export function drawGraphicsToCanvas(
         ctx.closePath()
         ctx.fill()
       })
+
+      const fontSize = 12
+      const screenStrokeWidth = geometry.shaftWidth * (scaleFactor || 1)
+      const alongSeparation = fontSize * 0.6
+      const inlineLabelLayout = getInlineLabelLayout(shaftStart, shaftEnd, {
+        fontSize,
+        strokeWidth: screenStrokeWidth,
+        normalPadding: 6,
+        alongOffset: arrow.label ? alongSeparation : 0,
+      })
+      const arrowLabelLayout = getInlineLabelLayout(shaftStart, shaftEnd, {
+        fontSize,
+        strokeWidth: screenStrokeWidth,
+        normalPadding: 12,
+        alongOffset: arrow.inlineLabel ? -alongSeparation : 0,
+      })
+
+      ctx.fillStyle = color
+      ctx.font = `${fontSize}px sans-serif`
+
+      if (!labelsDisabled && arrow.label) {
+        const labelX = arrowLabelLayout.x
+        const labelY = arrowLabelLayout.y
+
+        ctx.save()
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(arrow.label, labelX, labelY)
+        ctx.restore()
+      }
+
+      if (!inlineLabelsHidden && arrow.inlineLabel) {
+        ctx.save()
+        ctx.translate(inlineLabelLayout.x, inlineLabelLayout.y)
+        ctx.rotate(inlineLabelLayout.angleRadians)
+        ctx.textAlign = "center"
+        ctx.textBaseline = "middle"
+        ctx.fillText(arrow.inlineLabel, 0, 0)
+        ctx.restore()
+      }
     })
   }
 
   // Draw lines
   if (graphics.lines && graphics.lines.length > 0) {
-    graphics.lines.forEach((line, lineIndex) => {
-      if (line.points.length === 0) return
+    graphics.lines
+      .map((line, originalIndex) => ({ line, originalIndex }))
+      .sort(
+        (a, b) =>
+          (a.line.zIndex ?? 0) - (b.line.zIndex ?? 0) ||
+          a.originalIndex - b.originalIndex,
+      )
+      .forEach(({ line, originalIndex: lineIndex }) => {
+        if (line.points.length === 0) return
+
+        ctx.beginPath()
+
+        const firstPoint = applyToPoint(matrix, line.points[0])
+        ctx.moveTo(firstPoint.x, firstPoint.y)
+
+        for (let i = 1; i < line.points.length; i++) {
+          const projected = applyToPoint(matrix, line.points[i])
+          ctx.lineTo(projected.x, projected.y)
+        }
+
+        ctx.strokeStyle =
+          line.strokeColor || defaultColors[lineIndex % defaultColors.length]
+        if (line.strokeWidth) {
+          ctx.lineWidth = line.strokeWidth * matrix.a
+        } else {
+          ctx.lineWidth = 2
+        }
+        ctx.lineCap = "round"
+
+        if (line.strokeDash) {
+          if (typeof line.strokeDash === "string") {
+            // Convert string to array of numbers, handling single values properly
+            let dashArray: number[]
+
+            // If the string contains commas, split and convert to numbers
+            if (line.strokeDash.includes(",")) {
+              dashArray = line.strokeDash
+                .split(",")
+                .map((s) => parseFloat(s.trim()))
+                .filter((n) => !Number.isNaN(n))
+            } else {
+              // Handle single value case
+              const value = parseFloat(line.strokeDash.trim())
+              dashArray = !Number.isNaN(value) ? [value] : []
+            }
+
+            // Scale dash values based on transform matrix
+            ctx.setLineDash(dashArray)
+          } else {
+            // Handle array format
+            ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
+          }
+        } else {
+          ctx.setLineDash([])
+        }
+
+        ctx.stroke()
+      })
+  }
+
+  if (graphics.infiniteLines && graphics.infiniteLines.length > 0) {
+    const viewportBounds = getViewportBoundsFromMatrix(
+      matrix,
+      canvasWidth,
+      canvasHeight,
+    )
+
+    graphics.infiniteLines.forEach((line, lineIndex) => {
+      const segment = clipInfiniteLineToBounds(line, viewportBounds)
+      if (!segment) return
+
+      const [start, end] = segment
+      const projectedStart = applyToPoint(matrix, start)
+      const projectedEnd = applyToPoint(matrix, end)
 
       ctx.beginPath()
-
-      const firstPoint = applyToPoint(matrix, line.points[0])
-      ctx.moveTo(firstPoint.x, firstPoint.y)
-
-      for (let i = 1; i < line.points.length; i++) {
-        const projected = applyToPoint(matrix, line.points[i])
-        ctx.lineTo(projected.x, projected.y)
-      }
+      ctx.moveTo(projectedStart.x, projectedStart.y)
+      ctx.lineTo(projectedEnd.x, projectedEnd.y)
 
       ctx.strokeStyle =
         line.strokeColor || defaultColors[lineIndex % defaultColors.length]
-      if (line.strokeWidth) {
-        ctx.lineWidth = line.strokeWidth * matrix.a
-      } else {
-        ctx.lineWidth = 2
-      }
+      ctx.lineWidth = line.strokeWidth
+        ? line.strokeWidth * Math.abs(matrix.a)
+        : 2
       ctx.lineCap = "round"
 
       if (line.strokeDash) {
         if (typeof line.strokeDash === "string") {
-          // Convert string to array of numbers, handling single values properly
           let dashArray: number[]
-
-          // If the string contains commas, split and convert to numbers
           if (line.strokeDash.includes(",")) {
             dashArray = line.strokeDash
               .split(",")
               .map((s) => parseFloat(s.trim()))
               .filter((n) => !Number.isNaN(n))
           } else {
-            // Handle single value case
             const value = parseFloat(line.strokeDash.trim())
             dashArray = !Number.isNaN(value) ? [value] : []
           }
-
-          // Scale dash values based on transform matrix
           ctx.setLineDash(dashArray)
         } else {
-          // Handle array format
           ctx.setLineDash(line.strokeDash.map((n) => n * Math.abs(matrix.a)))
         }
       } else {
@@ -335,27 +462,6 @@ export function drawGraphicsToCanvas(
       }
 
       ctx.stroke()
-    })
-  }
-
-  // Draw points
-  if (graphics.points && graphics.points.length > 0) {
-    graphics.points.forEach((point, pointIndex) => {
-      const projected = applyToPoint(matrix, point)
-
-      // Draw point as a small circle
-      ctx.beginPath()
-      ctx.arc(projected.x, projected.y, 3, 0, 2 * Math.PI)
-      ctx.fillStyle =
-        point.color || defaultColors[pointIndex % defaultColors.length]
-      ctx.fill()
-
-      // Draw label if present and labels aren't disabled
-      if (point.label && !options.disableLabels) {
-        ctx.fillStyle = point.color || "black"
-        ctx.font = "12px sans-serif"
-        ctx.fillText(point.label, projected.x + 5, projected.y - 5)
-      }
     })
   }
 
@@ -393,6 +499,27 @@ export function drawGraphicsToCanvas(
       ctx.textBaseline = baselineMap[anchor]
 
       ctx.fillText(text.text, projected.x, projected.y)
+    })
+  }
+
+  // Draw points
+  if (graphics.points && graphics.points.length > 0) {
+    graphics.points.forEach((point, pointIndex) => {
+      const projected = applyToPoint(matrix, point)
+
+      // Draw point as a small circle
+      ctx.beginPath()
+      ctx.arc(projected.x, projected.y, 3, 0, 2 * Math.PI)
+      ctx.fillStyle =
+        point.color || defaultColors[pointIndex % defaultColors.length]
+      ctx.fill()
+
+      // Draw label if present and labels aren't disabled
+      if (point.label && !labelsDisabled) {
+        ctx.fillStyle = point.color || "black"
+        ctx.font = "12px sans-serif"
+        ctx.fillText(point.label, projected.x + 5, projected.y - 5)
+      }
     })
   }
 

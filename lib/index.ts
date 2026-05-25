@@ -1,24 +1,26 @@
-import { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
-import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
 import {
-  drawGraphicsToCanvas,
   computeTransformFromViewbox,
+  drawGraphicsToCanvas,
   getBounds,
 } from "./drawGraphicsToCanvas"
-import { translateGraphics } from "./translateGraphics"
+import { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
+import { getPngBufferFromGraphicsObject } from "./getPngBufferFromGraphicsObject"
+import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
 import { mergeGraphics } from "./mergeGraphics"
 import { setStepOfAllObjects } from "./setStepOfAllObjects"
 import {
+  createGraphicsGrid,
   stackGraphicsHorizontally,
   stackGraphicsVertically,
-  createGraphicsGrid,
 } from "./stackGraphics"
 
 export type {
   Point,
   Line,
+  InfiniteLine,
   Rect,
   Circle,
+  Polygon,
   Arrow,
   Text,
   NinePointAnchor,
@@ -28,6 +30,10 @@ export type {
   TransformOptions,
 } from "./types"
 export { getGraphicsObjectsFromLogString } from "./getGraphicsObjectsFromLogString"
+export {
+  getPngBufferFromGraphicsObject,
+  type PngRenderOptions,
+} from "./getPngBufferFromGraphicsObject"
 export { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
 export {
   drawGraphicsToCanvas,
@@ -48,6 +54,14 @@ export function getSvgFromLogString(logString: string): string {
   const objects = getGraphicsObjectsFromLogString(logString)
   if (objects.length === 0) return ""
   return getSvgFromGraphicsObject(objects[0])
+}
+
+export async function getPngFromLogString(
+  logString: string,
+): Promise<Uint8Array> {
+  const objects = getGraphicsObjectsFromLogString(logString)
+  if (objects.length === 0) return new Uint8Array()
+  return getPngBufferFromGraphicsObject(objects[0])
 }
 
 export function getHtmlFromLogString(logString: string): string {

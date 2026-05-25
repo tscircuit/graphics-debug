@@ -1,41 +1,55 @@
-import {
-  compose,
-  scale,
-  translate,
-  inverse,
-  applyToPoint,
-} from "transformation-matrix"
-import { GraphicsObject } from "../../../lib"
-import { useMemo, useState, useEffect, useCallback } from "react"
-import useMouseMatrixTransform from "use-mouse-matrix-transform"
-import { InteractiveState } from "./InteractiveState"
-import { SuperGrid } from "react-supergrid"
 import useResizeObserver from "@react-hook/resize-observer"
-import { Line } from "./Line"
-import { Point } from "./Point"
-import { Rect } from "./Rect"
-import { Circle } from "./Circle"
-import { Text } from "./Text"
-import { Arrow } from "./Arrow"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { SuperGrid } from "react-supergrid"
 import { getGraphicsBounds } from "site/utils/getGraphicsBounds"
+import { getMaxStep } from "site/utils/getMaxStep"
 import { sortRectsByArea } from "site/utils/sortRectsByArea"
 import {
-  useIsPointOnScreen,
+  applyToPoint,
+  compose,
+  inverse,
+  scale,
+  translate,
+} from "transformation-matrix"
+import useMouseMatrixTransform from "use-mouse-matrix-transform"
+import { GraphicsObject } from "../../../lib"
+import { DimensionOverlay } from "../DimensionOverlay"
+import { ObjectLabelDialog } from "../ObjectLabelDialog"
+import { Arrow } from "./Arrow"
+import { Circle } from "./Circle"
+import { ContextMenu } from "./ContextMenu"
+import { InfiniteLine } from "./InfiniteLine"
+import { InteractiveState } from "./InteractiveState"
+import { Line } from "./Line"
+import { Marker, MarkerPoint } from "./Marker"
+import { Point } from "./Point"
+import { Polygon } from "./Polygon"
+import { Rect } from "./Rect"
+import { Text } from "./Text"
+import { Tooltip } from "./Tooltip"
+import {
   useDoesLineIntersectViewport,
+  useFilterArrows,
+  useFilterCircles,
   useFilterLines,
   useFilterPoints,
+  useFilterPolygons,
   useFilterRects,
-  useFilterCircles,
   useFilterTexts,
-  useFilterArrows,
+  useIsPointOnScreen,
 } from "./hooks"
-import { DimensionOverlay } from "../DimensionOverlay"
-import { getMaxStep } from "site/utils/getMaxStep"
-import { ContextMenu } from "./ContextMenu"
-import { Marker, MarkerPoint } from "./Marker"
+import { tooltipLayerZIndex } from "./tooltipLayer"
 
 export type GraphicsObjectClickEvent = {
-  type: "point" | "line" | "rect" | "circle" | "text" | "arrow"
+  type:
+    | "point"
+    | "line"
+    | "infinite-line"
+    | "rect"
+    | "circle"
+    | "text"
+    | "arrow"
+    | "polygon"
   index: number
   object: any
 }
@@ -65,11 +79,26 @@ export const InteractiveGraphics = ({
     clientX: number
     clientY: number
   } | null>(null)
+  const [enableObjectInteraction, setEnableObjectInteraction] = useState(false)
+  const [selectedObjectLabel, setSelectedObjectLabel] = useState<string | null>(
+    null,
+  )
   const [markers, setMarkers] = useState<MarkerPoint[]>([])
+  const [mousePosition, setMousePosition] = useState<{
+    x: number
+    y: number
+  } | null>(null)
+  const [hoverTooltip, setHoverTooltip] = useState<{
+    text: string
+    x: number
+    y: number
+  } | null>(null)
   const availableLayers: string[] = Array.from(
     new Set([
       ...(graphics.lines?.map((l) => l.layer!).filter(Boolean) ?? []),
+      ...(graphics.infiniteLines?.map((l) => l.layer!).filter(Boolean) ?? []),
       ...(graphics.rects?.map((r) => r.layer!).filter(Boolean) ?? []),
+      ...(graphics.polygons?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.texts?.map((t) => t.layer!).filter(Boolean) ?? []),
       ...(graphics.circles?.map((c) => c.layer!).filter(Boolean) ?? []),
@@ -284,19 +313,59 @@ export const InteractiveGraphics = ({
     }
   }, [getSavedData, saveToLocalStorage])
 
+  const getObjectInteractionLabel = useCallback(
+    (event: GraphicsObjectClickEvent) => {
+      switch (event.type) {
+        case "arrow":
+          return [event.object.label, event.object.inlineLabel]
+            .filter(Boolean)
+            .join("\n")
+        case "text":
+          return event.object.text ?? ""
+        default:
+          return event.object.label ?? ""
+      }
+    },
+    [],
+  )
+
+  const handleObjectClicked = useCallback(
+    (event: GraphicsObjectClickEvent) => {
+      onObjectClicked?.(event)
+      if (!enableObjectInteraction) return
+      const label = getObjectInteractionLabel(event)
+      setSelectedObjectLabel(label || null)
+    },
+    [enableObjectInteraction, getObjectInteractionLabel, onObjectClicked],
+  )
+
+  useEffect(() => {
+    if (!selectedObjectLabel) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setSelectedObjectLabel(null)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [selectedObjectLabel])
+
   const interactiveState: InteractiveState = {
     activeLayers: activeLayers,
     activeStep: showLastStep ? maxStep : activeStep,
     realToScreen: realToScreen,
-    onObjectClicked: onObjectClicked,
+    onObjectClicked: handleObjectClicked,
+    setHoverTooltip,
   }
 
-  const showToolbar =
-    alwaysShowToolbar || availableLayers.length > 1 || maxStep > 0
-
+  const showToolbar = true
   const stepTitle =
     maxStep > 0
-      ? stepMetadata?.[showLastStep ? maxStep : (activeStep ?? -1)]?.title
+      ? stepMetadata?.[showLastStep ? maxStep : activeStep ?? -1]?.title
       : undefined
 
   // Use custom hooks for visibility checks and filtering
@@ -322,31 +391,43 @@ export const InteractiveGraphics = ({
     return true
   }
 
-  const filterLines = useFilterLines(
+  const filterLines = useFilterLines({
     isPointOnScreen,
     doesLineIntersectViewport,
     filterLayerAndStep,
-  )
+  })
 
-  const filterPoints = useFilterPoints(isPointOnScreen, filterLayerAndStep)
+  const filterPoints = useFilterPoints({
+    isPointOnScreen,
+    filterLayerAndStep,
+  })
 
-  const filterRects = useFilterRects(
+  const filterRects = useFilterRects({
+    realToScreen,
     isPointOnScreen,
     doesLineIntersectViewport,
     filterLayerAndStep,
-  )
+  })
 
-  const filterCircles = useFilterCircles(
+  const filterCircles = useFilterCircles({
     isPointOnScreen,
     filterLayerAndStep,
     realToScreen,
     size,
-  )
-  const filterTexts = useFilterTexts(isPointOnScreen, filterLayerAndStep)
-  const filterArrows = useFilterArrows(
+  })
+  const filterTexts = useFilterTexts({
+    isPointOnScreen,
+    filterLayerAndStep,
+  })
+  const filterArrows = useFilterArrows({
     isPointOnScreen,
     doesLineIntersectViewport,
-  )
+  })
+  const filterPolygons = useFilterPolygons({
+    isPointOnScreen,
+    doesLineIntersectViewport,
+    filterLayerAndStep,
+  })
 
   const filterAndLimit = <T,>(
     objects: T[] | undefined,
@@ -360,12 +441,25 @@ export const InteractiveGraphics = ({
   }
 
   const filteredLines = useMemo(
-    () => filterAndLimit(graphics.lines, filterLines),
+    () =>
+      filterAndLimit(graphics.lines, filterLines).sort(
+        (a, b) =>
+          (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
+          a.originalIndex - b.originalIndex,
+      ),
     [graphics.lines, filterLines, objectLimit],
+  )
+  const filteredInfiniteLines = useMemo(
+    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
   )
   const filteredRects = useMemo(
     () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
     [graphics.rects, filterRects, objectLimit],
+  )
+  const filteredPolygons = useMemo(
+    () => filterAndLimit(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons, objectLimit],
   )
   const filteredPoints = useMemo(
     () => filterAndLimit(graphics.points, filterPoints),
@@ -385,8 +479,10 @@ export const InteractiveGraphics = ({
   )
 
   const totalFilteredObjects =
+    filteredInfiniteLines.length +
     filteredLines.length +
     filteredRects.length +
+    filteredPolygons.length +
     filteredPoints.length +
     filteredCircles.length +
     filteredTexts.length +
@@ -401,78 +497,94 @@ export const InteractiveGraphics = ({
             margin: 8,
             display: "flex",
             alignItems: "center",
-            gap: 8,
+            gap: 12,
+            flexWrap: "wrap",
           }}
         >
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            {availableLayers.length > 1 && (
-              <select
-                value={activeLayers ? activeLayers[0] : ""}
-                onChange={(e) => {
-                  const value = e.target.value
-                  setActiveLayers(value === "" ? null : [value])
-                }}
-                style={{ marginRight: 8 }}
-              >
-                <option value="">All Layers</option>
-                {availableLayers.map((layer) => (
-                  <option key={layer} value={layer}>
-                    {layer}
-                  </option>
-                ))}
-              </select>
-            )}
+          {availableLayers.length > 1 && (
+            <select
+              value={activeLayers ? activeLayers[0] : ""}
+              onChange={(e) => {
+                const value = e.target.value
+                setActiveLayers(value === "" ? null : [value])
+              }}
+              style={{ marginRight: 8 }}
+            >
+              <option value="">All Layers</option>
+              {availableLayers.map((layer) => (
+                <option key={layer} value={layer}>
+                  {layer}
+                </option>
+              ))}
+            </select>
+          )}
 
-            {maxStep > 0 && (
-              <div
-                style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-              >
-                Step:
+          {maxStep > 0 && (
+            <div
+              style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
+            >
+              Step:
+              <input
+                type="number"
+                min={0}
+                max={maxStep}
+                value={activeStep ?? 0}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value)
+                  setShowLastStep(false)
+                  setActiveStep(Number.isNaN(value) ? null : value)
+                }}
+                disabled={activeStep === null}
+              />
+              <label>
                 <input
-                  type="number"
-                  min={0}
-                  max={maxStep}
-                  value={activeStep ?? 0}
+                  type="checkbox"
+                  style={{ marginRight: 4 }}
+                  checked={activeStep !== null}
                   onChange={(e) => {
-                    const value = parseInt(e.target.value)
                     setShowLastStep(false)
-                    setActiveStep(Number.isNaN(value) ? null : value)
+                    setActiveStep(e.target.checked ? 0 : null)
                   }}
-                  disabled={activeStep === null}
                 />
-                <label>
-                  <input
-                    type="checkbox"
-                    style={{ marginRight: 4 }}
-                    checked={activeStep !== null}
-                    onChange={(e) => {
-                      setShowLastStep(false)
-                      setActiveStep(e.target.checked ? 0 : null)
-                    }}
-                  />
-                  Filter by step
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    style={{ marginRight: 4 }}
-                    checked={showLastStep}
-                    onChange={(e) => {
-                      setShowLastStep(e.target.checked)
-                      setActiveStep(null)
-                    }}
-                  />
-                  Show last step
-                </label>
-                {isLimitReached && (
-                  <span style={{ color: "red", fontSize: "12px" }}>
-                    Display limited to {objectLimit} objects. Received:{" "}
-                    {totalFilteredObjects}.
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
+                Filter by step
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  style={{ marginRight: 4 }}
+                  checked={showLastStep}
+                  onChange={(e) => {
+                    setShowLastStep(e.target.checked)
+                    setActiveStep(null)
+                  }}
+                />
+                Show last step
+              </label>
+              {isLimitReached && (
+                <span style={{ color: "red", fontSize: "12px" }}>
+                  Display limited to {objectLimit} objects. Received:{" "}
+                  {totalFilteredObjects}.
+                </span>
+              )}
+            </div>
+          )}
+
+          <label>
+            <input
+              type="checkbox"
+              style={{ marginRight: 4 }}
+              checked={enableObjectInteraction}
+              onChange={(event) => {
+                const isEnabled = event.target.checked
+                setEnableObjectInteraction(isEnabled)
+                if (!isEnabled) {
+                  setSelectedObjectLabel(null)
+                }
+              }}
+            />
+            Enable Object Interation
+          </label>
+
           {maxStep > 0 && stepTitle && (
             <div style={{ marginLeft: "auto", textAlign: "right" }}>
               {stepTitle}
@@ -488,6 +600,15 @@ export const InteractiveGraphics = ({
           height,
           overflow: "hidden",
         }}
+        onMouseMove={(event) => {
+          const rect = ref.current?.getBoundingClientRect()
+          if (!rect) return
+          setMousePosition({
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+          })
+        }}
+        onMouseLeave={() => setMousePosition(null)}
         onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
@@ -499,12 +620,23 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
+          {filteredInfiniteLines.map((infiniteLine) => (
+            <InfiniteLine
+              key={infiniteLine.originalIndex}
+              infiniteLine={infiniteLine}
+              index={infiniteLine.originalIndex}
+              interactiveState={interactiveState}
+              size={size}
+            />
+          ))}
           {filteredLines.map((line) => (
             <Line
               key={line.originalIndex}
               line={line}
               index={line.originalIndex}
               interactiveState={interactiveState}
+              size={size}
+              mousePosition={mousePosition}
             />
           ))}
           {filteredRects.map((rect) => (
@@ -515,11 +647,11 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPoints.map((point) => (
-            <Point
-              key={point.originalIndex}
-              point={point}
-              index={point.originalIndex}
+          {filteredPolygons.map((polygon) => (
+            <Polygon
+              key={polygon.originalIndex}
+              polygon={polygon}
+              index={polygon.originalIndex}
               interactiveState={interactiveState}
             />
           ))}
@@ -539,6 +671,14 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
+          {filteredPoints.map((point) => (
+            <Point
+              key={point.originalIndex}
+              point={point}
+              index={point.originalIndex}
+              interactiveState={interactiveState}
+            />
+          ))}
           <SuperGrid
             stringifyCoord={(x, y) => `${x.toFixed(2)}, ${y.toFixed(2)}`}
             width={size.width}
@@ -554,6 +694,20 @@ export const InteractiveGraphics = ({
             transform={realToScreen}
           />
         ))}
+        {hoverTooltip && (
+          <div
+            style={{
+              position: "absolute",
+              left: hoverTooltip.x,
+              top: hoverTooltip.y - 8,
+              transform: "translate(-50%, -100%)",
+              pointerEvents: "none",
+              zIndex: tooltipLayerZIndex,
+            }}
+          >
+            <Tooltip text={hoverTooltip.text} />
+          </div>
+        )}
         {contextMenu && (
           <ContextMenu
             x={contextMenu.x}
@@ -564,6 +718,14 @@ export const InteractiveGraphics = ({
             onAddMark={handleAddMark}
             onClearMarks={handleClearMarks}
             onClose={() => setContextMenu(null)}
+          />
+        )}
+        {selectedObjectLabel && (
+          <ObjectLabelDialog
+            label={selectedObjectLabel}
+            onClose={() => {
+              setSelectedObjectLabel(null)
+            }}
           />
         )}
       </div>
