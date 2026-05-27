@@ -57,7 +57,7 @@ export const Point = ({
                 0.2,
                 color ?? defaultColors[index % defaultColors.length],
               )
-            : (color ?? defaultColors[index % defaultColors.length])
+            : color ?? defaultColors[index % defaultColors.length]
         }`,
         cursor: "pointer",
         transition: "border-color 0.2s",

@@ -59,11 +59,15 @@ export const InteractiveGraphics = ({
   onObjectClicked,
   objectLimit,
   height = 600,
+  stepMetadata,
+  alwaysShowToolbar = false,
 }: {
   graphics: GraphicsObject
   onObjectClicked?: (event: GraphicsObjectClickEvent) => void
   objectLimit?: number
   height?: number
+  stepMetadata?: Array<{ title: string }>
+  alwaysShowToolbar?: boolean
 }) => {
   const [activeLayers, setActiveLayers] = useState<string[] | null>(null)
   const [activeStep, setActiveStep] = useState<number | null>(null)
@@ -359,6 +363,10 @@ export const InteractiveGraphics = ({
   }
 
   const showToolbar = true
+  const stepTitle =
+    maxStep > 0
+      ? stepMetadata?.[showLastStep ? maxStep : activeStep ?? -1]?.title
+      : undefined
 
   // Use custom hooks for visibility checks and filtering
   const isPointOnScreen = useIsPointOnScreen(realToScreen, size)
@@ -576,6 +584,12 @@ export const InteractiveGraphics = ({
             />
             Enable Object Interation
           </label>
+
+          {maxStep > 0 && stepTitle && (
+            <div style={{ marginLeft: "auto", textAlign: "right" }}>
+              {stepTitle}
+            </div>
+          )}
         </div>
       )}
 

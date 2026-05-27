@@ -16,13 +16,18 @@ interface InteractiveGraphicsCanvasProps {
   showGrid?: boolean
   height?: number | string
   width?: number | string
+  stepMetadata?: Array<{ title: string }>
+  alwaysShowToolbar?: boolean
 }
 
 export function InteractiveGraphicsCanvas({
   graphics,
+  showLabelsByDefault = true,
   showGrid = true,
   height = 500,
   width = "100%",
+  stepMetadata,
+  alwaysShowToolbar = false,
 }: InteractiveGraphicsCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -43,6 +48,11 @@ export function InteractiveGraphicsCanvas({
 
   // Calculate the maximum step value from all graphics objects
   const maxStep = getMaxStep(graphics)
+  const showToolbar = alwaysShowToolbar || maxStep > 0 || showLabelsByDefault
+  const stepTitle =
+    maxStep > 0
+      ? stepMetadata?.[showLastStep ? maxStep : activeStep ?? -1]?.title
+      : undefined
 
   // Filter graphics objects based on step
   const filteredGraphics = getGraphicsFilteredByStep(graphics, {
@@ -254,66 +264,80 @@ export function InteractiveGraphicsCanvas({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label>
-            <input
-              type="checkbox"
-              style={{ marginRight: 4 }}
-              checked={activeStep !== null}
-              onChange={(e) => {
-                setActiveStep(e.target.checked ? 0 : null)
-              }}
-            />
-            Filter by step
-          </label>
+      {showToolbar && (
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            {maxStep > 0 && (
+              <>
+                <label>
+                  <input
+                    type="checkbox"
+                    style={{ marginRight: 4 }}
+                    checked={activeStep !== null}
+                    onChange={(e) => {
+                      setActiveStep(e.target.checked ? 0 : null)
+                    }}
+                  />
+                  Filter by step
+                </label>
 
-          <input
-            type="number"
-            min={0}
-            max={maxStep}
-            value={activeStep ?? 0}
-            onChange={(e) => {
-              const value = parseInt(e.target.value)
-              setShowLastStep(false)
-              setActiveStep(Number.isNaN(value) ? 0 : Math.min(value, maxStep))
-            }}
-            disabled={activeStep === null}
-            style={{ width: "60px" }}
-          />
+                <input
+                  type="number"
+                  min={0}
+                  max={maxStep}
+                  value={activeStep ?? 0}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value)
+                    setShowLastStep(false)
+                    setActiveStep(
+                      Number.isNaN(value) ? 0 : Math.min(value, maxStep),
+                    )
+                  }}
+                  disabled={activeStep === null}
+                  style={{ width: "60px" }}
+                />
 
-          <label>
-            <input
-              type="checkbox"
-              style={{ marginRight: 4 }}
-              checked={showLastStep}
-              onChange={(e) => {
-                setShowLastStep(e.target.checked)
-                setActiveStep(null)
-              }}
-            />
-            Show last step
-          </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    style={{ marginRight: 4 }}
+                    checked={showLastStep}
+                    onChange={(e) => {
+                      setShowLastStep(e.target.checked)
+                      setActiveStep(null)
+                    }}
+                  />
+                  Show last step
+                </label>
+              </>
+            )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label>
+              <input
+                type="checkbox"
+                style={{ marginRight: 4 }}
+                checked={enableObjectInteraction}
+                onChange={(event) => {
+                  const isEnabled = event.target.checked
+                  setEnableObjectInteraction(isEnabled)
+                  if (!isEnabled) {
+                    setSelectedObjectLabel(null)
+                  }
+                }}
+              />
+              Enable Object Interation
+            </label>
+          </div>
+
+          {maxStep > 0 && stepTitle && (
+            <div style={{ marginLeft: "auto", textAlign: "right" }}>
+              {stepTitle}
+            </div>
+          )}
         </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <label>
-            <input
-              type="checkbox"
-              style={{ marginRight: 4 }}
-              checked={enableObjectInteraction}
-              onChange={(event) => {
-                const isEnabled = event.target.checked
-                setEnableObjectInteraction(isEnabled)
-                if (!isEnabled) {
-                  setSelectedObjectLabel(null)
-                }
-              }}
-            />
-            Enable Object Interation
-          </label>
-        </div>
-      </div>
+      )}
 
       <div
         ref={(node) => {

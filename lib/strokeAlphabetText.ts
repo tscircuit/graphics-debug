@@ -45,7 +45,7 @@ export function getAlphabetAdvanceWidth(
   const advanceRatio = getAdvanceRatio(char)
   const letterSpacingRatio = nextChar ? textMetrics.letterSpacingRatio : 0
   const kerningAdjustmentRatio = nextChar
-    ? (kerningRatio[char]?.[nextChar] ?? 0)
+    ? kerningRatio[char]?.[nextChar] ?? 0
     : 0
 
   return fontSize * (advanceRatio + letterSpacingRatio + kerningAdjustmentRatio)
