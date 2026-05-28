@@ -54,6 +54,46 @@ export type GraphicsObjectClickEvent = {
   object: any
 }
 
+const normalizeObjectLimit = (objectLimit?: number) => {
+  if (objectLimit === undefined || !Number.isFinite(objectLimit)) return null
+  const normalizedLimit = Math.floor(objectLimit)
+  return normalizedLimit > 0 ? normalizedLimit : null
+}
+
+export const limitObjectGroups = <T extends Record<string, readonly unknown[]>>(
+  groups: T,
+  objectLimit?: number,
+): {
+  groups: T
+  totalObjectCount: number
+  isLimitReached: boolean
+} => {
+  const totalObjectCount = Object.values(groups).reduce(
+    (count, group) => count + group.length,
+    0,
+  )
+  const normalizedLimit = normalizeObjectLimit(objectLimit)
+
+  if (normalizedLimit === null) {
+    return { groups, totalObjectCount, isLimitReached: false }
+  }
+
+  let remainingObjects = normalizedLimit
+  const limitedGroups = Object.fromEntries(
+    Object.entries(groups).map(([groupName, group]) => {
+      const limitedGroup = group.slice(0, remainingObjects)
+      remainingObjects = Math.max(remainingObjects - limitedGroup.length, 0)
+      return [groupName, limitedGroup]
+    }),
+  ) as unknown as T
+
+  return {
+    groups: limitedGroups,
+    totalObjectCount,
+    isLimitReached: totalObjectCount > normalizedLimit,
+  }
+}
+
 export const InteractiveGraphics = ({
   graphics,
   onObjectClicked,
@@ -429,65 +469,96 @@ export const InteractiveGraphics = ({
     filterLayerAndStep,
   })
 
-  const filterAndLimit = <T,>(
+  const filterObjects = <T,>(
     objects: T[] | undefined,
     filterFn: (obj: T) => boolean,
   ): (T & { originalIndex: number })[] => {
     if (!objects) return []
-    const filtered = objects
+    return objects
       .map((obj, index) => ({ ...obj, originalIndex: index }))
       .filter(filterFn)
-    return objectLimit ? filtered.slice(-objectLimit) : filtered
   }
 
   const filteredLines = useMemo(
     () =>
-      filterAndLimit(graphics.lines, filterLines).sort(
+      filterObjects(graphics.lines, filterLines).sort(
         (a, b) =>
           (a.zIndex ?? 0) - (b.zIndex ?? 0) ||
           a.originalIndex - b.originalIndex,
       ),
-    [graphics.lines, filterLines, objectLimit],
+    [graphics.lines, filterLines],
   )
   const filteredInfiniteLines = useMemo(
-    () => filterAndLimit(graphics.infiniteLines, filterLayerAndStep),
-    [graphics.infiniteLines, filterLayerAndStep, objectLimit],
+    () => filterObjects(graphics.infiniteLines, filterLayerAndStep),
+    [graphics.infiniteLines, filterLayerAndStep],
   )
   const filteredRects = useMemo(
-    () => sortRectsByArea(filterAndLimit(graphics.rects, filterRects)),
-    [graphics.rects, filterRects, objectLimit],
+    () => sortRectsByArea(filterObjects(graphics.rects, filterRects)),
+    [graphics.rects, filterRects],
   )
   const filteredPolygons = useMemo(
-    () => filterAndLimit(graphics.polygons, filterPolygons),
-    [graphics.polygons, filterPolygons, objectLimit],
+    () => filterObjects(graphics.polygons, filterPolygons),
+    [graphics.polygons, filterPolygons],
   )
   const filteredPoints = useMemo(
-    () => filterAndLimit(graphics.points, filterPoints),
-    [graphics.points, filterPoints, objectLimit],
+    () => filterObjects(graphics.points, filterPoints),
+    [graphics.points, filterPoints],
   )
   const filteredCircles = useMemo(
-    () => filterAndLimit(graphics.circles, filterCircles),
-    [graphics.circles, filterCircles, objectLimit],
+    () => filterObjects(graphics.circles, filterCircles),
+    [graphics.circles, filterCircles],
   )
   const filteredTexts = useMemo(
-    () => filterAndLimit(graphics.texts, filterTexts),
-    [graphics.texts, filterTexts, objectLimit],
+    () => filterObjects(graphics.texts, filterTexts),
+    [graphics.texts, filterTexts],
   )
   const filteredArrows = useMemo(
-    () => filterAndLimit(graphics.arrows, filterArrows),
-    [graphics.arrows, filterArrows, objectLimit],
+    () => filterObjects(graphics.arrows, filterArrows),
+    [graphics.arrows, filterArrows],
   )
 
-  const totalFilteredObjects =
-    filteredInfiniteLines.length +
-    filteredLines.length +
-    filteredRects.length +
-    filteredPolygons.length +
-    filteredPoints.length +
-    filteredCircles.length +
-    filteredTexts.length +
-    filteredArrows.length
-  const isLimitReached = objectLimit && totalFilteredObjects > objectLimit
+  const {
+    groups: limitedObjectGroups,
+    totalObjectCount,
+    isLimitReached,
+  } = useMemo(
+    () =>
+      limitObjectGroups(
+        {
+          filteredArrows,
+          filteredInfiniteLines,
+          filteredLines,
+          filteredRects,
+          filteredPolygons,
+          filteredCircles,
+          filteredTexts,
+          filteredPoints,
+        },
+        objectLimit,
+      ),
+    [
+      filteredArrows,
+      filteredInfiniteLines,
+      filteredLines,
+      filteredRects,
+      filteredPolygons,
+      filteredCircles,
+      filteredTexts,
+      filteredPoints,
+      objectLimit,
+    ],
+  )
+
+  const {
+    filteredArrows: visibleArrows,
+    filteredInfiniteLines: visibleInfiniteLines,
+    filteredLines: visibleLines,
+    filteredRects: visibleRects,
+    filteredPolygons: visiblePolygons,
+    filteredCircles: visibleCircles,
+    filteredTexts: visibleTexts,
+    filteredPoints: visiblePoints,
+  } = limitedObjectGroups
 
   return (
     <div>
@@ -560,13 +631,14 @@ export const InteractiveGraphics = ({
                 />
                 Show last step
               </label>
-              {isLimitReached && (
-                <span style={{ color: "red", fontSize: "12px" }}>
-                  Display limited to {objectLimit} objects. Received:{" "}
-                  {totalFilteredObjects}.
-                </span>
-              )}
             </div>
+          )}
+
+          {isLimitReached && (
+            <span style={{ color: "red", fontSize: "12px" }}>
+              Display limited to {normalizeObjectLimit(objectLimit)} objects.
+              Received: {totalObjectCount}.
+            </span>
           )}
 
           <label>
@@ -612,7 +684,7 @@ export const InteractiveGraphics = ({
         onContextMenu={handleContextMenu}
       >
         <DimensionOverlay transform={realToScreen}>
-          {filteredArrows.map((arrow) => (
+          {visibleArrows.map((arrow) => (
             <Arrow
               key={arrow.originalIndex}
               arrow={arrow}
@@ -620,7 +692,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredInfiniteLines.map((infiniteLine) => (
+          {visibleInfiniteLines.map((infiniteLine) => (
             <InfiniteLine
               key={infiniteLine.originalIndex}
               infiniteLine={infiniteLine}
@@ -629,7 +701,7 @@ export const InteractiveGraphics = ({
               size={size}
             />
           ))}
-          {filteredLines.map((line) => (
+          {visibleLines.map((line) => (
             <Line
               key={line.originalIndex}
               line={line}
@@ -639,7 +711,7 @@ export const InteractiveGraphics = ({
               mousePosition={mousePosition}
             />
           ))}
-          {filteredRects.map((rect) => (
+          {visibleRects.map((rect) => (
             <Rect
               key={rect.originalIndex}
               rect={rect}
@@ -647,7 +719,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPolygons.map((polygon) => (
+          {visiblePolygons.map((polygon) => (
             <Polygon
               key={polygon.originalIndex}
               polygon={polygon}
@@ -655,7 +727,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredCircles.map((circle) => (
+          {visibleCircles.map((circle) => (
             <Circle
               key={circle.originalIndex}
               circle={circle}
@@ -663,7 +735,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredTexts.map((txt) => (
+          {visibleTexts.map((txt) => (
             <Text
               key={txt.originalIndex}
               textObj={txt}
@@ -671,7 +743,7 @@ export const InteractiveGraphics = ({
               interactiveState={interactiveState}
             />
           ))}
-          {filteredPoints.map((point) => (
+          {visiblePoints.map((point) => (
             <Point
               key={point.originalIndex}
               point={point}
