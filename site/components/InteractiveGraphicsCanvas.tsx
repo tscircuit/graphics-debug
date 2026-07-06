@@ -51,7 +51,7 @@ export function InteractiveGraphicsCanvas({
   const showToolbar = alwaysShowToolbar || maxStep > 0 || showLabelsByDefault
   const stepTitle =
     maxStep > 0
-      ? stepMetadata?.[showLastStep ? maxStep : activeStep ?? -1]?.title
+      ? stepMetadata?.[showLastStep ? maxStep : (activeStep ?? -1)]?.title
       : undefined
 
   // Filter graphics objects based on step

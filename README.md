@@ -83,6 +83,7 @@ interface Arrow {
   end: { x: number; y: number }
   doubleSided?: boolean
   color?: string
+  step?: number
 }
 
 interface GraphicsObject {

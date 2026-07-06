@@ -39,5 +39,10 @@ export function setStepOfAllObjects(
       text.step = step
     }
   }
+  if (graphics.arrows) {
+    for (const arrow of graphics.arrows) {
+      arrow.step = step
+    }
+  }
   return graphics
 }

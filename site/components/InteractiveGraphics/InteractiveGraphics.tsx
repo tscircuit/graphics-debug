@@ -365,7 +365,7 @@ export const InteractiveGraphics = ({
   const showToolbar = true
   const stepTitle =
     maxStep > 0
-      ? stepMetadata?.[showLastStep ? maxStep : activeStep ?? -1]?.title
+      ? stepMetadata?.[showLastStep ? maxStep : (activeStep ?? -1)]?.title
       : undefined
 
   // Use custom hooks for visibility checks and filtering
