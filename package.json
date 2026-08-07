@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@resvg/resvg-js": "^2.6.2",
     "@types/bun": "^1.2.17",
     "@types/debug": "^4.1.12",
     "@types/jsdom": "^21.1.7",
@@ -52,12 +53,12 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "peerDependencies": {
+    "@resvg/resvg-js": "*",
     "@tscircuit/image-utils": "*",
     "typescript": "^5.0.0"
   },
   "dependencies": {
     "@react-hook/resize-observer": "^2.0.2",
-    "@resvg/resvg-js": "^2.6.2",
     "@tscircuit/alphabet": "^0.0.25",
     "@types/react-router-dom": "^5.3.3",
     "fast-png": "^8.0.0",
