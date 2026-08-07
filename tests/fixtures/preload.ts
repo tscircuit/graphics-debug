@@ -1,1 +1,1 @@
-import "bun-match-svg"
+import "./extend-expect-svg"

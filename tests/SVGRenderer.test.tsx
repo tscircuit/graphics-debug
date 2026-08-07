@@ -2,7 +2,6 @@ import { describe, expect, test, beforeAll } from "bun:test"
 import { act } from "react"
 import { createRoot } from "react-dom/client"
 import SVGRenderer from "../site/components/SVGRenderer"
-import "bun-match-svg"
 import * as jsdom from "jsdom"
 import { getSvgsFromLogString } from "../lib"
 

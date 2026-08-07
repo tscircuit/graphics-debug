@@ -1,6 +1,6 @@
 import { expect } from "bun:test"
 import { existsSync } from "node:fs"
-import { mkdir, writeFile } from "node:fs/promises"
+import { mkdir, readFile, writeFile } from "node:fs/promises"
 import * as path from "node:path"
 import looksSame from "@tscircuit/image-utils/looks-same"
 
@@ -28,7 +28,8 @@ export async function expectPngToMatchSnapshot(
     return
   }
 
-  const result = await looksSame(snapshotPath, Buffer.from(received), {
+  const reference = await readFile(snapshotPath)
+  const result = await looksSame(reference, Buffer.from(received), {
     tolerance: 2.3,
   })
 
@@ -37,13 +38,13 @@ export async function expectPngToMatchSnapshot(
   }
 
   const diffPath = snapshotPath.replace(".snap.png", ".diff.png")
-  await looksSame.createDiff({
-    reference: snapshotPath,
+  const diff = await looksSame.createDiff({
+    reference,
     current: Buffer.from(received),
-    diff: diffPath,
     highlightColor: "#ff00ff",
     tolerance: 2.3,
   })
+  await writeFile(diffPath, diff)
 
   throw new Error(`PNG snapshot does not match. Diff saved at ${diffPath}`)
 }

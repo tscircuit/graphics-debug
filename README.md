@@ -264,13 +264,7 @@ const stacked = stackGraphicsVertically([
 
 If you're using Bun for testing, you can use the `toMatchGraphicsSvg` matcher to compare graphics objects against saved snapshots.
 
-First, install the required peer dependencies:
-
-```bash
-bun add -d bun-match-svg looksSame
-```
-
-Then use the matcher in your tests:
+Import the matcher in your tests:
 
 ```tsx
 import { expect, test } from "bun:test"
@@ -313,7 +307,8 @@ Snapshots are stored as SVG files in an `__snapshots__` directory next to your t
 bun test -u
 ```
 
-This is powered by the same technology as bun-match-svg but integrated specifically for GraphicsObject testing.
+The matcher rasterizes SVG snapshots before comparing them, so visually identical
+SVGs match even when their markup differs.
 
 ### Example Graphics JSON
 

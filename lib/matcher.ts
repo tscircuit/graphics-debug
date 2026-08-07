@@ -1,7 +1,7 @@
 import { expect, type MatcherResult } from "bun:test"
 import * as fs from "node:fs"
 import * as path from "node:path"
-import looksSame from "looks-same"
+import { compareSvg, createSvgDiff } from "./compare-svg"
 import { GraphicsObject } from "./types"
 import { getSvgFromGraphicsObject } from "./getSvgFromGraphicsObject"
 
@@ -54,14 +54,10 @@ async function toMatchGraphicsSvg(
 
   const existingSnapshot = fs.readFileSync(filePath, "utf-8")
 
-  const result: any = await looksSame(
-    Buffer.from(receivedSvg),
-    Buffer.from(existingSnapshot),
-    {
-      strict: false,
-      tolerance: 2,
-    },
-  )
+  const result = await compareSvg(existingSnapshot, receivedSvg, {
+    strict: false,
+    tolerance: 2,
+  })
 
   if (result.equal) {
     return {
@@ -71,12 +67,12 @@ async function toMatchGraphicsSvg(
   }
 
   const diffPath = filePath.replace(".snap.svg", ".diff.png")
-  await looksSame.createDiff({
-    reference: Buffer.from(existingSnapshot),
-    current: Buffer.from(receivedSvg),
-    diff: diffPath,
+  const diff = await createSvgDiff({
+    referenceSvg: existingSnapshot,
+    currentSvg: receivedSvg,
     highlightColor: "#ff00ff",
   })
+  fs.writeFileSync(diffPath, diff)
 
   return {
     message: () => `Snapshot does not match. Diff saved at ${diffPath}`,
