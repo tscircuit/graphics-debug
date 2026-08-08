@@ -504,6 +504,11 @@ export async function getPngBufferFromGraphicsObject(
       fontSize: (text.fontSize ?? 12) * strokeScale,
       color: text.color || "black",
       anchorAlignment: text.anchorSide ?? "center",
+      // Text.rotation is counter-clockwise in graphics (y-up) space; the
+      // raster context rotates clockwise in screen (y-down) space, so negate.
+      rotationRadians: text.rotation
+        ? (-text.rotation * Math.PI) / 180
+        : undefined,
     })
   }
 

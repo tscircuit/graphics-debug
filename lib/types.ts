@@ -91,6 +91,11 @@ export interface Text {
   anchorSide?: NinePointAnchor
   color?: string
   fontSize?: number
+  /**
+   * Rotation in degrees, counter-clockwise about the anchor point in graphics
+   * (y-up) space. 90 makes the text read bottom-to-top.
+   */
+  rotation?: number
   layer?: string
   step?: number
 }
