@@ -68,10 +68,26 @@ function getBounds(graphics: GraphicsObject): Bounds {
       const { dx, dy } = offsetMap[anchor]
       const x0 = t.x + dx
       const y0 = t.y + dy
+      if (!t.rotation) {
+        return [
+          { x: x0, y: y0 },
+          { x: x0 + width, y: y0 + height },
+        ]
+      }
+      // Rotate the text box's corners about the anchor so rotated text still
+      // contributes its true extents to the bounds.
+      const rad = (t.rotation * Math.PI) / 180
+      const cos = Math.cos(rad)
+      const sin = Math.sin(rad)
       return [
         { x: x0, y: y0 },
+        { x: x0 + width, y: y0 },
+        { x: x0, y: y0 + height },
         { x: x0 + width, y: y0 + height },
-      ]
+      ].map((corner) => ({
+        x: t.x + (corner.x - t.x) * cos - (corner.y - t.y) * sin,
+        y: t.y + (corner.x - t.x) * sin + (corner.y - t.y) * cos,
+      }))
     }),
   ]
 
@@ -616,6 +632,13 @@ export function getSvgFromGraphicsObject(
             "font-family": "sans-serif",
             "text-anchor": alignMap[anchor],
             "dominant-baseline": baselineMap[anchor],
+            // Text.rotation is counter-clockwise in graphics (y-up) space;
+            // SVG rotate() is clockwise in screen (y-down) space, so negate.
+            ...(txt.rotation
+              ? {
+                  transform: `rotate(${-txt.rotation}, ${projected.x}, ${projected.y})`,
+                }
+              : {}),
           },
           children: [{ type: "text", value: txt.text }],
         }

@@ -498,7 +498,17 @@ export function drawGraphicsToCanvas(
       ctx.textAlign = alignMap[anchor]
       ctx.textBaseline = baselineMap[anchor]
 
-      ctx.fillText(text.text, projected.x, projected.y)
+      if (text.rotation) {
+        // Text.rotation is counter-clockwise in graphics (y-up) space; canvas
+        // rotate() is clockwise in screen (y-down) space, so negate.
+        ctx.save()
+        ctx.translate(projected.x, projected.y)
+        ctx.rotate((-text.rotation * Math.PI) / 180)
+        ctx.fillText(text.text, 0, 0)
+        ctx.restore()
+      } else {
+        ctx.fillText(text.text, projected.x, projected.y)
+      }
     })
   }
 

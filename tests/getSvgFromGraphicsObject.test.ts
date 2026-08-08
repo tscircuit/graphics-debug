@@ -347,6 +347,33 @@ describe("getSvgFromGraphicsObject", () => {
     expect(svg).toMatchSvgSnapshot(import.meta.path, "texts")
   })
 
+  test("rotates text about its anchor", () => {
+    const input: GraphicsObject = {
+      texts: [
+        {
+          x: 0,
+          y: 0,
+          text: "SPI_SCK",
+          rotation: 90,
+        },
+        {
+          x: 2,
+          y: 0,
+          text: "FLAT",
+        },
+      ],
+    }
+
+    const svg = getSvgFromGraphicsObject(input)
+    // rotation is CCW in graphics space -> negated for SVG's screen space
+    expect(svg).toMatch(/transform="rotate\(-90, [\d.]+, [\d.]+\)"/)
+    // unrotated text carries no transform
+    const flatText = svg.split("<text").find((chunk) => chunk.includes("FLAT"))
+    expect(flatText).toBeDefined()
+    expect(flatText!).not.toContain("transform=")
+    expect(svg).toMatchSvgSnapshot(import.meta.path, "rotated-texts")
+  })
+
   test("respects text anchorSide", () => {
     const input: GraphicsObject = {
       texts: [
