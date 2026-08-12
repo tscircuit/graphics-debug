@@ -234,6 +234,7 @@ export function getSvgFromGraphicsObject(
                   points: projectedPoints.map((p) => `${p.x},${p.y}`).join(" "),
                   fill: "none",
                   stroke: line.strokeColor || "black",
+                  "stroke-linejoin": "round",
                   "stroke-width": !line.strokeWidth
                     ? "1px"
                     : typeof line.strokeWidth === "string"
