@@ -234,6 +234,7 @@ export async function getPngBufferFromGraphicsObject(
       line.strokeWidth === undefined
         ? 1
         : Math.max(line.strokeWidth * strokeScale, 1)
+    ctx.lineJoin = "round"
     strokePolyline(ctx, projectedPoints, dashPattern)
 
     if (

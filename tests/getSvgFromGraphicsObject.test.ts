@@ -63,6 +63,13 @@ describe("getSvgFromGraphicsObject", () => {
     })
     expect(svg).toBeString()
     expect(svg).toContain("<polyline")
+    const polylines = svg.match(/<polyline[^>]*>/g) ?? []
+    expect(polylines).toHaveLength(2)
+    expect(
+      polylines.every((polyline) =>
+        polyline.includes('stroke-linejoin="round"'),
+      ),
+    ).toBe(true)
     // Test custom stroke properties
     expect(svg).toContain('stroke="blue"')
     // Test stroke width scaling
@@ -72,7 +79,7 @@ describe("getSvgFromGraphicsObject", () => {
     expect(strokeWidths).toMatchInlineSnapshot(`
       [
         [
-          "<polyline data-points="0,0 10,10" data-type="line" data-label="" points="40,160 160,40" fill="none" stroke="blue" stroke-width="24"",
+          "<polyline data-points="0,0 10,10" data-type="line" data-label="" points="40,160 160,40" fill="none" stroke="blue" stroke-linejoin="round" stroke-width="24"",
           "24",
         ],
       ]
