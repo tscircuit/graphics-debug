@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>29 元购买 OfferDesk 专业版</title>
+    <meta name="description" content="购买 OfferDesk 专业版，去掉报价单水印，适合正式发给客户。" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f4f5f2;
+        color: #151916;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC", sans-serif;
+        line-height: 1.7;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .wrap {
+        width: min(1080px, 100%);
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+      }
+
+      .top,
+      .actions,
+      .facts {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      .top {
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+
+      h1 {
+        margin: 0;
+        max-width: 760px;
+        font-size: 48px;
+        line-height: 1.05;
+      }
+
+      h2,
+      p {
+        margin: 0;
+      }
+
+      p,
+      li {
+        color: #667065;
+      }
+
+      .hero {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 330px;
+        gap: 16px;
+        align-items: stretch;
+      }
+
+      .card {
+        border: 1px solid #d9ded7;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 22px;
+        box-shadow: 0 14px 38px rgba(20, 26, 22, 0.08);
+      }
+
+      .price {
+        color: #0f8a55;
+        font-size: 64px;
+        font-weight: 1000;
+        line-height: 1;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        border: 1px solid #151916;
+        border-radius: 999px;
+        background: #ffffff;
+        padding: 0 18px;
+        color: #151916;
+        font-weight: 900;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .green {
+        border-color: #0f8a55;
+        background: #0f8a55;
+        color: #ffffff;
+      }
+
+      .blue {
+        border-color: #2563eb;
+        background: #2563eb;
+        color: #ffffff;
+      }
+
+      .facts {
+        margin-top: 18px;
+      }
+
+      .fact {
+        border: 1px solid #d9ded7;
+        border-radius: 10px;
+        background: #f8faf7;
+        padding: 12px 14px;
+        font-weight: 900;
+      }
+
+      .steps,
+      .grid {
+        display: grid;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .step {
+        border: 1px solid #d9ded7;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 16px;
+      }
+
+      .step strong {
+        display: block;
+        color: #0f8a55;
+        font-size: 28px;
+      }
+
+      .qr {
+        display: grid;
+        justify-items: center;
+        gap: 10px;
+      }
+
+      .qr canvas {
+        width: min(260px, 100%);
+        height: auto;
+        border: 1px solid #d9ded7;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .small {
+        font-size: 13px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      @media (max-width: 820px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        h1 {
+          font-size: 36px;
+        }
+
+        .actions .btn {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="top">
+        <strong>OfferDesk 专业版</strong>
+        <nav class="actions" aria-label="页面链接">
+          <a class="btn" href="./sales.html">销售页</a>
+          <a class="btn" href="./index.html">先试用</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <article class="card">
+          <p>给自由职业者、小团队和接单工作室</p>
+          <h1>29 元解锁专业版，正式报价单去水印。</h1>
+          <div class="facts">
+            <span class="fact">一次性买断</span>
+            <span class="fact">自动收款</span>
+            <span class="fact">自动发授权码</span>
+            <span class="fact">7 天内可处理退款</span>
+          </div>
+          <div class="actions" style="margin-top: 22px">
+            <a class="btn green" id="checkoutButton" href="https://qr.alipay.com/fkx18699evozd44sg2kip49" target="_blank" rel="noreferrer">打开支付宝付款</a>
+            <a class="btn blue" id="manualClaimButton" href="./after-pay.html">付款后提交信息</a>
+            <a class="btn" href="./index.html">打开软件</a>
+          </div>
+          <p class="small" id="checkoutStatus" style="margin-top: 12px">自动收款平台未配置，当前是人工备用收款。</p>
+        </article>
+
+        <aside class="card qr">
+          <canvas id="qr" width="260" height="260" aria-label="支付宝收款二维码"></canvas>
+          <div class="price">¥29</div>
+          <p class="small" id="checkoutCaption">扫码或点击按钮付款</p>
+        </aside>
+      </section>
+
+      <section class="grid">
+        <article class="step">
+          <strong>1</strong>
+          <h2>先试用</h2>
+          <p>打开 OfferDesk，生成一次报价单，确认它适合你的报价场景。</p>
+        </article>
+        <article class="step">
+          <strong>2</strong>
+          <h2>付款 29 元</h2>
+          <p>打开自动付款页，按平台显示的方式完成付款。</p>
+        </article>
+        <article class="step">
+          <strong>3</strong>
+          <h2>收到授权码</h2>
+          <p>平台自动把授权码发到邮箱。输入后免费水印消失，可正式发给客户。</p>
+        </article>
+      </section>
+
+      <section class="card" style="margin-top: 14px">
+        <h2>适合谁买</h2>
+        <ul>
+          <li>经常给客户报设计、开发、摄影、咨询、运营服务价格的人。</li>
+          <li>报价前想先知道利润率、首付款和折扣影响的人。</li>
+          <li>需要把报价单打印或保存成 PDF 发给客户的人。</li>
+        </ul>
+        <p class="small">客服邮箱：<a href="mailto:534403209@qq.com">534403209@qq.com</a></p>
+      </section>
+    </main>
+
+    <script src="./app-config.js?v=auto-payment"></script>
+    <script>
+      const QR_ROWS = [
+        "00000000000000000000000000000000000000000",
+        "00000000000000000000000000000000000000000",
+        "00000000000000000000000000000000000000000",
+        "00000000000000000000000000000000000000000",
+        "00001111111001110010001100010011111110000",
+        "00001000001000111001101011001010000010000",
+        "00001011101011110011000011100010111010000",
+        "00001011101011100000001101010010111010000",
+        "00001011101011111111110010011010111010000",
+        "00001000001010001000010101001010000010000",
+        "00001111111010101010101010101011111110000",
+        "00000000000011000010100111100000000000000",
+        "00001011111000000110110100101011111000000",
+        "00000100110001111100011110110011011110000",
+        "00001111101100101111010010100100101100000",
+        "00000000000011101100111110001110111110000",
+        "00000110001010110011100111100001110110000",
+        "00001101010000110101001001011110000110000",
+        "00001001111010010011110011001110100100000",
+        "00000111100110111011001001001111011000000",
+        "00001110011110011111110000101101100010000",
+        "00001110010011011110001111010111011010000",
+        "00000100111110100101001011001001101100000",
+        "00001010000000110101000101110011111010000",
+        "00001110101000011100001001010100110100000",
+        "00001100000000000001110011110010011010000",
+        "00001001111110000110011101000001001100000",
+        "00001010100111110000100111101100001100000",
+        "00001000001010011010110100111111110110000",
+        "00000000000010100110010110101000101110000",
+        "00001111111000100101110000111010101100000",
+        "00001000001011000011011110001000111100000",
+        "00001011101011110111100111101111110100000",
+        "00001011101010000101011000000100111010000",
+        "00001011101010100111101011001111001000000",
+        "00001000001001110001001001100010101000000",
+        "00001111111010010111111000011111010100000",
+        "00000000000000000000000000000000000000000",
+        "00000000000000000000000000000000000000000",
+        "00000000000000000000000000000000000000000",
+        "00000000000000000000000000000000000000000"
+      ];
+
+      const canvas = document.getElementById("qr");
+      const ctx = canvas.getContext("2d");
+      const cell = canvas.width / QR_ROWS.length;
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#000000";
+      QR_ROWS.forEach((row, y) => {
+        [...row].forEach((value, x) => {
+          if (value === "1") {
+            ctx.fillRect(Math.round(x * cell), Math.round(y * cell), Math.ceil(cell), Math.ceil(cell));
+          }
+        });
+      });
+
+      const config = window.OFFERDESK_CONFIG || {};
+      const autoCheckoutUrl = String(config.autoCheckoutUrl || "").trim();
+      const licenseProvider = String(config.licenseProvider || "").trim().toLowerCase();
+      const checkoutButton = document.getElementById("checkoutButton");
+      const manualClaimButton = document.getElementById("manualClaimButton");
+      const checkoutStatus = document.getElementById("checkoutStatus");
+      const checkoutCaption = document.getElementById("checkoutCaption");
+
+      if (licenseProvider === "lemonsqueezy" && autoCheckoutUrl.startsWith("https://")) {
+        checkoutButton.href = autoCheckoutUrl;
+        checkoutButton.textContent = "打开自动付款页";
+        manualClaimButton.hidden = true;
+        canvas.hidden = true;
+        checkoutStatus.textContent = "付款平台会自动收款，并把授权码发到买家邮箱。";
+        checkoutCaption.textContent = "支持平台可用的支付宝、微信支付、银行卡或 PayPal。";
+      }
+    </script>
+  </body>
+</html>
