@@ -1,0 +1,15 @@
+我做了一个报价单工具，给自由职业者、小团队和接单工作室用。
+
+它能算成本、利润率、首付款，还能生成可以发给客户的报价单。免费版能试用，29 元专业版去水印。
+
+你如果最近有报价场景，可以试 5 分钟：
+https://8npyvz5bd8-lang.github.io/graphics-debug/offerdesk/sales.html
+
+如果觉得适合，再点页面里的 29 元购买专业版。
+
+成交页：
+https://8npyvz5bd8-lang.github.io/graphics-debug/offerdesk/buy.html
+
+接入自动收款平台后，付款平台会自动把授权码发到你的邮箱。收到后回到工具里输入授权码即可去水印。
+
+客服邮箱：534403209@qq.com

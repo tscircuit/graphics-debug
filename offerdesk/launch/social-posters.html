@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OfferDesk 上架海报</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        background: #f4f5f2;
+        color: #151916;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "PingFang SC", sans-serif;
+      }
+
+      body {
+        width: 1080px;
+        height: 1080px;
+        overflow: hidden;
+      }
+
+      .poster {
+        display: none;
+        position: relative;
+        width: 1080px;
+        height: 1080px;
+        padding: 70px;
+        background: #f4f5f2;
+      }
+
+      .poster.active {
+        display: block;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        min-height: 48px;
+        border: 2px solid #151916;
+        border-radius: 999px;
+        padding: 0 22px;
+        background: #ffffff;
+        font-size: 24px;
+        font-weight: 900;
+      }
+
+      h1 {
+        max-width: 860px;
+        margin: 28px 0 0;
+        font-size: 86px;
+        line-height: 1.04;
+        letter-spacing: 0;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 58px;
+        line-height: 1.1;
+        letter-spacing: 0;
+      }
+
+      p {
+        margin: 20px 0 0;
+        color: #4f5a52;
+        font-size: 34px;
+        line-height: 1.45;
+      }
+
+      .price {
+        color: #0f8a55;
+        font-size: 90px;
+        font-weight: 1000;
+        line-height: 1;
+      }
+
+      .mock {
+        position: absolute;
+        right: 60px;
+        bottom: 80px;
+        width: 610px;
+        height: 520px;
+        border: 2px solid #151916;
+        border-radius: 20px;
+        background: #ffffff;
+        padding: 34px;
+        box-shadow: 0 28px 80px rgba(20, 26, 22, 0.2);
+      }
+
+      .mock-title {
+        font-size: 30px;
+        font-weight: 1000;
+      }
+
+      .mock-line {
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        border-bottom: 2px solid #eef1ed;
+        padding: 20px 0;
+        font-size: 26px;
+      }
+
+      .mock-total {
+        margin-top: 28px;
+        color: #0f8a55;
+        font-size: 52px;
+        font-weight: 1000;
+        text-align: right;
+      }
+
+      .panel {
+        position: absolute;
+        left: 70px;
+        bottom: 96px;
+        width: 390px;
+        border: 2px solid #151916;
+        border-radius: 20px;
+        background: #ffffff;
+        padding: 28px;
+        box-shadow: 0 20px 60px rgba(20, 26, 22, 0.12);
+      }
+
+      .panel strong {
+        display: block;
+        color: #0f8a55;
+        font-size: 54px;
+        line-height: 1.05;
+      }
+
+      .panel span {
+        display: block;
+        margin-top: 10px;
+        color: #667065;
+        font-size: 26px;
+        line-height: 1.35;
+      }
+
+      .list {
+        display: grid;
+        gap: 24px;
+        margin-top: 44px;
+      }
+
+      .item {
+        display: grid;
+        grid-template-columns: 76px 1fr;
+        gap: 22px;
+        align-items: center;
+        border: 2px solid #d9ded7;
+        border-radius: 20px;
+        background: #ffffff;
+        padding: 22px;
+      }
+
+      .item .num {
+        display: grid;
+        place-items: center;
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        background: #151916;
+        color: #ffffff;
+        font-size: 30px;
+        font-weight: 900;
+        line-height: 1;
+      }
+
+      .item strong {
+        display: block;
+        font-size: 34px;
+        line-height: 1.25;
+      }
+
+      .item span {
+        display: block;
+        margin-top: 6px;
+        color: #667065;
+        font-size: 26px;
+      }
+
+      .quote {
+        position: absolute;
+        right: 70px;
+        bottom: 76px;
+        width: 500px;
+        border: 2px solid #151916;
+        border-radius: 20px;
+        background: #ffffff;
+        padding: 32px;
+        box-shadow: 0 24px 70px rgba(20, 26, 22, 0.14);
+      }
+
+      .quote .row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        border-bottom: 2px solid #eef1ed;
+        padding: 18px 0;
+        font-size: 28px;
+      }
+
+      .quote .total {
+        color: #0f8a55;
+        font-size: 46px;
+        font-weight: 1000;
+      }
+
+      .foot {
+        position: absolute;
+        left: 70px;
+        right: 70px;
+        bottom: 38px;
+        display: flex;
+        justify-content: space-between;
+        color: #667065;
+        font-size: 22px;
+        font-weight: 800;
+      }
+
+      .green {
+        color: #0f8a55;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="poster active" data-poster="cover">
+      <span class="tag">自由职业者 / 小团队报价工具</span>
+      <h1>报价前，先知道这单赚不赚钱</h1>
+      <p>自动计算成本、利润率、首付款，生成可以发给客户的正式报价单。</p>
+      <div class="panel">
+        <strong>29 元</strong>
+        <span>专业版去水印<br />一次性买断</span>
+      </div>
+      <div class="mock">
+        <div class="mock-title">客户报价单</div>
+        <div class="mock-line"><span>品牌官网设计</span><strong>¥8,000</strong></div>
+        <div class="mock-line"><span>前端开发</span><strong>¥12,000</strong></div>
+        <div class="mock-line"><span>首付款</span><strong>¥10,000</strong></div>
+        <div class="mock-line"><span>利润率</span><strong class="green">42%</strong></div>
+        <div class="mock-total">合计 ¥20,000</div>
+      </div>
+      <div class="foot">
+        <span>OfferDesk 报价单赚钱助手</span>
+        <span>先试用，再购买</span>
+      </div>
+    </section>
+
+    <section class="poster" data-poster="profit">
+      <span class="tag">解决低报价</span>
+      <h1>别接完单，才发现自己白忙</h1>
+      <div class="list">
+        <div class="item">
+          <span class="num">1</span>
+          <div><strong>输入项目价格和内部成本</strong><span>成本只给自己看，不出现在客户报价单里。</span></div>
+        </div>
+        <div class="item">
+          <span class="num">2</span>
+          <div><strong>自动算利润和利润率</strong><span>报价前先知道这个价格是否值得接。</span></div>
+        </div>
+        <div class="item">
+          <span class="num">3</span>
+          <div><strong>一键保存成 PDF 发客户</strong><span>客户看到的是干净正式的报价单。</span></div>
+        </div>
+      </div>
+      <div class="foot">
+        <span>OfferDesk</span>
+        <span>适合设计 / 开发 / 摄影 / 咨询报价</span>
+      </div>
+    </section>
+
+    <section class="poster" data-poster="delivery">
+      <span class="tag">付款后怎么交付</span>
+      <h1>免费试用，满意再解锁专业版</h1>
+      <p>专业版去掉免费水印，适合正式发给客户。</p>
+      <div class="quote">
+        <div class="row"><span>服务报价</span><strong>¥20,000</strong></div>
+        <div class="row"><span>首付款</span><strong>¥10,000</strong></div>
+        <div class="row"><span>利润率</span><strong class="green">42%</strong></div>
+        <div class="row"><span>专业版</span><strong class="total">¥29</strong></div>
+      </div>
+      <div class="panel">
+        <strong>3 步</strong>
+        <span>付款<br />提交邮箱<br />收到授权码</span>
+      </div>
+      <div class="foot">
+        <span>OfferDesk 报价单赚钱助手</span>
+        <span>客服：534403209@qq.com</span>
+      </div>
+    </section>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const poster = params.get("poster") || "cover";
+      document.querySelectorAll(".poster").forEach((item) => {
+        item.classList.toggle("active", item.dataset.poster === poster);
+      });
+    </script>
+  </body>
+</html>
