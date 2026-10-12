@@ -125,7 +125,11 @@ function getProjectionMatrix(
   return compose(
     translate(svgWidth / 2, svgHeight / 2),
     scale(scale_factor, yFlip * scale_factor),
-    translate(-(bounds.minX + width / 2), -(bounds.minY + height / 2)),
+    // Fallback spans prevent division by zero, but must not shift the center.
+    translate(
+      -(bounds.minX + bounds.maxX) / 2,
+      -(bounds.minY + bounds.maxY) / 2,
+    ),
   )
 }
 
