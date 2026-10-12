@@ -1,5 +1,6 @@
 {
   "name": "graphics-debug",
+  "license": "MIT",
   "main": "dist/lib/index.js",
   "type": "module",
   "version": "0.0.100",
