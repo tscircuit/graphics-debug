@@ -83,6 +83,9 @@ interface Arrow {
   end: { x: number; y: number }
   doubleSided?: boolean
   color?: string
+  label?: string
+  inlineLabel?: string
+  layer?: string
   step?: number
 }
 

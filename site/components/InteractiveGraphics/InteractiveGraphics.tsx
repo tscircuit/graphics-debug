@@ -102,6 +102,7 @@ export const InteractiveGraphics = ({
       ...(graphics.points?.map((p) => p.layer!).filter(Boolean) ?? []),
       ...(graphics.texts?.map((t) => t.layer!).filter(Boolean) ?? []),
       ...(graphics.circles?.map((c) => c.layer!).filter(Boolean) ?? []),
+      ...(graphics.arrows?.map((a) => a.layer!).filter(Boolean) ?? []),
     ]),
   )
   const maxStep = getMaxStep(graphics)
@@ -422,6 +423,7 @@ export const InteractiveGraphics = ({
   const filterArrows = useFilterArrows({
     isPointOnScreen,
     doesLineIntersectViewport,
+    filterLayerAndStep,
   })
   const filterPolygons = useFilterPolygons({
     isPointOnScreen,
