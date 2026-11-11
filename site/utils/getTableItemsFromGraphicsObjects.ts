@@ -82,6 +82,16 @@ export const getTableItemsFromGraphicsObjects = (
     })
   }
 
+  if (graphicsObject.arrows) {
+    graphicsObject.arrows.forEach((arrow, idx) => {
+      objects.push({
+        type: "arrow",
+        id: `arrow-${idx}`,
+        properties: flattenObject(arrow),
+      })
+    })
+  }
+
   if (graphicsObject.texts) {
     graphicsObject.texts.forEach((text, idx) => {
       objects.push({

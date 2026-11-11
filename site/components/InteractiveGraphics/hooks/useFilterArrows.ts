@@ -11,14 +11,18 @@ type PointCheck = (point: Point) => boolean
 type UseFilterArrowsParams = {
   isPointOnScreen: PointCheck
   doesLineIntersectViewport: LineCheck
+  filterLayerAndStep?: (obj: { layer?: string; step?: number }) => boolean
 }
 
 export const useFilterArrows = ({
   isPointOnScreen,
   doesLineIntersectViewport,
+  filterLayerAndStep,
 }: UseFilterArrowsParams) => {
   return useMemo(() => {
     return (arrow: Arrow) => {
+      if (filterLayerAndStep && !filterLayerAndStep(arrow)) return false
+
       const geometry = getArrowGeometry(arrow)
       const { shaftStart, shaftEnd, heads } = geometry
 
@@ -48,5 +52,5 @@ export const useFilterArrows = ({
 
       return segments.some(([p1, p2]) => doesLineIntersectViewport(p1, p2))
     }
-  }, [isPointOnScreen, doesLineIntersectViewport])
+  }, [isPointOnScreen, doesLineIntersectViewport, filterLayerAndStep])
 }

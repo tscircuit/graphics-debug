@@ -1,8 +1,9 @@
 import { describe, expect, test } from "bun:test"
 import { setStepOfAllObjects } from "../lib/setStepOfAllObjects"
-import type { GraphicsObject } from "../lib/types"
+import type { Arrow, GraphicsObject } from "../lib/types"
 import { getGraphicsFilteredByStep } from "../site/utils/getGraphicsFilteredByStep"
 import { getMaxStep } from "../site/utils/getMaxStep"
+import { getTableItemsFromGraphicsObjects } from "../site/utils/getTableItemsFromGraphicsObjects"
 
 describe("step utilities", () => {
   test("filters arrows by step", () => {
@@ -71,5 +72,39 @@ describe("step utilities", () => {
     }
 
     expect(setStepOfAllObjects(graphics, 4).arrows?.[0].step).toBe(4)
+  })
+
+  test("supports layer and step properties on arrows and includes arrows in table items", () => {
+    const arrow: Arrow = {
+      start: { x: 1, y: 2 },
+      end: { x: 3, y: 4 },
+      color: "red",
+      label: "vec",
+      inlineLabel: "10mm",
+      layer: "top",
+      step: 2,
+    }
+    const graphics: GraphicsObject = {
+      arrows: [arrow],
+    }
+
+    const tableItems = getTableItemsFromGraphicsObjects(graphics)
+    expect(tableItems).toEqual([
+      {
+        type: "arrow",
+        id: "arrow-0",
+        properties: {
+          "start.x": 1,
+          "start.y": 2,
+          "end.x": 3,
+          "end.y": 4,
+          color: "red",
+          label: "vec",
+          inlineLabel: "10mm",
+          layer: "top",
+          step: 2,
+        },
+      },
+    ])
   })
 })
