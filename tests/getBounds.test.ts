@@ -92,3 +92,29 @@ describe("getBounds with text", () => {
     expect(bounds.maxY).toBeCloseTo(expectedHalfExtent)
   })
 })
+
+describe("getBounds with rotated text", () => {
+  test("includes rotated text extents in bounds", () => {
+    const graphics: GraphicsObject = {
+      texts: [
+        {
+          x: 0,
+          y: 0,
+          text: "hello",
+          fontSize: 10,
+          anchorSide: "top_left",
+          rotation: 90,
+        },
+      ],
+    }
+    const bounds = getBounds(graphics)
+    const width = "hello".length * 10 * FONT_SIZE_WIDTH_RATIO
+    const height = 10 * FONT_SIZE_HEIGHT_RATIO
+    // Rotating the W x H box 90 degrees CCW about the anchor maps
+    // (x, y) -> (-y, x): the box extends from -H to 0 on x and 0 to W on y.
+    expect(bounds.minX).toBeCloseTo(-height)
+    expect(bounds.maxX).toBeCloseTo(0)
+    expect(bounds.minY).toBeCloseTo(0)
+    expect(bounds.maxY).toBeCloseTo(width)
+  })
+})

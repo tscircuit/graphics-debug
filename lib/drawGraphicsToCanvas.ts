@@ -110,10 +110,26 @@ export function getBounds(graphics: GraphicsObject): Viewbox {
       const { dx, dy } = offsetMap[anchor]
       const x0 = text.x + dx
       const y0 = text.y + dy
+      if (!text.rotation) {
+        return [
+          { x: x0, y: y0 },
+          { x: x0 + width, y: y0 + height },
+        ]
+      }
+      // Rotate the text box's corners about the anchor so rotated text still
+      // contributes its true extents to the bounds.
+      const rad = (text.rotation * Math.PI) / 180
+      const cos = Math.cos(rad)
+      const sin = Math.sin(rad)
       return [
         { x: x0, y: y0 },
+        { x: x0 + width, y: y0 },
+        { x: x0, y: y0 + height },
         { x: x0 + width, y: y0 + height },
-      ]
+      ].map((corner) => ({
+        x: text.x + (corner.x - text.x) * cos - (corner.y - text.y) * sin,
+        y: text.y + (corner.x - text.x) * sin + (corner.y - text.y) * cos,
+      }))
     }),
   ]
 
